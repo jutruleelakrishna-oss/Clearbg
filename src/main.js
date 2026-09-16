@@ -44,118 +44,45 @@ function setFile(file) {
   setStatus(`${file.name} ready.`);
 }
 
-fileInput.addEventListener("change", (event) => {
-  setFile(event.target.files[0]);
-});
+function convertToJpeg(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const url = URL.createObjectURL(file);
 
-["dragenter", "dragover"].forEach((eventName) => {
-  dropZone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    dropZone.classList.add("dragging");
-  });
-});
+    image.onload = () => {
+      URL.revokeObjectURL(url);
 
-["dragleave", "drop"].forEach((eventName) => {
-  dropZone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    dropZone.classList.remove("dragging");
-  });
-});
+      const maxSize = 2500;
 
-dropZone.addEventListener("drop", (event) => {
-  setFile(event.dataTransfer.files[0]);
-});
+      let width = image.naturalWidth;
+      let height = image.naturalHeight;
 
-dropZone.addEventListener("click", () => {
-  fileInput.click();
-});
-
-removeButton.addEventListener("click", async () => {
-  if (!selectedFile) return;
-
-  removeButton.disabled = true;
-  downloadButton.hidden = true;
-
-  setStatus("Loading AI model…", 5);
-
-  try {
-    const blob = await removeBackground(selectedFile, {
-      debug: true,
-      device: "cpu",
-      model: "isnet_quint8",
-
-      progress: (key, current, total) => {
-        const percent = total
-          ? Math.round((current / total) * 100)
-          : 0;
-
-        setStatus(
-          `Processing… ${percent}%`,
-          percent
+      if (width > maxSize || height > maxSize) {
+        const scale = Math.min(
+          maxSize / width,
+          maxSize / height
         );
 
-        console.log(
-          `ClearBG: ${key} ${current}/${total}`
-        );
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
       }
-    });
 
-    if (resultUrl) {
-      URL.revokeObjectURL(resultUrl);
-    }
+      const canvas = document.createElement("canvas");
 
-    resultUrl = URL.createObjectURL(blob);
+      canvas.width = width;
+      canvas.height = height;
 
-    result.src = resultUrl;
-    result.hidden = false;
+      const context = canvas.getContext("2d");
 
-    downloadButton.hidden = false;
+      if (!context) {
+        reject(new Error("Could not create image canvas."));
+        return;
+      }
 
-    setStatus(
-      "Background removed successfully!",
-      100
-    );
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
 
-  } catch (error) {
-    console.error("ClearBG error:", error);
-
-    const message =
-      error?.message ||
-      error?.toString() ||
-      "Unknown error";
-
-    setStatus(`Error: ${message}`);
-  } finally {
-    removeButton.disabled = false;
-  }
-});
-
-downloadButton.addEventListener("click", () => {
-  if (!resultUrl) return;
-
-  const link = document.createElement("a");
-
-  link.href = resultUrl;
-  link.download = "clearbg-result.png";
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-});
-
-resetButton.addEventListener("click", () => {
-  selectedFile = null;
-  fileInput.value = "";
-
-  preview.hidden = true;
-  result.hidden = true;
-  downloadButton.hidden = true;
-  removeButton.disabled = true;
-
-  if (resultUrl) {
-    URL.revokeObjectURL(resultUrl);
-    resultUrl = null;
-  }
-
-  setStatus("Choose an image to begin.");
-});
+      context.drawImage(
+        image,
+        0,
+        0
