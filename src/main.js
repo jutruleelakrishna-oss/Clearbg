@@ -27,18 +27,30 @@ function setStatus(message, percent = null) {
 }
 
 function setFile(file) {
-  if (!file || !file.type.startsWith("image/")) {
+  if (!file) {
+    setStatus("Please choose an image.");
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
     setStatus("Please choose a JPG or PNG image.");
     return;
   }
 
   selectedFile = file;
 
-  if (preview.src.startsWith("blob:")) {
-    URL.revokeObjectURL(preview.src);
-  }
+  const previewUrl = URL.createObjectURL(file);
 
-  preview.src = URL.createObjectURL(file);
+  preview.onload = () => {
+    URL.revokeObjectURL(previewUrl);
+  };
+
+  preview.onerror = () => {
+    URL.revokeObjectURL(previewUrl);
+    setStatus("This browser cannot display this image.");
+  };
+
+  preview.src = previewUrl;
   preview.hidden = false;
 
   result.hidden = true;
@@ -89,9 +101,18 @@ removeButton.addEventListener("click", async () => {
   downloadButton.hidden = true;
 
   try {
-    setStatus("Starting AI…", 5);
+    setStatus("Preparing image…", 5);
 
-    const blob = await removeBackground(selectedFile, {
+    const originalBlob = new Blob(
+      [await selectedFile.arrayBuffer()],
+      {
+        type: selectedFile.type || "image/jpeg"
+      }
+    );
+
+    setStatus("Loading AI model…", 10);
+
+    const blob = await removeBackground(originalBlob, {
       debug: true,
       device: "cpu",
       model: "isnet_quint8",
