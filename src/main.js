@@ -59,7 +59,7 @@ function setFile(file) {
   removeButton.disabled = false;
 }
 
-function getImageDataFromPreview() {
+function createProcessingBlob() {
   return new Promise((resolve, reject) => {
     if (!preview.complete || !preview.naturalWidth) {
       reject(new Error("Image has not finished loading."));
@@ -86,35 +86,32 @@ function getImageDataFromPreview() {
     canvas.width = width;
     canvas.height = height;
 
-    const context = canvas.getContext("2d", {
-      willReadFrequently: true
-    });
+    const context = canvas.getContext("2d");
 
     if (!context) {
       reject(new Error("Could not create image canvas."));
       return;
     }
 
-    try {
-      context.drawImage(
-        preview,
-        0,
-        0,
-        width,
-        height
-      );
+    context.drawImage(
+      preview,
+      0,
+      0,
+      width,
+      height
+    );
 
-      const imageData = context.getImageData(
-        0,
-        0,
-        width,
-        height
-      );
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("Could not create processing image."));
+          return;
+        }
 
-      resolve(imageData);
-    } catch (error) {
-      reject(error);
-    }
+        resolve(blob);
+      },
+      "image/png"
+    );
   });
 }
 
@@ -161,39 +158,47 @@ removeButton.addEventListener("click", async () => {
   try {
     setStatus("Preparing image…", 5);
 
-    const imageData = await getImageDataFromPreview();
+    const processingBlob = await createProcessingBlob();
 
     setStatus("Loading AI model…", 10);
 
-    const blob = await removeBackground(imageData, {
-      debug: true,
-      device: "cpu",
-      model: "isnet_quint8",
+    const resultBlob = await removeBackground(
+      processingBlob,
+      {
+        debug: true,
 
-      progress: (key, current, total) => {
-        const percent = total
-          ? Math.round((current / total) * 100)
-          : 0;
+        publicPath:
+          "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/",
 
-        setStatus(
-          `Processing… ${percent}%`,
-          percent
-        );
+        device: "cpu",
 
-        console.log(
-          "ClearBG:",
-          key,
-          current,
-          total
-        );
+        model: "isnet_quint8",
+
+        progress: (key, current, total) => {
+          const percent = total
+            ? Math.round((current / total) * 100)
+            : 0;
+
+          setStatus(
+            `Processing… ${percent}%`,
+            percent
+          );
+
+          console.log(
+            "ClearBG:",
+            key,
+            current,
+            total
+          );
+        }
       }
-    });
+    );
 
     if (resultUrl) {
       URL.revokeObjectURL(resultUrl);
     }
 
-    resultUrl = URL.createObjectURL(blob);
+    resultUrl = URL.createObjectURL(resultBlob);
 
     result.src = resultUrl;
     result.hidden = false;
