@@ -39,25 +39,83 @@ function setFile(file) {
 
   selectedFile = file;
 
-  const previewUrl = URL.createObjectURL(file);
+  const url = URL.createObjectURL(file);
 
   preview.onload = () => {
-    URL.revokeObjectURL(previewUrl);
+    URL.revokeObjectURL(url);
+    setStatus(`${file.name} ready.`);
   };
 
   preview.onerror = () => {
-    URL.revokeObjectURL(previewUrl);
-    setStatus("This browser cannot display this image.");
+    URL.revokeObjectURL(url);
+    setStatus("The selected image could not be displayed.");
   };
 
-  preview.src = previewUrl;
+  preview.src = url;
   preview.hidden = false;
 
   result.hidden = true;
   downloadButton.hidden = true;
   removeButton.disabled = false;
+}
 
-  setStatus(`${file.name} ready.`);
+function getImageDataFromPreview() {
+  return new Promise((resolve, reject) => {
+    if (!preview.complete || !preview.naturalWidth) {
+      reject(new Error("Image has not finished loading."));
+      return;
+    }
+
+    const maxSize = 2000;
+
+    let width = preview.naturalWidth;
+    let height = preview.naturalHeight;
+
+    if (width > maxSize || height > maxSize) {
+      const scale = Math.min(
+        maxSize / width,
+        maxSize / height
+      );
+
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+    }
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d", {
+      willReadFrequently: true
+    });
+
+    if (!context) {
+      reject(new Error("Could not create image canvas."));
+      return;
+    }
+
+    try {
+      context.drawImage(
+        preview,
+        0,
+        0,
+        width,
+        height
+      );
+
+      const imageData = context.getImageData(
+        0,
+        0,
+        width,
+        height
+      );
+
+      resolve(imageData);
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 fileInput.addEventListener("change", (event) => {
@@ -103,16 +161,11 @@ removeButton.addEventListener("click", async () => {
   try {
     setStatus("Preparing image…", 5);
 
-    const originalBlob = new Blob(
-      [await selectedFile.arrayBuffer()],
-      {
-        type: selectedFile.type || "image/jpeg"
-      }
-    );
+    const imageData = await getImageDataFromPreview();
 
     setStatus("Loading AI model…", 10);
 
-    const blob = await removeBackground(originalBlob, {
+    const blob = await removeBackground(imageData, {
       debug: true,
       device: "cpu",
       model: "isnet_quint8",
