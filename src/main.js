@@ -90,7 +90,7 @@ removeButton.addEventListener("click", async () => {
           : 0;
 
         setStatus(
-          `Loading AI model… ${percent}%`,
+          `Processing… ${percent}%`,
           percent
         );
 
@@ -119,9 +119,12 @@ removeButton.addEventListener("click", async () => {
   } catch (error) {
     console.error("ClearBG error:", error);
 
-    setStatus(
-      "AI processing failed. Please try again."
-    );
+    const message =
+      error?.message ||
+      error?.toString() ||
+      "Unknown error";
+
+    setStatus(`Error: ${message}`);
   } finally {
     removeButton.disabled = false;
   }
