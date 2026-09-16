@@ -39,7 +39,6 @@ function setFile(file) {
 
   result.hidden = true;
   downloadButton.hidden = true;
-
   removeButton.disabled = false;
 
   setStatus(`${file.name} ready.`);
@@ -82,11 +81,8 @@ removeButton.addEventListener("click", async () => {
   try {
     const blob = await removeBackground(selectedFile, {
       debug: true,
-
-      publicPath:
-        "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/",
-
-      model: "isnet_fp16",
+      device: "cpu",
+      model: "isnet_quint8",
 
       progress: (key, current, total) => {
         const percent = total
@@ -99,7 +95,7 @@ removeButton.addEventListener("click", async () => {
         );
 
         console.log(
-          `IMG.LY: ${key} ${current}/${total}`
+          `ClearBG: ${key} ${current}/${total}`
         );
       }
     });
@@ -124,7 +120,7 @@ removeButton.addEventListener("click", async () => {
     console.error("ClearBG error:", error);
 
     setStatus(
-      "AI model could not load. Please try again."
+      "AI processing failed. Please try again."
     );
   } finally {
     removeButton.disabled = false;
@@ -146,12 +142,10 @@ downloadButton.addEventListener("click", () => {
 
 resetButton.addEventListener("click", () => {
   selectedFile = null;
-
   fileInput.value = "";
 
   preview.hidden = true;
   result.hidden = true;
-
   downloadButton.hidden = true;
   removeButton.disabled = true;
 
