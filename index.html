@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ClearBG - AI background remover">
+  <title>ClearBG — AI Background Remover</title>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      ClearBG
+    </div>
+    <span class="privacy">Private by design</span>
+  </header>
+
+  <main class="container">
+
+    <section class="hero">
+      <p class="eyebrow">AI BACKGROUND REMOVER</p>
+
+      <h1>
+        Remove backgrounds.<br>
+        <span>Keep the subject.</span>
+      </h1>
+
+      <p class="subtitle">
+        Turn your photos into clean, transparent PNGs in seconds.
+      </p>
+    </section>
+
+    <section class="workspace">
+
+      <div class="panel">
+
+        <div
+          id="dropZone"
+          class="drop-zone"
+          tabindex="0"
+          role="button"
+          aria-label="Choose an image"
+        >
+
+          <input
+            id="fileInput"
+            type="file"
+            accept="image/*"
+            hidden
+          >
+
+          <div class="upload-icon">↑</div>
+
+          <h2>Drop an image here</h2>
+
+          <p>or tap to choose a photo</p>
+
+          <small>
+            JPG, PNG, WEBP and other common image formats
+          </small>
+
+        </div>
+
+        <div class="preview-grid">
+
+          <div class="preview-card">
+
+            <div class="card-label">
+              Original
+            </div>
+
+            <div class="image-wrap">
+              <img
+                id="preview"
+                alt="Original preview"
+                hidden
+              >
+            </div>
+
+          </div>
+
+          <div class="preview-card checker">
+
+            <div class="card-label">
+              Transparent result
+            </div>
+
+            <div class="image-wrap">
+              <img
+                id="result"
+                alt="Background removed result"
+                hidden
+              >
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="actions">
+
+          <button
+            id="removeButton"
+            class="primary"
+            disabled
+          >
+            ✨ Remove Background
+          </button>
+
+          <button
+            id="downloadButton"
+            class="secondary"
+            hidden
+          >
+            ⬇ Download PNG
+          </button>
+
+          <button
+            id="resetButton"
+            class="ghost"
+          >
+            Reset
+          </button>
+
+        </div>
+
+        <div class="status-wrap">
+
+          <div
+            id="status"
+            class="status"
+          >
+            Choose an image to begin.
+          </div>
+
+          <div class="progress-track">
+            <div
+              id="progressBar"
+              class="progress-bar"
+            ></div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="info">
+
+      <div>
+        <strong>⚡ Runs in your browser</strong>
+        <span>
+          Your image is processed locally by the AI model.
+        </span>
+      </div>
+
+      <div>
+        <strong>🎯 Transparent PNG</strong>
+        <span>
+          Download a clean cutout with transparency.
+        </span>
+      </div>
+
+      <div>
+        <strong>📱 Phone friendly</strong>
+        <span>
+          Designed to work on mobile and desktop.
+        </span>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer>
+    © 2026 ClearBG
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+
+</body>
+</html>
