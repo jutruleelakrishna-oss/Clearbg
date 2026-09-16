@@ -1,4 +1,2 @@
-gradio>=5.0,<7.0
-rembg>=2.0.60
-Pillow>=10.0.0
-onnxruntime>=1.17.0
+# ClearBG is now a browser-based website.
+# Python requirements are no longer needed.
