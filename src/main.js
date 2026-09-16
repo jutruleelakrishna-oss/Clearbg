@@ -85,4 +85,162 @@ function convertToJpeg(file) {
       context.drawImage(
         image,
         0,
-        0
+        0,
+        width,
+        height
+      );
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Could not convert image."));
+            return;
+          }
+
+          resolve(
+            new File(
+              [blob],
+              "clearbg-input.jpg",
+              {
+                type: "image/jpeg"
+              }
+            )
+          );
+        },
+        "image/jpeg",
+        0.95
+      );
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(
+        new Error(
+          "Your phone/browser could not decode this image."
+        )
+      );
+    };
+
+    image.src = url;
+  });
+}
+
+fileInput.addEventListener("change", (event) => {
+  setFile(event.target.files[0]);
+});
+
+["dragenter", "dragover"].forEach((eventName) => {
+  dropZone.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    dropZone.classList.add("dragging");
+  });
+});
+
+["dragleave", "drop"].forEach((eventName) => {
+  dropZone.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    dropZone.classList.remove("dragging");
+  });
+});
+
+dropZone.addEventListener("drop", (event) => {
+  setFile(event.dataTransfer.files[0]);
+});
+
+dropZone.addEventListener("click", () => {
+  fileInput.click();
+});
+
+removeButton.addEventListener("click", async () => {
+  if (!selectedFile) return;
+
+  removeButton.disabled = true;
+  downloadButton.hidden = true;
+
+  try {
+    setStatus("Preparing image…", 5);
+
+    const jpegFile = await convertToJpeg(selectedFile);
+
+    setStatus("Loading AI model…", 10);
+
+    const blob = await removeBackground(jpegFile, {
+      debug: true,
+      device: "cpu",
+      model: "isnet_quint8",
+
+      progress: (key, current, total) => {
+        const percent = total
+          ? Math.round((current / total) * 100)
+          : 0;
+
+        setStatus(
+          `Processing… ${percent}%`,
+          percent
+        );
+
+        console.log(
+          `ClearBG: ${key} ${current}/${total}`
+        );
+      }
+    });
+
+    if (resultUrl) {
+      URL.revokeObjectURL(resultUrl);
+    }
+
+    resultUrl = URL.createObjectURL(blob);
+
+    result.src = resultUrl;
+    result.hidden = false;
+
+    downloadButton.hidden = false;
+
+    setStatus(
+      "Background removed successfully!",
+      100
+    );
+
+  } catch (error) {
+    console.error("ClearBG error:", error);
+
+    const message =
+      error?.message ||
+      error?.toString() ||
+      "Unknown error";
+
+    setStatus(`Error: ${message}`);
+  } finally {
+    removeButton.disabled = false;
+  }
+});
+
+downloadButton.addEventListener("click", () => {
+  if (!resultUrl) return;
+
+  const link = document.createElement("a");
+
+  link.href = resultUrl;
+  link.download = "clearbg-result.png";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+});
+
+resetButton.addEventListener("click", () => {
+  selectedFile = null;
+  fileInput.value = "";
+
+  preview.hidden = true;
+  result.hidden = true;
+  downloadButton.hidden = true;
+  removeButton.disabled = true;
+
+  if (resultUrl) {
+    URL.revokeObjectURL(resultUrl);
+    resultUrl = null;
+  }
+
+  setStatus("Choose an image to begin.");
+});
