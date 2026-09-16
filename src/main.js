@@ -28,11 +28,15 @@ function setStatus(message, percent = null) {
 
 function setFile(file) {
   if (!file || !file.type.startsWith("image/")) {
-    setStatus("Please choose an image file.");
+    setStatus("Please choose a JPG or PNG image.");
     return;
   }
 
   selectedFile = file;
+
+  if (preview.src.startsWith("blob:")) {
+    URL.revokeObjectURL(preview.src);
+  }
 
   preview.src = URL.createObjectURL(file);
   preview.hidden = false;
@@ -44,89 +48,12 @@ function setFile(file) {
   setStatus(`${file.name} ready.`);
 }
 
-function convertToJpeg(file) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    const url = URL.createObjectURL(file);
-
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-
-      const maxSize = 2500;
-
-      let width = image.naturalWidth;
-      let height = image.naturalHeight;
-
-      if (width > maxSize || height > maxSize) {
-        const scale = Math.min(
-          maxSize / width,
-          maxSize / height
-        );
-
-        width = Math.round(width * scale);
-        height = Math.round(height * scale);
-      }
-
-      const canvas = document.createElement("canvas");
-
-      canvas.width = width;
-      canvas.height = height;
-
-      const context = canvas.getContext("2d");
-
-      if (!context) {
-        reject(new Error("Could not create image canvas."));
-        return;
-      }
-
-      context.fillStyle = "#ffffff";
-      context.fillRect(0, 0, width, height);
-
-      context.drawImage(
-        image,
-        0,
-        0,
-        width,
-        height
-      );
-
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            reject(new Error("Could not convert image."));
-            return;
-          }
-
-          resolve(
-            new File(
-              [blob],
-              "clearbg-input.jpg",
-              {
-                type: "image/jpeg"
-              }
-            )
-          );
-        },
-        "image/jpeg",
-        0.95
-      );
-    };
-
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(
-        new Error(
-          "Your phone/browser could not decode this image."
-        )
-      );
-    };
-
-    image.src = url;
-  });
-}
-
 fileInput.addEventListener("change", (event) => {
-  setFile(event.target.files[0]);
+  const file = event.target.files?.[0];
+
+  if (file) {
+    setFile(file);
+  }
 });
 
 ["dragenter", "dragover"].forEach((eventName) => {
@@ -144,7 +71,11 @@ fileInput.addEventListener("change", (event) => {
 });
 
 dropZone.addEventListener("drop", (event) => {
-  setFile(event.dataTransfer.files[0]);
+  const file = event.dataTransfer.files?.[0];
+
+  if (file) {
+    setFile(file);
+  }
 });
 
 dropZone.addEventListener("click", () => {
@@ -158,13 +89,9 @@ removeButton.addEventListener("click", async () => {
   downloadButton.hidden = true;
 
   try {
-    setStatus("Preparing image…", 5);
+    setStatus("Starting AI…", 5);
 
-    const jpegFile = await convertToJpeg(selectedFile);
-
-    setStatus("Loading AI model…", 10);
-
-    const blob = await removeBackground(jpegFile, {
+    const blob = await removeBackground(selectedFile, {
       debug: true,
       device: "cpu",
       model: "isnet_quint8",
@@ -180,7 +107,10 @@ removeButton.addEventListener("click", async () => {
         );
 
         console.log(
-          `ClearBG: ${key} ${current}/${total}`
+          "ClearBG:",
+          key,
+          current,
+          total
         );
       }
     });
