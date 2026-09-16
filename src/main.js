@@ -81,12 +81,26 @@ removeButton.addEventListener("click", async () => {
 
   try {
     const blob = await removeBackground(selectedFile, {
+      debug: true,
+
+      publicPath:
+        "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/",
+
+      model: "isnet_fp16",
+
       progress: (key, current, total) => {
         const percent = total
           ? Math.round((current / total) * 100)
           : 0;
 
-        setStatus(`Processing… ${percent}%`, percent);
+        setStatus(
+          `Loading AI model… ${percent}%`,
+          percent
+        );
+
+        console.log(
+          `IMG.LY: ${key} ${current}/${total}`
+        );
       }
     });
 
@@ -107,10 +121,10 @@ removeButton.addEventListener("click", async () => {
     );
 
   } catch (error) {
-    console.error(error);
+    console.error("ClearBG error:", error);
 
     setStatus(
-      "Something went wrong. Please try another image."
+      "AI model could not load. Please try again."
     );
   } finally {
     removeButton.disabled = false;
