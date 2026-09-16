@@ -1,4 +1,4 @@
-import imglyRemoveBackground from "@imgly/background-removal";
+import { removeBackground } from "@imgly/background-removal";
 import "./style.css";
 
 const fileInput = document.querySelector("#fileInput");
@@ -80,7 +80,7 @@ removeButton.addEventListener("click", async () => {
   setStatus("Loading AI model…", 5);
 
   try {
-    const blob = await imglyRemoveBackground(selectedFile, {
+    const blob = await removeBackground(selectedFile, {
       progress: (key, current, total) => {
         const percent = total
           ? Math.round((current / total) * 100)
@@ -112,7 +112,6 @@ removeButton.addEventListener("click", async () => {
     setStatus(
       "Something went wrong. Please try another image."
     );
-
   } finally {
     removeButton.disabled = false;
   }
@@ -140,7 +139,6 @@ resetButton.addEventListener("click", () => {
   result.hidden = true;
 
   downloadButton.hidden = true;
-
   removeButton.disabled = true;
 
   if (resultUrl) {
