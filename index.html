@@ -5,6 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="ClearBG - AI background remover">
   <title>ClearBG — AI Background Remover</title>
+
+  <!-- Authentication check BEFORE ClearBG is displayed -->
+  <script type="module">
+    import { createClient }
+      from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const SUPABASE_URL =
+      "https://kqhhjwmifqrkxhygjhap.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_BXXJIGsGG_6uIeyfGXPSkQ_uwjXdRa1";
+
+    const supabase =
+      createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      window.location.replace("/admin.html");
+    }
+  </script>
 </head>
 
 <body>
@@ -14,13 +40,18 @@
       <span class="brand-mark">✦</span>
       ClearBG
     </div>
-    <span class="privacy">Private by design</span>
+
+    <span class="privacy">
+      Private by design
+    </span>
   </header>
 
   <main class="container">
 
     <section class="hero">
-      <p class="eyebrow">AI BACKGROUND REMOVER</p>
+      <p class="eyebrow">
+        AI BACKGROUND REMOVER
+      </p>
 
       <h1>
         Remove backgrounds.<br>
