@@ -1,1192 +1,313 @@
 import { removeBackground } from "@imgly/background-removal";
-import { heicTo } from "heic-to";
-import UTIF from "utif2";
-import { decode as decodePNG } from "fast-png";
-import "./style.css";
 
-/* =========================================================
-   DOM
-========================================================= */
-
-const fileInput = document.getElementById("fileInput");
 const dropZone = document.getElementById("dropZone");
+const fileInput = document.getElementById("fileInput");
 const previewCard = document.getElementById("previewCard");
 const preview = document.getElementById("preview");
 const removeButton = document.getElementById("removeButton");
 const downloadButton = document.getElementById("downloadButton");
 const resetButton = document.getElementById("resetButton");
-const status = document.getElementById("status");
-const progressBar = document.getElementById("progressBar");
-
-/* =========================================================
-   STATE
-========================================================= */
 
 let selectedFile = null;
+let resultBlob = null;
+let originalPreviewUrl = null;
 let resultUrl = null;
-let previewUrl = null;
 
-const MAX_SIZE = 4096;
+const IMG_LY_PATH =
+  "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/";
 
-/* =========================================================
-   STATUS
-========================================================= */
-
-function setStatus(message, progress = 0) {
-  if (status) {
-    status.textContent = message;
-  }
-
-  if (progressBar) {
-    progressBar.style.width = `${progress}%`;
+function status(message) {
+  const existing = document.getElementById("status");
+  if (existing) {
+    existing.textContent = message;
+  } else {
+    console.log(message);
   }
 }
 
-/* =========================================================
-   EXTENSION
-========================================================= */
-
-function getExtension(file) {
-  const name = String(file?.name || "").toLowerCase();
-  const dot = name.lastIndexOf(".");
-
-  if (dot === -1) {
-    return "";
-  }
-
-  return name.slice(dot);
+function showError(message) {
+  console.error(message);
+  status("Error: " + message);
+  alert("Error: " + message);
 }
 
-/* =========================================================
-   FORMAT NAME
-========================================================= */
-
-function getFormatName(file) {
-  const formats = {
-    ".jpg": "JPG",
-    ".jpeg": "JPEG",
-    ".png": "PNG",
-    ".webp": "WEBP",
-    ".gif": "GIF",
-    ".bmp": "BMP",
-    ".avif": "AVIF",
-    ".ico": "ICO",
-    ".svg": "SVG",
-    ".tif": "TIFF",
-    ".tiff": "TIFF",
-    ".heic": "HEIC",
-    ".heif": "HEIF"
-  };
-
-  return formats[getExtension(file)] || "IMAGE";
-}
-
-/* =========================================================
-   SUPPORTED FORMATS
-========================================================= */
-
-function isSupported(file) {
-  if (!file) {
-    return false;
-  }
-
-  const extensions = [
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".webp",
-    ".gif",
-    ".bmp",
-    ".avif",
-    ".ico",
-    ".svg",
-    ".tif",
-    ".tiff",
-    ".heic",
-    ".heif"
-  ];
-
-  const extension = getExtension(file);
-
-  return (
-    (file.type &&
-      file.type.startsWith("image/")) ||
-    extensions.includes(extension)
-  );
-}
-
-/* =========================================================
-   LIMIT DIMENSIONS
-========================================================= */
-
-function getLimitedSize(width, height) {
-  let outputWidth = width;
-  let outputHeight = height;
-
-  if (
-    outputWidth > MAX_SIZE ||
-    outputHeight > MAX_SIZE
-  ) {
-    const scale = Math.min(
-      MAX_SIZE / outputWidth,
-      MAX_SIZE / outputHeight
-    );
-
-    outputWidth = Math.max(
-      1,
-      Math.round(outputWidth * scale)
-    );
-
-    outputHeight = Math.max(
-      1,
-      Math.round(outputHeight * scale)
-    );
-  }
-
-  return {
-    width: outputWidth,
-    height: outputHeight
-  };
-}
-
-/* =========================================================
-   CANVAS → PNG FILE
-========================================================= */
-
-function canvasToPNGFile(canvas) {
+function loadImage(file) {
   return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("The image could not be decoded by this browser."));
+    };
+
+    img.src = url;
+  });
+}
+
+async function convertToPNG(file) {
+  const type = (file.type || "").toLowerCase();
+
+  if (!type.startsWith("image/")) {
+    throw new Error("Please select an image file.");
+  }
+
+  const img = await loadImage(file);
+
+  if (!img.naturalWidth || !img.naturalHeight) {
+    throw new Error("The selected image has invalid dimensions.");
+  }
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", {
+    alpha: true,
+    willReadFrequently: false
+  });
+
+  if (!ctx) {
+    throw new Error("Your browser could not create an image canvas.");
+  }
+
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0);
+
+  const blob = await new Promise((resolve, reject) => {
     canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(
-            new Error(
-              "Could not create the PNG image."
-            )
-          );
-          return;
+      (value) => {
+        if (value) {
+          resolve(value);
+        } else {
+          reject(new Error("The image could not be converted to PNG."));
         }
-
-        const file = new File(
-          [blob],
-          "krishna-ai-studio-input.png",
-          {
-            type: "image/png",
-            lastModified: Date.now()
-          }
-        );
-
-        resolve(file);
       },
       "image/png"
     );
   });
-}
 
-/* =========================================================
-   PNG BYTE DECODER
-   ---------------------------------------------------------
-   This is the important fix.
-
-   The original PNG is decoded directly from its bytes
-   using fast-png instead of the browser's PNG decoder.
-========================================================= */
-
-async function decodePNGFile(file) {
-  setStatus(
-    "Reading PNG image…",
-    5
-  );
-
-  const buffer =
-    await file.arrayBuffer();
-
-  if (!buffer || buffer.byteLength === 0) {
-    throw new Error(
-      "The PNG file is empty."
-    );
-  }
-
-  let decoded;
-
-  try {
-    decoded = decodePNG(
-      new Uint8Array(buffer)
-    );
-  } catch (error) {
-    console.error(
-      "fast-png decode error:",
-      error
-    );
-
-    throw new Error(
-      "The PNG file is invalid or corrupted."
-    );
-  }
-
-  if (
-    !decoded ||
-    !decoded.width ||
-    !decoded.height ||
-    !decoded.data
-  ) {
-    throw new Error(
-      "The PNG image contains no readable pixel data."
-    );
-  }
-
-  const width = decoded.width;
-  const height = decoded.height;
-
-  const size =
-    getLimitedSize(
-      width,
-      height
-    );
-
-  const sourceData =
-    decoded.data;
-
-  const channels =
-    decoded.channels || 4;
-
-  const depth =
-    decoded.depth || 8;
-
-  const sourcePixelCount =
-    width * height;
-
-  const rgba =
-    new Uint8ClampedArray(
-      sourcePixelCount * 4
-    );
-
-  /*
-     Convert all PNG color formats
-     to standard RGBA.
-  */
-
-  if (channels === 4) {
-    if (depth === 16) {
-      for (
-        let i = 0, j = 0;
-        i < sourceData.length &&
-        j < rgba.length;
-        i += 2, j += 1
-      ) {
-        rgba[j] =
-          sourceData[i];
-      }
-    } else {
-      rgba.set(
-        sourceData
-      );
+  return new File(
+    [blob],
+    "krishna-ai-studio-input.png",
+    {
+      type: "image/png",
+      lastModified: Date.now()
     }
-  }
-
-  else if (channels === 3) {
-    if (depth === 16) {
-      let sourceIndex = 0;
-      let targetIndex = 0;
-
-      for (
-        let i = 0;
-        i < sourcePixelCount;
-        i++
-      ) {
-        rgba[targetIndex++] =
-          sourceData[sourceIndex];
-
-        rgba[targetIndex++] =
-          sourceData[sourceIndex + 2];
-
-        rgba[targetIndex++] =
-          sourceData[sourceIndex + 4];
-
-        rgba[targetIndex++] =
-          255;
-
-        sourceIndex += 6;
-      }
-    } else {
-      let sourceIndex = 0;
-      let targetIndex = 0;
-
-      for (
-        let i = 0;
-        i < sourcePixelCount;
-        i++
-      ) {
-        rgba[targetIndex++] =
-          sourceData[sourceIndex++];
-
-        rgba[targetIndex++] =
-          sourceData[sourceIndex++];
-
-        rgba[targetIndex++] =
-          sourceData[sourceIndex++];
-
-        rgba[targetIndex++] =
-          255;
-      }
-    }
-  }
-
-  else if (channels === 2) {
-    if (depth === 16) {
-      let sourceIndex = 0;
-      let targetIndex = 0;
-
-      for (
-        let i = 0;
-        i < sourcePixelCount;
-        i++
-      ) {
-        const gray =
-          sourceData[sourceIndex];
-
-        const alpha =
-          sourceData[sourceIndex + 2];
-
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = alpha;
-
-        sourceIndex += 4;
-      }
-    } else {
-      let sourceIndex = 0;
-      let targetIndex = 0;
-
-      for (
-        let i = 0;
-        i < sourcePixelCount;
-        i++
-      ) {
-        const gray =
-          sourceData[sourceIndex++];
-
-        const alpha =
-          sourceData[sourceIndex++];
-
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = alpha;
-      }
-    }
-  }
-
-  else if (channels === 1) {
-    if (depth === 16) {
-      let sourceIndex = 0;
-      let targetIndex = 0;
-
-      for (
-        let i = 0;
-        i < sourcePixelCount;
-        i++
-      ) {
-        const gray =
-          sourceData[sourceIndex];
-
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = 255;
-
-        sourceIndex += 2;
-      }
-    } else {
-      let sourceIndex = 0;
-      let targetIndex = 0;
-
-      for (
-        let i = 0;
-        i < sourcePixelCount;
-        i++
-      ) {
-        const gray =
-          sourceData[sourceIndex++];
-
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = gray;
-        rgba[targetIndex++] = 255;
-      }
-    }
-  }
-
-  else {
-    throw new Error(
-      "This PNG color format is not supported."
-    );
-  }
-
-  /*
-     Create source ImageData.
-  */
-
-  const sourceCanvas =
-    document.createElement(
-      "canvas"
-    );
-
-  sourceCanvas.width = width;
-  sourceCanvas.height = height;
-
-  const sourceContext =
-    sourceCanvas.getContext(
-      "2d",
-      {
-        alpha: true
-      }
-    );
-
-  if (!sourceContext) {
-    throw new Error(
-      "Canvas is not supported by this browser."
-    );
-  }
-
-  const imageData =
-    new ImageData(
-      rgba,
-      width,
-      height
-    );
-
-  sourceContext.putImageData(
-    imageData,
-    0,
-    0
-  );
-
-  /*
-     Resize if necessary.
-  */
-
-  const outputCanvas =
-    document.createElement(
-      "canvas"
-    );
-
-  outputCanvas.width =
-    size.width;
-
-  outputCanvas.height =
-    size.height;
-
-  const outputContext =
-    outputCanvas.getContext(
-      "2d",
-      {
-        alpha: true
-      }
-    );
-
-  if (!outputContext) {
-    throw new Error(
-      "Could not create output canvas."
-    );
-  }
-
-  outputContext.clearRect(
-    0,
-    0,
-    size.width,
-    size.height
-  );
-
-  outputContext.drawImage(
-    sourceCanvas,
-    0,
-    0,
-    size.width,
-    size.height
-  );
-
-  return canvasToPNGFile(
-    outputCanvas
   );
 }
 
-/* =========================================================
-   NORMAL IMAGE → PNG
-========================================================= */
-
-async function normalImageToPNG(file) {
-  /*
-     PNG gets its own decoder.
-  */
-
-  if (
-    getExtension(file) === ".png"
-  ) {
-    return decodePNGFile(file);
+function displayPreview(file) {
+  if (originalPreviewUrl) {
+    URL.revokeObjectURL(originalPreviewUrl);
   }
 
-  setStatus(
-    "Preparing image…",
-    5
-  );
+  originalPreviewUrl = URL.createObjectURL(file);
 
-  /*
-     Other normal formats use the browser.
-  */
+  preview.src = originalPreviewUrl;
+  preview.alt = "Selected image";
 
-  const url =
-    URL.createObjectURL(file);
+  previewCard.classList.add("visible");
+  previewCard.classList.add("show");
 
-  try {
-    const image =
-      await new Promise(
-        (resolve, reject) => {
-          const img =
-            new Image();
+  downloadButton.style.display = "none";
+  downloadButton.disabled = true;
 
-          img.onload = () => {
-            resolve(img);
-          };
+  resultBlob = null;
 
-          img.onerror = () => {
-            reject(
-              new Error(
-                "This image format could not be decoded by your browser."
-              )
-            );
-          };
-
-          img.src = url;
-        }
-      );
-
-    const size =
-      getLimitedSize(
-        image.naturalWidth,
-        image.naturalHeight
-      );
-
-    const canvas =
-      document.createElement(
-        "canvas"
-      );
-
-    canvas.width =
-      size.width;
-
-    canvas.height =
-      size.height;
-
-    const context =
-      canvas.getContext(
-        "2d",
-        {
-          alpha: true
-        }
-      );
-
-    if (!context) {
-      throw new Error(
-        "Canvas is not supported."
-      );
-    }
-
-    context.drawImage(
-      image,
-      0,
-      0,
-      size.width,
-      size.height
-    );
-
-    return canvasToPNGFile(
-      canvas
-    );
-
-  } finally {
-    URL.revokeObjectURL(
-      url
-    );
-  }
+  status("Image selected.");
 }
-
-/* =========================================================
-   HEIC / HEIF
-========================================================= */
-
-async function convertHEIC(file) {
-  setStatus(
-    "Converting HEIC/HEIF…",
-    8
-  );
-
-  const result =
-    await heicTo({
-      blob: file,
-      type: "image/png"
-    });
-
-  if (!result) {
-    throw new Error(
-      "HEIC/HEIF conversion failed."
-    );
-  }
-
-  const url =
-    URL.createObjectURL(
-      result
-    );
-
-  try {
-    const image =
-      await new Promise(
-        (resolve, reject) => {
-          const img =
-            new Image();
-
-          img.onload = () => {
-            resolve(img);
-          };
-
-          img.onerror = () => {
-            reject(
-              new Error(
-                "Converted HEIC image could not be decoded."
-              )
-            );
-          };
-
-          img.src = url;
-        }
-      );
-
-    const size =
-      getLimitedSize(
-        image.naturalWidth,
-        image.naturalHeight
-      );
-
-    const canvas =
-      document.createElement(
-        "canvas"
-      );
-
-    canvas.width =
-      size.width;
-
-    canvas.height =
-      size.height;
-
-    const context =
-      canvas.getContext(
-        "2d"
-      );
-
-    context.drawImage(
-      image,
-      0,
-      0,
-      size.width,
-      size.height
-    );
-
-    return canvasToPNGFile(
-      canvas
-    );
-
-  } finally {
-    URL.revokeObjectURL(
-      url
-    );
-  }
-}
-
-/* =========================================================
-   TIFF
-========================================================= */
-
-async function convertTIFF(file) {
-  setStatus(
-    "Converting TIFF…",
-    8
-  );
-
-  const buffer =
-    await file.arrayBuffer();
-
-  const images =
-    UTIF.decode(buffer);
-
-  if (
-    !images ||
-    images.length === 0
-  ) {
-    throw new Error(
-      "Could not decode the TIFF image."
-    );
-  }
-
-  UTIF.decodeImage(
-    buffer,
-    images[0]
-  );
-
-  const width =
-    images[0].width;
-
-  const height =
-    images[0].height;
-
-  const rgba =
-    UTIF.toRGBA8(
-      images[0]
-    );
-
-  if (
-    !width ||
-    !height ||
-    !rgba
-  ) {
-    throw new Error(
-      "The TIFF image contains invalid data."
-    );
-  }
-
-  const sourceCanvas =
-    document.createElement(
-      "canvas"
-    );
-
-  sourceCanvas.width =
-    width;
-
-  sourceCanvas.height =
-    height;
-
-  const sourceContext =
-    sourceCanvas.getContext(
-      "2d"
-    );
-
-  if (!sourceContext) {
-    throw new Error(
-      "Could not create TIFF canvas."
-    );
-  }
-
-  const imageData =
-    sourceContext.createImageData(
-      width,
-      height
-    );
-
-  imageData.data.set(
-    rgba
-  );
-
-  sourceContext.putImageData(
-    imageData,
-    0,
-    0
-  );
-
-  const size =
-    getLimitedSize(
-      width,
-      height
-    );
-
-  const canvas =
-    document.createElement(
-      "canvas"
-    );
-
-  canvas.width =
-    size.width;
-
-  canvas.height =
-    size.height;
-
-  const context =
-    canvas.getContext(
-      "2d"
-    );
-
-  if (!context) {
-    throw new Error(
-      "Could not create output canvas."
-    );
-  }
-
-  context.drawImage(
-    sourceCanvas,
-    0,
-    0,
-    size.width,
-    size.height
-  );
-
-  return canvasToPNGFile(
-    canvas
-  );
-}
-
-/* =========================================================
-   SVG
-========================================================= */
-
-async function convertSVG(file) {
-  setStatus(
-    "Converting SVG…",
-    8
-  );
-
-  const text =
-    await file.text();
-
-  const blob =
-    new Blob(
-      [text],
-      {
-        type: "image/svg+xml"
-      }
-    );
-
-  const url =
-    URL.createObjectURL(
-      blob
-    );
-
-  try {
-    const image =
-      await new Promise(
-        (resolve, reject) => {
-          const img =
-            new Image();
-
-          img.onload = () => {
-            resolve(img);
-          };
-
-          img.onerror = () => {
-            reject(
-              new Error(
-                "SVG could not be decoded."
-              )
-            );
-          };
-
-          img.src = url;
-        }
-      );
-
-    const width =
-      image.naturalWidth || 1024;
-
-    const height =
-      image.naturalHeight || 1024;
-
-    const size =
-      getLimitedSize(
-        width,
-        height
-      );
-
-    const canvas =
-      document.createElement(
-        "canvas"
-      );
-
-    canvas.width =
-      size.width;
-
-    canvas.height =
-      size.height;
-
-    const context =
-      canvas.getContext(
-        "2d"
-      );
-
-    context.drawImage(
-      image,
-      0,
-      0,
-      size.width,
-      size.height
-    );
-
-    return canvasToPNGFile(
-      canvas
-    );
-
-  } finally {
-    URL.revokeObjectURL(
-      url
-    );
-  }
-}
-
-/* =========================================================
-   PREPARE FOR AI
-========================================================= */
-
-async function prepareForAI(file) {
-  const ext =
-    getExtension(file);
-
-  if (
-    ext === ".heic" ||
-    ext === ".heif"
-  ) {
-    return convertHEIC(file);
-  }
-
-  if (
-    ext === ".tif" ||
-    ext === ".tiff"
-  ) {
-    return convertTIFF(file);
-  }
-
-  if (ext === ".svg") {
-    return convertSVG(file);
-  }
-
-  return normalImageToPNG(file);
-}
-
-/* =========================================================
-   CREATE PREVIEW
-========================================================= */
-
-async function createPreview(file) {
-  const ext =
-    getExtension(file);
-
-  /*
-     PNG:
-     Decode directly with fast-png,
-     then display the clean PNG.
-  */
-
-  if (ext === ".png") {
-    const png =
-      await decodePNGFile(file);
-
-    return URL.createObjectURL(
-      png
-    );
-  }
-
-  /*
-     Special formats.
-  */
-
-  if (
-    ext === ".heic" ||
-    ext === ".heif" ||
-    ext === ".tif" ||
-    ext === ".tiff" ||
-    ext === ".svg"
-  ) {
-    const png =
-      await prepareForAI(file);
-
-    return URL.createObjectURL(
-      png
-    );
-  }
-
-  /*
-     Normal browser-supported images.
-  */
-
-  return URL.createObjectURL(
-    file
-  );
-}
-
-/* =========================================================
-   HANDLE FILE
-========================================================= */
 
 async function handleFile(file) {
-  if (!file) {
+  if (!file) return;
+
+  if (!file.type || !file.type.startsWith("image/")) {
+    showError("Please select a valid image.");
     return;
   }
-
-  console.log(
-    "Selected file:",
-    file.name,
-    file.type,
-    file.size
-  );
-
-  if (file.size === 0) {
-    setStatus(
-      "The selected file is empty.",
-      0
-    );
-    return;
-  }
-
-  if (!isSupported(file)) {
-    setStatus(
-      "Unsupported image format.",
-      0
-    );
-    return;
-  }
-
-  selectedFile =
-    file;
-
-  if (resultUrl) {
-    URL.revokeObjectURL(
-      resultUrl
-    );
-
-    resultUrl = null;
-  }
-
-  if (
-    previewUrl &&
-    previewUrl.startsWith("blob:")
-  ) {
-    URL.revokeObjectURL(
-      previewUrl
-    );
-  }
-
-  previewUrl = null;
-
-  removeButton.disabled =
-    true;
-
-  downloadButton.disabled =
-    true;
-
-  downloadButton.style.display =
-    "none";
 
   try {
-    setStatus(
-      "Loading image…",
-      3
-    );
+    selectedFile = file;
+    displayPreview(file);
 
-    previewUrl =
-      await createPreview(
-        file
-      );
-
-    preview.onload = () => {
-      previewCard.classList.add(
-        "visible"
-      );
-
-      dropZone.style.display =
-        "none";
-
-      removeButton.disabled =
-        false;
-
-      setStatus(
-        `${getFormatName(file)} image ready.`,
-        0
-      );
-    };
-
-    preview.onerror = () => {
-      removeButton.disabled =
-        true;
-
-      setStatus(
-        "The image preview could not be displayed.",
-        0
-      );
-    };
-
-    preview.src =
-      previewUrl;
-
+    removeButton.disabled = false;
+    resetButton.disabled = false;
   } catch (error) {
-    console.error(
-      "Upload error:",
-      error
-    );
-
-    selectedFile =
-      null;
-
-    removeButton.disabled =
-      true;
-
-    setStatus(
-      `Error: ${
-        error?.message ||
-        "The image could not be loaded."
-      }`,
-      0
-    );
+    showError(error.message || "The selected file could not be read.");
   }
 }
-
-/* =========================================================
-   REMOVE BACKGROUND
-========================================================= */
 
 async function processImage() {
   if (!selectedFile) {
-    setStatus(
-      "Please select an image first.",
-      0
-    );
+    showError("Please select an image first.");
     return;
   }
 
   try {
-    removeButton.disabled =
-      true;
+    removeButton.disabled = true;
+    downloadButton.style.display = "none";
+    downloadButton.disabled = true;
 
-    downloadButton.disabled =
-      true;
+    status("Preparing image...");
 
-    downloadButton.style.display =
-      "none";
+    const inputFile = await convertToPNG(selectedFile);
 
-    setStatus(
-      "Preparing image for AI…",
-      5
-    );
+    status("Starting AI background removal...");
 
-    /*
-       For PNG this uses fast-png,
-       so the original browser decoder
-       is completely bypassed.
-    */
+    const outputBlob = await removeBackground(inputFile, {
+      debug: false,
+      model: "isnet_quint8",
+      device: "cpu",
+      publicPath: IMG_LY_PATH,
 
-    const inputFile =
-      await prepareForAI(
-        selectedFile
-      );
+      progress: (key, current, total) => {
+        if (total > 0) {
+          const percent = Math.round((current / total) * 100);
+          status("Removing background... " + percent + "%");
+        } else {
+          status("Removing background...");
+        }
+      }
+    });
 
-    if (!inputFile) {
-      throw new Error(
-        "Could not prepare the source image."
-      );
+    if (!outputBlob) {
+      throw new Error("Background removal returned no image.");
     }
 
-    if (
-      inputFile.type !==
-      "image/png"
-    ) {
-      throw new Error(
-        "The prepared image is not a valid PNG."
-      );
+    resultBlob = outputBlob;
+
+    if (resultUrl) {
+      URL.revokeObjectURL(resultUrl);
     }
 
-    setStatus(
-      "Starting AI bac
+    resultUrl = URL.createObjectURL(resultBlob);
+
+    preview.src = resultUrl;
+    preview.alt = "Background removed image";
+
+    downloadButton.style.display = "block";
+    downloadButton.disabled = false;
+
+    status("Background removed successfully.");
+  } catch (error) {
+    console.error("Background removal error:", error);
+
+    const message =
+      error && error.message
+        ? error.message
+        : "The image could not be processed.";
+
+    showError(message);
+  } finally {
+    removeButton.disabled = false;
+  }
+}
+
+function downloadResult() {
+  if (!resultBlob) {
+    showError("Please remove the background first.");
+    return;
+  }
+
+  const url = URL.createObjectURL(resultBlob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "krishna-ai-studio-result.png";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
+function resetApp() {
+  selectedFile = null;
+  resultBlob = null;
+
+  if (originalPreviewUrl) {
+    URL.revokeObjectURL(originalPreviewUrl);
+    originalPreviewUrl = null;
+  }
+
+  if (resultUrl) {
+    URL.revokeObjectURL(resultUrl);
+    resultUrl = null;
+  }
+
+  preview.removeAttribute("src");
+  preview.alt = "";
+
+  previewCard.classList.remove("visible");
+  previewCard.classList.remove("show");
+
+  downloadButton.style.display = "none";
+  downloadButton.disabled = true;
+
+  removeButton.disabled = false;
+  fileInput.value = "";
+
+  status("Ready.");
+}
+
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files && fileInput.files[0];
+
+  if (file) {
+    handleFile(file);
+  }
+});
+
+dropZone.addEventListener("click", () => {
+  fileInput.click();
+});
+
+dropZone.addEventListener("dragover", (event) => {
+  event.preventDefault();
+  dropZone.classList.add("dragover");
+});
+
+dropZone.addEventListener("dragleave", () => {
+  dropZone.classList.remove("dragover");
+});
+
+dropZone.addEventListener("drop", (event) => {
+  event.preventDefault();
+
+  dropZone.classList.remove("dragover");
+
+  const file =
+    event.dataTransfer &&
+    event.dataTransfer.files &&
+    event.dataTransfer.files[0];
+
+  if (file) {
+    handleFile(file);
+  }
+});
+
+removeButton.addEventListener("click", processImage);
+
+downloadButton.addEventListener("click", downloadResult);
+
+resetButton.addEventListener("click", resetApp);
+
+window.addEventListener("beforeunload", () => {
+  if (originalPreviewUrl) {
+    URL.revokeObjectURL(originalPreviewUrl);
+  }
+
+  if (resultUrl) {
+    URL.revokeObjectURL(resultUrl);
+  }
+});
+
+status("Ready.");
