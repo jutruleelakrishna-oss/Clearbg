@@ -20,7 +20,7 @@ const SUPABASE_URL =
 */
 
 const SUPABASE_KEY =
-  "PASTE_YOUR_CURRENT_SUPABASE_PUBLISHABLE_KEY_HERE";
+  "sb_publishable_BXXJIGsGG_6uIeyfGXPSkQ_uwjXdRa1";
 
 const ADMIN_EMAIL =
   "jutruleelakrishna@gmail.com";
