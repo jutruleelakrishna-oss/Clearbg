@@ -1,23 +1,13 @@
 import { createClient } from
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-/* ==========================================
-   SUPABASE CONFIGURATION
-========================================== */
+
+/* =====================================
+   SUPABASE
+===================================== */
 
 const SUPABASE_URL =
   "https://kqhhjwmifqrkxhygjhap.supabase.co";
-
-/*
-  IMPORTANT:
-  Replace ONLY the value below with the
-  CURRENT Publishable key from:
-
-  Supabase
-  → Project Settings
-  → API
-  → Publishable key
-*/
 
 const SUPABASE_KEY =
   "sb_publishable_BXXJIGsGG_6uIeyfGXPSkQ_uwjXdRa1";
@@ -26,51 +16,76 @@ const ADMIN_EMAIL =
   "jutruleelakrishna@gmail.com";
 
 
-const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const supabase =
+  createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
-/* ==========================================
+/* =====================================
    ELEMENTS
-========================================== */
+===================================== */
 
 const loginScreen =
-  document.getElementById("loginScreen");
+  document.getElementById(
+    "loginScreen"
+  );
 
 const app =
-  document.getElementById("app");
+  document.getElementById(
+    "app"
+  );
 
 const loginForm =
-  document.getElementById("loginForm");
+  document.getElementById(
+    "loginForm"
+  );
 
 const loginEmail =
-  document.getElementById("loginEmail");
+  document.getElementById(
+    "loginEmail"
+  );
 
 const loginPassword =
-  document.getElementById("loginPassword");
+  document.getElementById(
+    "loginPassword"
+  );
 
 const loginButton =
-  document.getElementById("loginButton");
+  document.getElementById(
+    "loginButton"
+  );
 
 const loginMessage =
-  document.getElementById("loginMessage");
+  document.getElementById(
+    "loginMessage"
+  );
 
 const menuButton =
-  document.getElementById("menuButton");
+  document.getElementById(
+    "menuButton"
+  );
 
 const menuOverlay =
-  document.getElementById("menuOverlay");
+  document.getElementById(
+    "menuOverlay"
+  );
 
 const closeMenu =
-  document.getElementById("closeMenu");
+  document.getElementById(
+    "closeMenu"
+  );
 
 const profileMenuButton =
-  document.getElementById("profileMenuButton");
+  document.getElementById(
+    "profileMenuButton"
+  );
 
 const settingsMenuButton =
-  document.getElementById("settingsMenuButton");
+  document.getElementById(
+    "settingsMenuButton"
+  );
 
 const websiteSettingsMenuButton =
   document.getElementById(
@@ -107,65 +122,32 @@ const websiteSettingsSection =
     "websiteSettingsSection"
   );
 
-const settingsEmail =
-  document.getElementById(
-    "settingsEmail"
-  );
-
-const profileEmail =
-  document.getElementById(
-    "profileEmail"
-  );
-
-const accountCreated =
-  document.getElementById(
-    "accountCreated"
-  );
-
-const newPassword =
-  document.getElementById(
-    "newPassword"
-  );
-
-const changePassword =
-  document.getElementById(
-    "changePassword"
-  );
-
-const adminLogout =
-  document.getElementById(
-    "adminLogout"
-  );
-
 const settingMessage =
   document.getElementById(
     "settingMessage"
   );
 
 
-/* ==========================================
+/* =====================================
    HELPERS
-========================================== */
+===================================== */
 
 function isAdmin(user) {
-  if (!user?.email) {
-    return false;
-  }
 
   return (
-    user.email.toLowerCase() ===
+    user?.email?.toLowerCase() ===
     ADMIN_EMAIL.toLowerCase()
   );
+
 }
 
 
-function showMessage(
+function loginStatus(
   message,
   error = false
 ) {
-  if (!loginMessage) {
-    return;
-  }
+
+  if (!loginMessage) return;
 
   loginMessage.textContent =
     message;
@@ -174,16 +156,16 @@ function showMessage(
     error
       ? "#ff6b6b"
       : "#8df0b5";
+
 }
 
 
-function showSettingMessage(
+function settingStatus(
   message,
   error = false
 ) {
-  if (!settingMessage) {
-    return;
-  }
+
+  if (!settingMessage) return;
 
   settingMessage.textContent =
     message;
@@ -192,147 +174,103 @@ function showSettingMessage(
     error
       ? "#ff6b6b"
       : "#8df0b5";
+
 }
 
 
+/* =====================================
+   SHOW / HIDE APP
+===================================== */
+
 function showApp() {
-  if (loginScreen) {
-    loginScreen.style.display =
-      "none";
-  }
 
-  if (app) {
-    app.classList.remove(
-      "app-hidden"
-    );
+  loginScreen.style.display =
+    "none";
 
-    app.style.display =
-      "block";
-  }
+  app.classList.remove(
+    "app-hidden"
+  );
+
+  app.style.display =
+    "block";
+
 }
 
 
 function showLogin() {
-  if (app) {
-    app.classList.add(
-      "app-hidden"
-    );
 
-    app.style.display =
-      "none";
-  }
+  app.classList.add(
+    "app-hidden"
+  );
 
-  if (loginScreen) {
-    loginScreen.style.display =
-      "flex";
-  }
+  app.style.display =
+    "none";
+
+  loginScreen.style.display =
+    "flex";
+
 }
 
 
 function showAdminMenu() {
-  if (menuButton) {
-    menuButton.style.display =
-      "flex";
-  }
+
+  menuButton.style.display =
+    "flex";
+
 }
 
 
 function hideAdminMenu() {
-  if (menuButton) {
-    menuButton.style.display =
-      "none";
-  }
 
-  if (menuOverlay) {
-    menuOverlay.classList.remove(
-      "open"
-    );
-  }
+  menuButton.style.display =
+    "none";
+
+  menuOverlay.classList.remove(
+    "open"
+  );
+
 }
 
 
-function hideSettingsSections() {
-  if (profileSection) {
-    profileSection.style.display =
-      "none";
-  }
-
-  if (securitySection) {
-    securitySection.style.display =
-      "none";
-  }
-
-  if (websiteSettingsSection) {
-    websiteSettingsSection.style.display =
-      "none";
-  }
-}
-
-
-function openSettings() {
-  if (settingsOverlay) {
-    settingsOverlay.classList.add(
-      "open"
-    );
-  }
-}
-
-
-function closeSettingsModal() {
-  if (settingsOverlay) {
-    settingsOverlay.classList.remove(
-      "open"
-    );
-  }
-}
-
-
-/* ==========================================
+/* =====================================
    LOGIN
-========================================== */
+===================================== */
 
-loginForm?.addEventListener(
+loginForm.addEventListener(
   "submit",
-  async (event) => {
+  async event => {
 
     event.preventDefault();
 
+
     const email =
-      loginEmail?.value.trim();
+      loginEmail.value.trim();
 
     const password =
-      loginPassword?.value;
+      loginPassword.value;
+
 
     if (!email || !password) {
-      showMessage(
-        "Please enter your email and password.",
+
+      loginStatus(
+        "Enter your email and password.",
         true
       );
+
       return;
+
     }
 
-    if (
-      !SUPABASE_KEY ||
-      SUPABASE_KEY.includes(
-        "PASTE_YOUR_CURRENT"
-      )
-    ) {
-      showMessage(
-        "Supabase Publishable Key is not configured.",
-        true
-      );
-      return;
-    }
 
-    if (loginButton) {
-      loginButton.disabled =
-        true;
+    loginButton.disabled =
+      true;
 
-      loginButton.textContent =
-        "Signing in...";
-    }
+    loginButton.textContent =
+      "Signing in...";
 
-    showMessage("");
+
+    loginStatus("");
+
 
     try {
 
@@ -340,51 +278,50 @@ loginForm?.addEventListener(
         data,
         error
       } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
+        await supabase.auth
+          .signInWithPassword({
+            email,
+            password
+          });
+
 
       if (error) {
-        console.error(
-          "Supabase login error:",
-          error
-        );
 
-        showMessage(
-          `Supabase: ${
-            error.message ||
-            "Authentication failed."
-          }`,
-          true
-        );
+        throw error;
 
-        return;
       }
+
 
       if (!data?.session) {
-        showMessage(
-          "Login succeeded, but no session was created.",
-          true
+
+        throw new Error(
+          "Login succeeded but no session was created."
         );
-        return;
+
       }
 
+
       showApp();
+
 
       if (
         isAdmin(
           data.session.user
         )
       ) {
+
         showAdminMenu();
+
       } else {
+
         hideAdminMenu();
+
       }
 
-      if (loginPassword) {
-        loginPassword.value = "";
-      }
+
+      loginPassword.value =
+        "";
+
 
     } catch (error) {
 
@@ -393,178 +330,192 @@ loginForm?.addEventListener(
         error
       );
 
-      showMessage(
-        `Login error: ${
-          error?.message ||
-          "Unknown error."
-        }`,
+
+      loginStatus(
+        error?.message ||
+        "Login failed.",
         true
       );
 
+
     } finally {
 
-      if (loginButton) {
-        loginButton.disabled =
-          false;
+      loginButton.disabled =
+        false;
 
-        loginButton.textContent =
-          "Login";
-      }
+      loginButton.textContent =
+        "Login";
+
     }
+
   }
 );
 
 
-/* ==========================================
+/* =====================================
    ADMIN MENU
-========================================== */
+===================================== */
 
-menuButton?.addEventListener(
+menuButton.addEventListener(
   "click",
   () => {
-    menuOverlay?.classList.add(
+
+    menuOverlay.classList.add(
       "open"
     );
+
   }
 );
 
 
-closeMenu?.addEventListener(
+closeMenu.addEventListener(
   "click",
   () => {
-    menuOverlay?.classList.remove(
+
+    menuOverlay.classList.remove(
       "open"
     );
+
   }
 );
 
 
-menuOverlay?.addEventListener(
+menuOverlay.addEventListener(
   "click",
-  (event) => {
+  event => {
 
     if (
       event.target ===
       menuOverlay
     ) {
+
       menuOverlay.classList.remove(
         "open"
       );
+
     }
 
   }
 );
 
 
-/* ==========================================
-   PROFILE
-========================================== */
+/* =====================================
+   SETTINGS
+===================================== */
 
-profileMenuButton?.addEventListener(
+function openSettings(
+  section
+) {
+
+  profileSection.style.display =
+    "none";
+
+  securitySection.style.display =
+    "none";
+
+  websiteSettingsSection.style.display =
+    "none";
+
+
+  section.style.display =
+    "block";
+
+
+  settingsOverlay.classList.add(
+    "open"
+  );
+
+}
+
+
+profileMenuButton.addEventListener(
   "click",
   async () => {
 
-    menuOverlay?.classList.remove(
+    menuOverlay.classList.remove(
       "open"
     );
 
-    hideSettingsSections();
+    openSettings(
+      profileSection
+    );
 
-    if (profileSection) {
-      profileSection.style.display =
-        "block";
-    }
-
-    openSettings();
-
-    await loadUserProfile();
+    await loadProfile();
 
   }
 );
 
 
-/* ==========================================
-   SECURITY
-========================================== */
-
-settingsMenuButton?.addEventListener(
+settingsMenuButton.addEventListener(
   "click",
   async () => {
 
-    menuOverlay?.classList.remove(
+    menuOverlay.classList.remove(
       "open"
     );
 
-    hideSettingsSections();
+    openSettings(
+      securitySection
+    );
 
-    if (securitySection) {
-      securitySection.style.display =
-        "block";
-    }
-
-    openSettings();
-
-    await loadSecurityInfo();
+    await loadSecurity();
 
   }
 );
 
 
-/* ==========================================
-   WEBSITE SETTINGS
-========================================== */
-
-websiteSettingsMenuButton?.addEventListener(
+websiteSettingsMenuButton.addEventListener(
   "click",
   () => {
 
-    menuOverlay?.classList.remove(
+    menuOverlay.classList.remove(
       "open"
     );
 
-    hideSettingsSections();
-
-    if (websiteSettingsSection) {
-      websiteSettingsSection.style.display =
-        "block";
-    }
-
-    openSettings();
+    openSettings(
+      websiteSettingsSection
+    );
 
   }
 );
 
 
-/* ==========================================
-   CLOSE SETTINGS
-========================================== */
-
-closeSettings?.addEventListener(
+closeSettings.addEventListener(
   "click",
-  closeSettingsModal
+  () => {
+
+    settingsOverlay.classList.remove(
+      "open"
+    );
+
+  }
 );
 
 
-settingsOverlay?.addEventListener(
+settingsOverlay.addEventListener(
   "click",
-  (event) => {
+  event => {
 
     if (
       event.target ===
       settingsOverlay
     ) {
-      closeSettingsModal();
+
+      settingsOverlay.classList.remove(
+        "open"
+      );
+
     }
 
   }
 );
 
 
-/* ==========================================
-   LOAD PROFILE
-========================================== */
+/* =====================================
+   PROFILE
+===================================== */
 
-async function loadUserProfile() {
+async function loadProfile() {
 
   try {
 
@@ -574,42 +525,31 @@ async function loadUserProfile() {
     } =
       await supabase.auth.getUser();
 
+
     if (error) {
       throw error;
     }
 
+
     const user =
       data?.user;
 
-    if (!user) {
-      return;
-    }
 
-    if (profileEmail) {
-      profileEmail.value =
-        user.email || "";
-    }
+    if (!user) return;
 
-    if (settingsEmail) {
-      settingsEmail.value =
-        user.email || "";
-    }
-
-    if (accountCreated) {
-      accountCreated.value =
-        user.created_at
-          ? new Date(
-              user.created_at
-            ).toLocaleString()
-          : "";
-    }
 
     const metadata =
       user.user_metadata || {};
 
+
     const displayName =
       document.getElementById(
         "displayName"
+      );
+
+    const profileEmail =
+      document.getElementById(
+        "profileEmail"
       );
 
     const phone =
@@ -627,47 +567,131 @@ async function loadUserProfile() {
         "profileAbout"
       );
 
-    if (displayName) {
-      displayName.value =
-        metadata.display_name ||
-        metadata.full_name ||
-        "";
-    }
+    const accountCreated =
+      document.getElementById(
+        "accountCreated"
+      );
 
-    if (phone) {
-      phone.value =
-        metadata.phone ||
-        "";
-    }
 
-    if (location) {
-      location.value =
-        metadata.location ||
-        "";
-    }
+    profileEmail.value =
+      user.email || "";
 
-    if (about) {
-      about.value =
-        metadata.about ||
-        "";
-    }
+
+    displayName.value =
+      metadata.display_name ||
+      metadata.full_name ||
+      "";
+
+
+    phone.value =
+      metadata.phone ||
+      "";
+
+
+    location.value =
+      metadata.location ||
+      "";
+
+
+    about.value =
+      metadata.about ||
+      "";
+
+
+    accountCreated.value =
+      user.created_at
+        ? new Date(
+            user.created_at
+          ).toLocaleString()
+        : "";
 
   } catch (error) {
 
     console.error(
-      "Profile loading error:",
+      "Profile error:",
       error
     );
 
   }
+
 }
 
 
-/* ==========================================
-   SECURITY INFO
-========================================== */
+/* =====================================
+   SAVE PROFILE
+===================================== */
 
-async function loadSecurityInfo() {
+document
+  .getElementById("saveProfile")
+  .addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        const {
+          error
+        } =
+          await supabase.auth
+            .updateUser({
+              data: {
+
+                display_name:
+                  document.getElementById(
+                    "displayName"
+                  ).value.trim(),
+
+                phone:
+                  document.getElementById(
+                    "profilePhone"
+                  ).value.trim(),
+
+                location:
+                  document.getElementById(
+                    "profileLocation"
+                  ).value.trim(),
+
+                about:
+                  document.getElementById(
+                    "profileAbout"
+                  ).value.trim()
+
+              }
+            });
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        settingStatus(
+          "Profile saved successfully."
+        );
+
+      } catch (error) {
+
+        console.error(
+          error
+        );
+
+        settingStatus(
+          error?.message ||
+          "Could not save profile.",
+          true
+        );
+
+      }
+
+    }
+  );
+
+
+/* =====================================
+   SECURITY
+===================================== */
+
+async function loadSecurity() {
 
   try {
 
@@ -677,177 +701,309 @@ async function loadSecurityInfo() {
     } =
       await supabase.auth.getUser();
 
+
     if (error) {
       throw error;
     }
 
-    const user =
-      data?.user;
 
-    if (!user) {
-      return;
-    }
+    document.getElementById(
+      "settingsEmail"
+    ).value =
+      data?.user?.email || "";
 
-    if (settingsEmail) {
-      settingsEmail.value =
-        user.email || "";
-    }
 
   } catch (error) {
 
     console.error(
-      "Security loading error:",
+      "Security error:",
       error
     );
 
   }
+
 }
 
 
-/* ==========================================
+/* =====================================
    CHANGE PASSWORD
-========================================== */
+===================================== */
 
-changePassword?.addEventListener(
-  "click",
-  async () => {
+document
+  .getElementById("changePassword")
+  .addEventListener(
+    "click",
+    async () => {
 
-    const password =
-      newPassword?.value.trim();
+      const input =
+        document.getElementById(
+          "newPassword"
+        );
 
-    if (!password) {
-      showSettingMessage(
-        "Enter a new password.",
-        true
-      );
-      return;
-    }
 
-    if (password.length < 6) {
-      showSettingMessage(
-        "Password must be at least 6 characters.",
-        true
-      );
-      return;
-    }
+      const password =
+        input.value.trim();
 
-    changePassword.disabled =
-      true;
 
-    changePassword.textContent =
-      "Updating...";
+      if (password.length < 6) {
 
-    try {
+        settingStatus(
+          "Password must contain at least 6 characters.",
+          true
+        );
 
-      const {
-        error
-      } =
-        await supabase.auth.updateUser({
-          password
-        });
+        return;
 
-      if (error) {
-        throw error;
       }
 
-      if (newPassword) {
-        newPassword.value = "";
+
+      try {
+
+        const {
+          error
+        } =
+          await supabase.auth
+            .updateUser({
+              password
+            });
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        input.value =
+          "";
+
+
+        settingStatus(
+          "Password changed successfully."
+        );
+
+
+      } catch (error) {
+
+        settingStatus(
+          error?.message ||
+          "Could not change password.",
+          true
+        );
+
       }
 
-      showSettingMessage(
-        "Password changed successfully."
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Password change error:",
-        error
-      );
-
-      showSettingMessage(
-        error?.message ||
-        "Could not change password.",
-        true
-      );
-
-    } finally {
-
-      changePassword.disabled =
-        false;
-
-      changePassword.textContent =
-        "Change Password";
     }
-  }
-);
+  );
 
 
-/* ==========================================
+/* =====================================
    LOGOUT
-========================================== */
+===================================== */
 
 async function logout() {
 
   try {
+
     await supabase.auth.signOut();
+
   } catch (error) {
+
     console.error(
       "Logout error:",
       error
     );
+
   }
 
-  closeSettingsModal();
+
+  settingsOverlay.classList.remove(
+    "open"
+  );
+
   hideAdminMenu();
+
   showLogin();
+
 }
 
 
-logoutMenuButton?.addEventListener(
+logoutMenuButton.addEventListener(
   "click",
   logout
 );
 
 
-adminLogout?.addEventListener(
-  "click",
-  logout
+document
+  .getElementById("adminLogout")
+  .addEventListener(
+    "click",
+    logout
+  );
+
+
+/* =====================================
+   PROFILE IMAGE
+===================================== */
+
+const profilePictureInput =
+  document.getElementById(
+    "profilePictureInput"
+  );
+
+const profilePicture =
+  document.getElementById(
+    "profilePicture"
+  );
+
+const profilePlaceholder =
+  document.getElementById(
+    "profileAvatarPlaceholder"
+  );
+
+
+document
+  .getElementById(
+    "changeProfilePicture"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      profilePictureInput.click();
+
+    }
+  );
+
+
+profilePictureInput.addEventListener(
+  "change",
+  event => {
+
+    const file =
+      event.target.files?.[0];
+
+
+    if (!file) return;
+
+
+    const url =
+      URL.createObjectURL(file);
+
+
+    profilePicture.src =
+      url;
+
+    profilePicture.style.display =
+      "block";
+
+    profilePlaceholder.style.display =
+      "none";
+
+  }
 );
 
 
-/* ==========================================
+document
+  .getElementById(
+    "removeProfilePicture"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      profilePicture.removeAttribute(
+        "src"
+      );
+
+      profilePicture.style.display =
+        "none";
+
+      profilePlaceholder.style.display =
+        "flex";
+
+      profilePictureInput.value =
+        "";
+
+    }
+  );
+
+
+/* =====================================
+   WEBSITE SETTINGS
+===================================== */
+
+document
+  .getElementById(
+    "saveWebsiteName"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      const name =
+        document.getElementById(
+          "websiteName"
+        ).value.trim();
+
+
+      if (name) {
+
+        document.title =
+          name;
+
+
+        document.querySelector(
+          ".brand-text"
+        ).textContent =
+          name;
+
+
+        settingStatus(
+          "Website settings saved."
+        );
+
+      }
+
+    }
+  );
+
+
+/* =====================================
    AUTH STATE
-========================================== */
+===================================== */
 
 supabase.auth.onAuthStateChange(
-  (
-    event,
-    session
-  ) => {
+  (event, session) => {
 
     console.log(
-      "Auth state:",
+      "Authentication:",
       event
     );
+
 
     if (session?.user) {
 
       showApp();
+
 
       if (
         isAdmin(
           session.user
         )
       ) {
+
         showAdminMenu();
+
       } else {
+
         hideAdminMenu();
+
       }
 
     } else {
 
       hideAdminMenu();
+
       showLogin();
 
     }
@@ -856,9 +1012,9 @@ supabase.auth.onAuthStateChange(
 );
 
 
-/* ==========================================
+/* =====================================
    INITIAL SESSION
-========================================== */
+===================================== */
 
 async function initializeAuth() {
 
@@ -870,30 +1026,33 @@ async function initializeAuth() {
     } =
       await supabase.auth.getSession();
 
+
     if (error) {
       throw error;
     }
 
-    const session =
-      data?.session;
 
-    if (session?.user) {
+    if (data?.session?.user) {
 
       showApp();
 
+
       if (
         isAdmin(
-          session.user
+          data.session.user
         )
       ) {
+
         showAdminMenu();
+
       } else {
+
         hideAdminMenu();
+
       }
 
     } else {
 
-      hideAdminMenu();
       showLogin();
 
     }
@@ -901,21 +1060,19 @@ async function initializeAuth() {
   } catch (error) {
 
     console.error(
-      "Authentication initialization error:",
+      "Initial auth error:",
       error
     );
 
-    hideAdminMenu();
     showLogin();
 
   }
+
 }
 
 
-/* ==========================================
-   START
-========================================== */
-
 showLogin();
+
 hideAdminMenu();
+
 initializeAuth();
