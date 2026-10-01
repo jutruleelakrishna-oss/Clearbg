@@ -17,8 +17,6 @@ let resultBlob = null;
 let resultUrl = null;
 let originalUrl = null;
 
-const MAX_IMAGE_SIZE = 4096;
-
 const MODEL_PATH =
   "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/";
 
@@ -33,18 +31,14 @@ function setStatus(message, progress = 0) {
   }
 
   if (progressBar) {
-    const safe = Math.max(
-      0,
-      Math.min(100, progress)
-    );
-
-    progressBar.style.width = `${safe}%`;
+    const value = Math.max(0, Math.min(100, progress));
+    progressBar.style.width = `${value}%`;
   }
 }
 
 
 /* ---------------------------------------
-   SUPPORTED IMAGE
+   IMAGE VALIDATION
 --------------------------------------- */
 
 function isImage(file) {
@@ -69,312 +63,71 @@ function isImage(file) {
 
 
 /* ---------------------------------------
-   DECODE IMAGE
---------------------------------------- */
-
-async function decodeImage(file) {
-
-  /*
-   * First try normal browser Image decoding.
-   */
-
-  try {
-
-    const url = URL.createObjectURL(file);
-
-    const image = await new Promise(
-      (resolve, reject) => {
-
-        const img = new Image();
-
-        img.onload = () => resolve(img);
-
-        img.onerror = () => reject(
-          new Error("Browser image decoder failed.")
-        );
-
-        img.src = url;
-      }
-    );
-
-    URL.revokeObjectURL(url);
-
-    if (
-      image.naturalWidth &&
-      image.naturalHeight
-    ) {
-      return image;
-    }
-
-  } catch (error) {
-    console.warn(
-      "Normal image decoder failed:",
-      error
-    );
-  }
-
-
-  /*
-   * Fallback to createImageBitmap.
-   */
-
-  if ("createImageBitmap" in window) {
-
-    try {
-
-      const bitmap =
-        await createImageBitmap(file);
-
-      return bitmap;
-
-    } catch (error) {
-
-      console.warn(
-        "createImageBitmap failed:",
-        error
-      );
-
-    }
-
-  }
-
-  throw new Error(
-    "The image could not be decoded by this browser. Please try JPG or PNG."
-  );
-}
-
-
-/* ---------------------------------------
-   CONVERT TO PNG
---------------------------------------- */
-
-async function convertToPNG(file) {
-
-  setStatus(
-    "Preparing image...",
-    5
-  );
-
-  const image =
-    await decodeImage(file);
-
-  let width =
-    image.naturalWidth ||
-    image.width;
-
-  let height =
-    image.naturalHeight ||
-    image.height;
-
-
-  if (!width || !height) {
-
-    throw new Error(
-      "The image has invalid dimensions."
-    );
-
-  }
-
-
-  /*
-   * Keep mobile memory usage reasonable.
-   */
-
-  if (
-    width > MAX_IMAGE_SIZE ||
-    height > MAX_IMAGE_SIZE
-  ) {
-
-    const scale =
-      Math.min(
-        MAX_IMAGE_SIZE / width,
-        MAX_IMAGE_SIZE / height
-      );
-
-    width =
-      Math.round(width * scale);
-
-    height =
-      Math.round(height * scale);
-  }
-
-
-  const canvas =
-    document.createElement("canvas");
-
-  canvas.width = width;
-  canvas.height = height;
-
-
-  const context =
-    canvas.getContext("2d", {
-      alpha: true
-    });
-
-
-  if (!context) {
-
-    throw new Error(
-      "Your browser could not create an image canvas."
-    );
-
-  }
-
-
-  context.clearRect(
-    0,
-    0,
-    width,
-    height
-  );
-
-
-  context.drawImage(
-    image,
-    0,
-    0,
-    width,
-    height
-  );
-
-
-  /*
-   * Close ImageBitmap when possible.
-   */
-
-  if (
-    typeof image.close === "function"
-  ) {
-    image.close();
-  }
-
-
-  return new Promise(
-    (resolve, reject) => {
-
-      canvas.toBlob(
-        blob => {
-
-          if (!blob) {
-
-            reject(
-              new Error(
-                "The image could not be converted to PNG."
-              )
-            );
-
-            return;
-          }
-
-          resolve(
-            new File(
-              [blob],
-              "krishna-ai-input.png",
-              {
-                type: "image/png",
-                lastModified: Date.now()
-              }
-            )
-          );
-
-        },
-        "image/png"
-      );
-
-    }
-  );
-}
-
-
-/* ---------------------------------------
-   DISPLAY SELECTED IMAGE
---------------------------------------- */
-
-function displaySelectedImage(file) {
-
-  if (originalUrl) {
-    URL.revokeObjectURL(originalUrl);
-  }
-
-  originalUrl =
-    URL.createObjectURL(file);
-
-  preview.src = originalUrl;
-
-  preview.alt =
-    "Selected image";
-
-  previewCard.classList.add("show");
-
-  dropZone.classList.add("hidden");
-
-  removeButton.disabled = false;
-
-  downloadButton.style.display =
-    "none";
-
-  downloadButton.disabled = true;
-
-  setStatus(
-    "Image ready. Remove the background.",
-    0
-  );
-}
-
-
-/* ---------------------------------------
    HANDLE FILE
 --------------------------------------- */
 
-async function handleFile(file) {
-
+function handleFile(file) {
   if (!file) return;
 
+  console.log("Selected file:", file.name);
+  console.log("File type:", file.type);
+  console.log("File size:", file.size);
 
   if (!isImage(file)) {
-
     setStatus(
-      "Please select a valid image file.",
+      "Please select a valid JPG, PNG or WEBP image.",
       0
     );
-
     return;
   }
 
-
   selectedFile = file;
-
   resultBlob = null;
 
-
   if (resultUrl) {
-
     URL.revokeObjectURL(resultUrl);
-
     resultUrl = null;
-
   }
 
+  if (originalUrl) {
+    URL.revokeObjectURL(originalUrl);
+    originalUrl = null;
+  }
 
   try {
+    /*
+     * Only create a preview here.
+     * We DO NOT decode/convert the image.
+     */
 
-    displaySelectedImage(file);
+    originalUrl = URL.createObjectURL(file);
 
-  } catch (error) {
+    preview.src = originalUrl;
+    preview.alt = "Selected image";
 
-    console.error(
-      "File error:",
-      error
-    );
+    previewCard.classList.add("show");
+    dropZone.classList.add("hidden");
+
+    removeButton.disabled = false;
+
+    downloadButton.style.display = "none";
+    downloadButton.disabled = true;
 
     setStatus(
-      error?.message ||
-      "The selected file could not be read.",
+      "Image ready. Remove the background.",
       0
     );
 
-  }
+  } catch (error) {
+    console.error("Preview error:", error);
 
+    selectedFile = null;
+
+    setStatus(
+      "The selected image could not be previewed.",
+      0
+    );
+  }
 }
 
 
@@ -383,167 +136,139 @@ async function handleFile(file) {
 --------------------------------------- */
 
 async function processImage() {
-
   if (!selectedFile) {
-
     setStatus(
       "Please select an image first.",
       0
     );
-
     return;
   }
 
-
   try {
-
     removeButton.disabled = true;
-
     downloadButton.disabled = true;
-
-    downloadButton.style.display =
-      "none";
-
-
-    setStatus(
-      "Preparing image for AI...",
-      10
-    );
-
-
-    /*
-     * Convert the selected image to a
-     * browser-safe PNG.
-     */
-
-    const inputFile =
-      await convertToPNG(selectedFile);
-
+    downloadButton.style.display = "none";
 
     setStatus(
       "Starting AI background removal...",
-      15
+      5
     );
 
-
-    console.log(
-      "Krishna AI Studio: AI started"
-    );
+    console.log("=================================");
+    console.log("Krishna AI Studio");
+    console.log("Starting background removal");
+    console.log("File:", selectedFile.name);
+    console.log("Type:", selectedFile.type);
+    console.log("Size:", selectedFile.size);
+    console.log("=================================");
 
 
     /*
      * IMPORTANT:
-     * Let IMG.LY perform the actual
-     * segmentation.
+     *
+     * Send the ORIGINAL FILE directly
+     * to IMG.LY.
+     *
+     * No Image()
+     * No createImageBitmap()
+     * No canvas
+     * No PNG conversion
      */
 
-    const output =
-      await removeBackground(
-        inputFile,
-        {
-          debug: false,
+    const output = await removeBackground(
+      selectedFile,
+      {
+        debug: true,
 
-          model: "isnet_quint8",
+        model: "isnet_quint8",
 
-          device: "cpu",
+        device: "cpu",
 
-          publicPath: MODEL_PATH,
+        publicPath: MODEL_PATH,
 
-          progress: (
+        progress: (
+          key,
+          current,
+          total
+        ) => {
+
+          console.log(
+            "AI progress:",
             key,
             current,
             total
-          ) => {
+          );
 
-            let percent = 15;
+          let percent = 10;
 
-            if (
-              Number.isFinite(total) &&
-              total > 0
-            ) {
-
-              percent =
-                15 +
-                Math.round(
-                  (current / total) * 80
-                );
-
-            }
-
+          if (
+            Number.isFinite(total) &&
+            total > 0
+          ) {
             percent =
-              Math.min(
-                95,
-                Math.max(
-                  15,
-                  percent
-                )
+              10 +
+              Math.round(
+                (current / total) * 85
               );
-
-
-            setStatus(
-              `Removing background... ${percent}%`,
-              percent
-            );
-
           }
+
+          percent = Math.max(
+            10,
+            Math.min(95, percent)
+          );
+
+          setStatus(
+            `Removing background... ${percent}%`,
+            percent
+          );
         }
-      );
+      }
+    );
 
 
     if (!output) {
-
       throw new Error(
         "AI processing did not return an image."
       );
-
     }
+
+
+    console.log(
+      "Background removal completed.",
+      output
+    );
 
 
     resultBlob = output;
 
 
     if (resultUrl) {
-
       URL.revokeObjectURL(resultUrl);
-
     }
 
 
     resultUrl =
-      URL.createObjectURL(
-        resultBlob
-      );
+      URL.createObjectURL(resultBlob);
 
 
     /*
-     * Replace the SAME preview
-     * with the transparent result.
+     * Show transparent result.
      */
 
-    preview.src =
-      resultUrl;
+    preview.src = resultUrl;
 
     preview.alt =
       "Background removed image";
 
 
-    previewCard.classList.add(
-      "show"
-    );
-
-    dropZone.classList.add(
-      "hidden"
-    );
+    previewCard.classList.add("show");
+    dropZone.classList.add("hidden");
 
 
-    downloadButton.style.display =
-      "block";
+    downloadButton.style.display = "block";
+    downloadButton.disabled = false;
 
-    downloadButton.disabled =
-      false;
-
-    removeButton.disabled =
-      false;
+    removeButton.disabled = false;
 
 
     setStatus(
@@ -552,35 +277,48 @@ async function processImage() {
     );
 
 
-    console.log(
-      "Krishna AI Studio: AI completed"
-    );
-
-
   } catch (error) {
 
     console.error(
-      "Background removal error:",
-      error
+      "================================="
+    );
+
+    console.error(
+      "BACKGROUND REMOVAL ERROR"
+    );
+
+    console.error(error);
+
+    console.error(
+      "================================="
     );
 
 
-    removeButton.disabled =
-      false;
+    removeButton.disabled = false;
 
 
-    const message =
+    let message =
       error?.message ||
       "Background removal failed.";
+
+
+    /*
+     * Make the error easier to understand.
+     */
+
+    if (
+      message.toLowerCase().includes("decode")
+    ) {
+      message =
+        "The AI model could not decode this image. Please try another PNG or JPG.";
+    }
 
 
     setStatus(
       `Error: ${message}`,
       0
     );
-
   }
-
 }
 
 
@@ -589,36 +327,27 @@ async function processImage() {
 --------------------------------------- */
 
 function downloadResult() {
-
   if (!resultBlob || !resultUrl) {
-
     setStatus(
       "Remove the background first.",
       0
     );
-
     return;
   }
-
 
   const link =
     document.createElement("a");
 
-
-  link.href =
-    resultUrl;
-
+  link.href = resultUrl;
 
   link.download =
     "krishna-ai-studio-result.png";
-
 
   document.body.appendChild(link);
 
   link.click();
 
   link.remove();
-
 }
 
 
@@ -629,58 +358,35 @@ function downloadResult() {
 function resetApp() {
 
   selectedFile = null;
-
   resultBlob = null;
 
 
   if (originalUrl) {
-
-    URL.revokeObjectURL(
-      originalUrl
-    );
-
+    URL.revokeObjectURL(originalUrl);
     originalUrl = null;
-
   }
 
 
   if (resultUrl) {
-
-    URL.revokeObjectURL(
-      resultUrl
-    );
-
+    URL.revokeObjectURL(resultUrl);
     resultUrl = null;
-
   }
 
 
-  preview.removeAttribute(
-    "src"
-  );
-
+  preview.removeAttribute("src");
   preview.alt = "";
 
 
-  previewCard.classList.remove(
-    "show"
-  );
+  previewCard.classList.remove("show");
 
-  dropZone.classList.remove(
-    "hidden"
-  );
+  dropZone.classList.remove("hidden");
 
 
-  removeButton.disabled =
-    true;
+  removeButton.disabled = true;
 
+  downloadButton.disabled = true;
 
-  downloadButton.disabled =
-    true;
-
-
-  downloadButton.style.display =
-    "none";
+  downloadButton.style.display = "none";
 
 
   fileInput.value = "";
@@ -690,7 +396,6 @@ function resetApp() {
     "Select an image to get started.",
     0
   );
-
 }
 
 
@@ -701,9 +406,7 @@ function resetApp() {
 dropZone.addEventListener(
   "click",
   () => {
-
     fileInput.click();
-
   }
 );
 
@@ -716,7 +419,6 @@ fileInput.addEventListener(
       event.target.files?.[0];
 
     handleFile(file);
-
   }
 );
 
@@ -731,10 +433,7 @@ dropZone.addEventListener(
 
     event.preventDefault();
 
-    dropZone.classList.add(
-      "dragging"
-    );
-
+    dropZone.classList.add("dragging");
   }
 );
 
@@ -743,10 +442,7 @@ dropZone.addEventListener(
   "dragleave",
   () => {
 
-    dropZone.classList.remove(
-      "dragging"
-    );
-
+    dropZone.classList.remove("dragging");
   }
 );
 
@@ -757,17 +453,12 @@ dropZone.addEventListener(
 
     event.preventDefault();
 
-    dropZone.classList.remove(
-      "dragging"
-    );
-
+    dropZone.classList.remove("dragging");
 
     const file =
       event.dataTransfer?.files?.[0];
 
-
     handleFile(file);
-
   }
 );
 
@@ -803,17 +494,12 @@ window.addEventListener(
   () => {
 
     if (originalUrl) {
-      URL.revokeObjectURL(
-        originalUrl
-      );
+      URL.revokeObjectURL(originalUrl);
     }
 
     if (resultUrl) {
-      URL.revokeObjectURL(
-        resultUrl
-      );
+      URL.revokeObjectURL(resultUrl);
     }
-
   }
 );
 
@@ -832,5 +518,5 @@ setStatus(
 );
 
 console.log(
-  "Krishna AI Studio loaded."
+  "Krishna AI Studio loaded successfully."
 );
