@@ -1,82 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
+  >
 
   <meta
     name="description"
     content="Krishna AI Studio - AI powered background remover"
-  />
+  >
 
   <meta
     name="theme-color"
     content="#07080d"
-  />
+  >
 
   <title>Krishna AI Studio</title>
 
-  <link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
-  />
-
-  <link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
-    crossorigin
-  />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
-  />
+  >
 
-  <link
-    rel="stylesheet"
-    href="/src/style.css"
-  />
+  <link rel="stylesheet" href="/src/style.css">
 </head>
-
 
 <body>
 
-  <!-- ==========================================
-       LOGIN SCREEN
-  =========================================== -->
+  <!-- LOGIN -->
 
-  <div
-    id="loginScreen"
-    class="login-screen"
-  >
+  <div id="loginScreen" class="login-screen">
 
     <div class="login-card">
 
-      <div class="login-logo">
-        ✦
-      </div>
+      <div class="login-logo">✦</div>
 
-      <h1>
-        Krishna AI Studio
-      </h1>
+      <h1>Krishna AI Studio</h1>
 
       <p class="login-subtitle">
         Sign in to continue
       </p>
 
-
       <form id="loginForm">
 
         <div class="input-group">
-
-          <label for="loginEmail">
-            Email
-          </label>
+          <label for="loginEmail">Email</label>
 
           <input
             id="loginEmail"
@@ -84,16 +58,11 @@
             placeholder="Enter your email"
             autocomplete="email"
             required
-          />
-
+          >
         </div>
 
-
         <div class="input-group">
-
-          <label for="loginPassword">
-            Password
-          </label>
+          <label for="loginPassword">Password</label>
 
           <input
             id="loginPassword"
@@ -101,10 +70,8 @@
             placeholder="Enter your password"
             autocomplete="current-password"
             required
-          />
-
+          >
         </div>
-
 
         <button
           id="loginButton"
@@ -114,11 +81,7 @@
           Login
         </button>
 
-
-        <div
-          id="loginMessage"
-          class="login-message"
-        ></div>
+        <div id="loginMessage" class="login-message"></div>
 
       </form>
 
@@ -127,31 +90,16 @@
   </div>
 
 
-  <!-- ==========================================
-       MAIN WEBSITE
-  =========================================== -->
+  <!-- APPLICATION -->
 
-  <div
-    id="app"
-    class="app-hidden"
-  >
-
-    <!-- HEADER -->
+  <div id="app" class="app-hidden">
 
     <header class="site-header">
 
       <div class="brand">
-
-        <div class="brand-icon">
-          ✦
-        </div>
-
-        <div class="brand-text">
-          Krishna AI Studio
-        </div>
-
+        <div class="brand-icon">✦</div>
+        <div class="brand-text">Krishna AI Studio</div>
       </div>
-
 
       <div class="header-actions">
 
@@ -159,15 +107,11 @@
           🔒 Private
         </div>
 
-
-        <!-- ADMIN ONLY -->
-
         <button
           id="menuButton"
           class="menu-button"
           type="button"
-          aria-label="Open admin menu"
-          style="display:none;"
+          style="display:none"
         >
           ☰
         </button>
@@ -177,22 +121,15 @@
     </header>
 
 
-    <!-- ========================================
-         ADMIN MENU
-    ========================================= -->
+    <!-- ADMIN MENU -->
 
-    <div
-      id="menuOverlay"
-      class="menu-overlay"
-    >
+    <div id="menuOverlay" class="menu-overlay">
 
       <div class="menu-panel">
 
         <div class="menu-header">
 
-          <h3>
-            Admin Menu
-          </h3>
+          <h3>Admin Menu</h3>
 
           <button
             id="closeMenu"
@@ -204,7 +141,6 @@
 
         </div>
 
-
         <button
           id="profileMenuButton"
           class="menu-item"
@@ -213,7 +149,6 @@
           <span>👤</span>
           <span>Profile</span>
         </button>
-
 
         <button
           id="settingsMenuButton"
@@ -224,7 +159,6 @@
           <span>Settings</span>
         </button>
 
-
         <button
           id="websiteSettingsMenuButton"
           class="menu-item"
@@ -233,7 +167,6 @@
           <span>🌐</span>
           <span>Website Settings</span>
         </button>
-
 
         <button
           id="logoutMenuButton"
@@ -249,14 +182,9 @@
     </div>
 
 
-    <!-- ========================================
-         MAIN
-    ========================================= -->
+    <!-- MAIN -->
 
     <main class="main-content">
-
-
-      <!-- HERO -->
 
       <section class="hero">
 
@@ -264,12 +192,10 @@
           ✨ AI POWERED
         </div>
 
-
         <h1>
           Remove backgrounds
           <span>in seconds.</span>
         </h1>
-
 
         <p>
           Upload your image and let Krishna AI Studio
@@ -279,53 +205,36 @@
       </section>
 
 
-      <!-- ======================================
-           IMAGE WORKSPACE
-      ======================================= -->
+      <!-- WORKSPACE -->
 
       <section class="workspace">
-
-
-        <!-- UPLOAD -->
 
         <div
           id="dropZone"
           class="drop-zone"
         >
 
-          <div class="upload-icon">
-            ↑
-          </div>
+          <div class="upload-icon">↑</div>
 
+          <h2>Drop your image here</h2>
 
-          <h2>
-            Drop your image here
-          </h2>
-
-
-          <p>
-            or click to browse
-          </p>
-
+          <p>or click to browse</p>
 
           <small>
-            JPG • JPEG • PNG • WEBP • GIF • BMP • AVIF • ICO • SVG • TIFF • HEIC • HEIF
+            JPG • JPEG • PNG • WEBP • GIF • BMP • AVIF
           </small>
-
 
           <input
             id="fileInput"
             type="file"
-            accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif,.ico,.svg,.tif,.tiff,.heic,.heif"
+            accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif"
             hidden
-          />
+          >
 
         </div>
 
 
-        <!-- ====================================
-             SAME IMAGE PREVIEW SECTION
-        ===================================== -->
+        <!-- PREVIEW -->
 
         <div
           id="previewCard"
@@ -333,23 +242,17 @@
         >
 
           <div class="preview-header">
-
-            <span>
-              Image Preview
-            </span>
-
+            <span>Image Preview</span>
           </div>
-
 
           <div class="preview-image-container">
 
             <img
               id="preview"
               alt="Image preview"
-            />
+            >
 
           </div>
-
 
           <div class="controls">
 
@@ -357,20 +260,20 @@
               id="removeButton"
               class="primary-button"
               type="button"
+              disabled
             >
               ✨ Remove Background
             </button>
-
 
             <button
               id="downloadButton"
               class="secondary-button"
               type="button"
-              style="display:none;"
+              style="display:none"
+              disabled
             >
               ↓ Download PNG
             </button>
-
 
             <button
               id="resetButton"
@@ -382,13 +285,11 @@
 
           </div>
 
-
           <div class="processing-status">
 
             <div id="status">
               Select an image to get started.
             </div>
-
 
             <div class="progress-container">
 
@@ -406,83 +307,39 @@
       </section>
 
 
-      <!-- ======================================
-           FEATURES
-      ======================================= -->
+      <!-- FEATURES -->
 
       <section class="features">
 
-
         <div class="feature-card">
-
-          <div class="feature-icon">
-            ⚡
-          </div>
-
-          <h3>
-            Fast
-          </h3>
-
-          <p>
-            AI-powered background removal.
-          </p>
-
+          <div class="feature-icon">⚡</div>
+          <h3>Fast</h3>
+          <p>AI-powered background removal.</p>
         </div>
 
-
         <div class="feature-card">
-
-          <div class="feature-icon">
-            🎯
-          </div>
-
-          <h3>
-            Precise
-          </h3>
-
-          <p>
-            Clean and accurate subject detection.
-          </p>
-
+          <div class="feature-icon">🎯</div>
+          <h3>Precise</h3>
+          <p>Clean subject detection.</p>
         </div>
 
-
         <div class="feature-card">
-
-          <div class="feature-icon">
-            🔒
-          </div>
-
-          <h3>
-            Private
-          </h3>
-
-          <p>
-            Your images stay under your control.
-          </p>
-
+          <div class="feature-icon">🔒</div>
+          <h3>Private</h3>
+          <p>Your images stay under your control.</p>
         </div>
-
 
       </section>
 
     </main>
 
 
-    <!-- FOOTER -->
-
     <footer class="site-footer">
-
-      <p>
-        © 2026 Krishna AI Studio
-      </p>
-
+      <p>© 2026 Krishna AI Studio</p>
     </footer>
 
 
-    <!-- ========================================
-         SETTINGS MODAL
-    ========================================= -->
+    <!-- SETTINGS -->
 
     <div
       id="settingsOverlay"
@@ -491,12 +348,9 @@
 
       <div class="settings-modal">
 
-
         <div class="settings-header">
 
-          <h2>
-            Settings
-          </h2>
+          <h2>Settings</h2>
 
           <button
             id="closeSettings"
@@ -516,10 +370,7 @@
           class="settings-section"
         >
 
-          <h3>
-            👤 Profile
-          </h3>
-
+          <h3>👤 Profile</h3>
 
           <div class="profile-picture-area">
 
@@ -528,7 +379,7 @@
               <img
                 id="profilePicture"
                 alt="Profile picture"
-              />
+              >
 
               <div
                 id="profileAvatarPlaceholder"
@@ -539,7 +390,6 @@
 
             </div>
 
-
             <button
               id="changeProfilePicture"
               class="secondary-button"
@@ -547,7 +397,6 @@
             >
               Change Picture
             </button>
-
 
             <button
               id="removeProfilePicture"
@@ -557,94 +406,62 @@
               Remove
             </button>
 
-
             <input
               id="profilePictureInput"
               type="file"
               accept="image/*"
               hidden
-            />
+            >
 
           </div>
 
-
           <div class="input-group">
-
-            <label for="displayName">
-              Display Name
-            </label>
-
+            <label for="displayName">Display Name</label>
             <input
               id="displayName"
               type="text"
               placeholder="Display name"
-            />
-
+            >
           </div>
 
-
           <div class="input-group">
-
-            <label for="profileEmail">
-              Email
-            </label>
-
+            <label for="profileEmail">Email</label>
             <input
               id="profileEmail"
               type="email"
               readonly
-            />
-
+            >
           </div>
 
-
           <div class="input-group">
-
-            <label for="profilePhone">
-              Phone
-            </label>
-
+            <label for="profilePhone">Phone</label>
             <input
               id="profilePhone"
               type="tel"
               placeholder="Phone number"
-            />
-
+            >
           </div>
 
-
           <div class="input-group">
-
-            <label for="profileLocation">
-              Location
-            </label>
-
+            <label for="profileLocation">Location</label>
             <input
               id="profileLocation"
               type="text"
               placeholder="Location"
-            />
-
+            >
           </div>
 
-
           <div class="input-group">
-
-            <label for="profileAbout">
-              About
-            </label>
+            <label for="profileAbout">About</label>
 
             <textarea
               id="profileAbout"
               rows="4"
               placeholder="About"
             ></textarea>
-
           </div>
 
-
           <div class="input-group">
-
             <label for="accountCreated">
               Account Created
             </label>
@@ -653,10 +470,8 @@
               id="accountCreated"
               type="text"
               readonly
-            />
-
+            >
           </div>
-
 
           <button
             id="saveProfile"
@@ -676,10 +491,7 @@
           class="settings-section"
         >
 
-          <h3>
-            ⚙️ Settings
-          </h3>
-
+          <h3>⚙️ Settings</h3>
 
           <div class="input-group">
 
@@ -691,22 +503,19 @@
               id="settingsEmail"
               type="email"
               readonly
-            />
+            >
 
           </div>
 
-
           <div class="setting-block">
 
-            <h4>
-              Change Password
-            </h4>
+            <h4>Change Password</h4>
 
             <input
               id="newPassword"
               type="password"
               placeholder="Enter new password"
-            />
+            >
 
             <button
               id="changePassword"
@@ -718,56 +527,15 @@
 
           </div>
 
-
           <div class="setting-block">
 
-            <h4>
-              🔐 Login Security
-            </h4>
+            <h4>🔐 Login Security</h4>
 
             <p>
               Your account is protected by Supabase authentication.
             </p>
 
           </div>
-
-
-          <div class="setting-block">
-
-            <h4>
-              📱 Login & Devices
-            </h4>
-
-            <p>
-              Manage your active login sessions.
-            </p>
-
-          </div>
-
-
-          <div class="input-group">
-
-            <label for="maxLoginCount">
-              Maximum Simultaneous Logins
-            </label>
-
-            <select id="maxLoginCount">
-
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-              <option value="9">9</option>
-              <option value="10">10</option>
-
-            </select>
-
-          </div>
-
 
           <button
             id="adminLogout"
@@ -787,10 +555,7 @@
           class="settings-section"
         >
 
-          <h3>
-            🌐 Website Settings
-          </h3>
-
+          <h3>🌐 Website Settings</h3>
 
           <div class="input-group">
 
@@ -802,10 +567,9 @@
               id="websiteName"
               type="text"
               value="Krishna AI Studio"
-            />
+            >
 
           </div>
-
 
           <div class="input-group">
 
@@ -821,7 +585,6 @@
 
           </div>
 
-
           <div class="input-group">
 
             <label for="websiteTheme">
@@ -829,71 +592,21 @@
             </label>
 
             <select id="websiteTheme">
-
-              <option value="dark">
-                Dark
-              </option>
-
-              <option value="light">
-                Light
-              </option>
-
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
             </select>
 
           </div>
 
-
           <div class="setting-block">
 
-            <h4>
-              🖼️ Image Settings
-            </h4>
+            <h4>🖼️ Image Settings</h4>
 
             <p>
-              Background removal outputs PNG images.
+              Background removal outputs transparent PNG images.
             </p>
 
           </div>
-
-
-          <div class="setting-block">
-
-            <h4>
-              Supported Formats
-            </h4>
-
-            <div class="format-tags">
-
-              <span>JPG</span>
-              <span>JPEG</span>
-              <span>PNG</span>
-              <span>WEBP</span>
-              <span>GIF</span>
-              <span>BMP</span>
-              <span>AVIF</span>
-              <span>ICO</span>
-              <span>SVG</span>
-              <span>TIFF</span>
-              <span>HEIC</span>
-              <span>HEIF</span>
-
-            </div>
-
-          </div>
-
-
-          <div class="setting-block">
-
-            <h4>
-              👥 User Management
-            </h4>
-
-            <p>
-              Manage access to Krishna AI Studio.
-            </p>
-
-          </div>
-
 
           <button
             id="saveWebsiteName"
@@ -905,12 +618,7 @@
 
         </section>
 
-
-        <div
-          id="settingMessage"
-          class="setting-message"
-        ></div>
-
+        <div id="settingMessage" class="setting-message"></div>
 
       </div>
 
@@ -918,10 +626,6 @@
 
   </div>
 
-
-  <!-- ==========================================
-       JAVASCRIPT
-  =========================================== -->
 
   <script
     type="module"
@@ -934,5 +638,4 @@
   ></script>
 
 </body>
-
-  </html>
+</html>
