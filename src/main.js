@@ -3,9 +3,9 @@ import { heicTo } from "heic-to";
 import UTIF from "utif2";
 import "./style.css";
 
-/* ==========================================
+/* =========================
    DOM
-========================================== */
+========================= */
 
 const fileInput = document.getElementById("fileInput");
 const dropZone = document.getElementById("dropZone");
@@ -17,9 +17,9 @@ const resetButton = document.getElementById("resetButton");
 const status = document.getElementById("status");
 const progressBar = document.getElementById("progressBar");
 
-/* ==========================================
+/* =========================
    STATE
-========================================== */
+========================= */
 
 let selectedFile = null;
 let resultUrl = null;
@@ -27,9 +27,9 @@ let previewUrl = null;
 
 const MAX_SIZE = 4096;
 
-/* ==========================================
+/* =========================
    STATUS
-========================================== */
+========================= */
 
 function setStatus(message, progress = 0) {
   if (status) {
@@ -41,9 +41,9 @@ function setStatus(message, progress = 0) {
   }
 }
 
-/* ==========================================
+/* =========================
    EXTENSION
-========================================== */
+========================= */
 
 function getExtension(file) {
   const name = (file?.name || "").toLowerCase();
@@ -52,9 +52,9 @@ function getExtension(file) {
   return dot >= 0 ? name.slice(dot) : "";
 }
 
-/* ==========================================
-   FORMAT NAME
-========================================== */
+/* =========================
+   FORMAT
+========================= */
 
 function getFormatName(file) {
   const formats = {
@@ -76,14 +76,12 @@ function getFormatName(file) {
   return formats[getExtension(file)] || "IMAGE";
 }
 
-/* ==========================================
-   SUPPORTED FORMATS
-========================================== */
+/* =========================
+   SUPPORTED
+========================= */
 
 function isSupported(file) {
-  if (!file) {
-    return false;
-  }
+  if (!file) return false;
 
   const extensions = [
     ".jpg",
@@ -102,20 +100,18 @@ function isSupported(file) {
   ];
 
   return (
-    (file.type &&
-      file.type.startsWith("image/")) ||
+    (file.type && file.type.startsWith("image/")) ||
     extensions.includes(getExtension(file))
   );
 }
 
-/* ==========================================
-   LOAD IMAGE FROM BLOB
-========================================== */
+/* =========================
+   LOAD IMAGE
+========================= */
 
 function loadImage(blob) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(blob);
-
     const image = new Image();
 
     image.onload = () => {
@@ -128,9 +124,7 @@ function loadImage(blob) {
         resolve(image);
       } else {
         reject(
-          new Error(
-            "The image has invalid dimensions."
-          )
+          new Error("The image has invalid dimensions.")
         );
       }
     };
@@ -140,7 +134,7 @@ function loadImage(blob) {
 
       reject(
         new Error(
-          "The image could not be decoded by this browser."
+          "PNG decoding failed. Please try another PNG image."
         )
       );
     };
@@ -149,9 +143,9 @@ function loadImage(blob) {
   });
 }
 
-/* ==========================================
-   CANVAS TO PNG FILE
-========================================== */
+/* =========================
+   CANVAS → PNG
+========================= */
 
 function canvasToPNGFile(canvas) {
   return new Promise((resolve, reject) => {
@@ -159,72 +153,88 @@ function canvasToPNGFile(canvas) {
       (blob) => {
         if (!blob) {
           reject(
-            new Error(
-              "Could not create a PNG image."
-            )
+            new Error("Could not create PNG image.")
           );
           return;
         }
 
-        const file = new File(
-          [blob],
-          "krishna-ai-studio-input.png",
-          {
-            type: "image/png",
-            lastModified: Date.now()
-          }
+        resolve(
+          new File(
+            [blob],
+            "krishna-ai-studio-input.png",
+            {
+              type: "image/png",
+              lastModified: Date.now()
+            }
+          )
         );
-
-        resolve(file);
       },
-      "image/png",
-      1
+      "image/png"
     );
   });
 }
 
-/* ==========================================
-   NORMAL IMAGE → CLEAN PNG
-========================================== */
+/* =========================
+   NORMAL IMAGE → PNG
+========================= */
 
 async function normalImageToPNG(file) {
-  setStatus(
-    "Preparing image…",
-    5
-  );
+  setStatus("Preparing image…", 5);
 
-  const image =
-    await loadImage(file);
+  /*
+     First try createImageBitmap.
+     This is more reliable for PNG files
+     than repeatedly decoding with <img>.
+  */
 
-  let width =
-    image.naturalWidth;
+  let bitmap = null;
 
-  let height =
-    image.naturalHeight;
+  try {
+    if ("createImageBitmap" in window) {
+      bitmap = await createImageBitmap(file);
+    }
+  } catch (error) {
+    console.warn(
+      "createImageBitmap failed:",
+      error
+    );
+  }
 
-  /* Limit very large images */
+  /*
+     Fallback to normal browser image.
+  */
+
+  if (!bitmap) {
+    const image = await loadImage(file);
+
+    return imageToPNG(
+      image,
+      image.naturalWidth,
+      image.naturalHeight
+    );
+  }
+
+  let width = bitmap.width;
+  let height = bitmap.height;
 
   if (
     width > MAX_SIZE ||
     height > MAX_SIZE
   ) {
-    const scale =
-      Math.min(
-        MAX_SIZE / width,
-        MAX_SIZE / height
-      );
+    const scale = Math.min(
+      MAX_SIZE / width,
+      MAX_SIZE / height
+    );
 
-    width =
-      Math.max(
-        1,
-        Math.round(width * scale)
-      );
+    width = Math.max(
+      1,
+      Math.round(width * scale)
+    );
 
-    height =
-      Math.max(
-        1,
-        Math.round(height * scale)
-      );
+    height = Math.max(
+      1,
+      Math.round(height * scale)
+    );
   }
 
   const canvas =
@@ -240,7 +250,78 @@ async function normalImageToPNG(file) {
 
   if (!context) {
     throw new Error(
-      "Your browser does not support canvas image processing."
+      "Canvas processing is not supported."
+    );
+  }
+
+  context.clearRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+  context.drawImage(
+    bitmap,
+    0,
+    0,
+    width,
+    height
+  );
+
+  if (bitmap.close) {
+    bitmap.close();
+  }
+
+  return canvasToPNGFile(canvas);
+}
+
+/* =========================
+   IMAGE → PNG
+========================= */
+
+async function imageToPNG(
+  image,
+  originalWidth,
+  originalHeight
+) {
+  let width = originalWidth;
+  let height = originalHeight;
+
+  if (
+    width > MAX_SIZE ||
+    height > MAX_SIZE
+  ) {
+    const scale = Math.min(
+      MAX_SIZE / width,
+      MAX_SIZE / height
+    );
+
+    width = Math.max(
+      1,
+      Math.round(width * scale)
+    );
+
+    height = Math.max(
+      1,
+      Math.round(height * scale)
+    );
+  }
+
+  const canvas =
+    document.createElement("canvas");
+
+  canvas.width = width;
+  canvas.height = height;
+
+  const context =
+    canvas.getContext("2d", {
+      alpha: true
+    });
+
+  if (!context) {
+    throw new Error(
+      "Canvas processing is not supported."
     );
   }
 
@@ -262,9 +343,9 @@ async function normalImageToPNG(file) {
   return canvasToPNGFile(canvas);
 }
 
-/* ==========================================
+/* =========================
    HEIC / HEIF
-========================================== */
+========================= */
 
 async function convertHEIC(file) {
   setStatus(
@@ -272,11 +353,10 @@ async function convertHEIC(file) {
     8
   );
 
-  const result =
-    await heicTo({
-      blob: file,
-      type: "image/png"
-    });
+  const result = await heicTo({
+    blob: file,
+    type: "image/png"
+  });
 
   if (!result) {
     throw new Error(
@@ -284,61 +364,21 @@ async function convertHEIC(file) {
     );
   }
 
-  const image =
-    await loadImage(result);
+  const image = await loadImage(result);
 
-  let width =
-    image.naturalWidth;
-
-  let height =
-    image.naturalHeight;
-
-  if (
-    width > MAX_SIZE ||
-    height > MAX_SIZE
-  ) {
-    const scale =
-      Math.min(
-        MAX_SIZE / width,
-        MAX_SIZE / height
-      );
-
-    width =
-      Math.round(width * scale);
-
-    height =
-      Math.round(height * scale);
-  }
-
-  const canvas =
-    document.createElement("canvas");
-
-  canvas.width = width;
-  canvas.height = height;
-
-  const context =
-    canvas.getContext("2d");
-
-  context.drawImage(
+  return imageToPNG(
     image,
-    0,
-    0,
-    width,
-    height
+    image.naturalWidth,
+    image.naturalHeight
   );
-
-  return canvasToPNGFile(canvas);
 }
 
-/* ==========================================
+/* =========================
    TIFF
-========================================== */
+========================= */
 
 async function convertTIFF(file) {
-  setStatus(
-    "Converting TIFF…",
-    8
-  );
+  setStatus("Converting TIFF…", 8);
 
   const buffer =
     await file.arrayBuffer();
@@ -346,12 +386,9 @@ async function convertTIFF(file) {
   const images =
     UTIF.decode(buffer);
 
-  if (
-    !images ||
-    images.length === 0
-  ) {
+  if (!images?.length) {
     throw new Error(
-      "Could not decode the TIFF image."
+      "Could not decode TIFF image."
     );
   }
 
@@ -371,24 +408,11 @@ async function convertTIFF(file) {
       images[0]
     );
 
-  if (
-    !width ||
-    !height ||
-    !rgba
-  ) {
-    throw new Error(
-      "The TIFF image contains invalid data."
-    );
-  }
-
   const sourceCanvas =
     document.createElement("canvas");
 
-  sourceCanvas.width =
-    width;
-
-  sourceCanvas.height =
-    height;
+  sourceCanvas.width = width;
+  sourceCanvas.height = height;
 
   const sourceContext =
     sourceCanvas.getContext("2d");
@@ -405,9 +429,7 @@ async function convertTIFF(file) {
       height
     );
 
-  imageData.data.set(
-    rgba
-  );
+  imageData.data.set(rgba);
 
   sourceContext.putImageData(
     imageData,
@@ -415,21 +437,17 @@ async function convertTIFF(file) {
     0
   );
 
-  let outputWidth =
-    width;
-
-  let outputHeight =
-    height;
+  let outputWidth = width;
+  let outputHeight = height;
 
   if (
     outputWidth > MAX_SIZE ||
     outputHeight > MAX_SIZE
   ) {
-    const scale =
-      Math.min(
-        MAX_SIZE / outputWidth,
-        MAX_SIZE / outputHeight
-      );
+    const scale = Math.min(
+      MAX_SIZE / outputWidth,
+      MAX_SIZE / outputHeight
+    );
 
     outputWidth =
       Math.round(
@@ -445,20 +463,11 @@ async function convertTIFF(file) {
   const canvas =
     document.createElement("canvas");
 
-  canvas.width =
-    outputWidth;
-
-  canvas.height =
-    outputHeight;
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
 
   const context =
     canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error(
-      "Could not create output canvas."
-    );
-  }
 
   context.drawImage(
     sourceCanvas,
@@ -471,22 +480,19 @@ async function convertTIFF(file) {
   return canvasToPNGFile(canvas);
 }
 
-/* ==========================================
+/* =========================
    SVG
-========================================== */
+========================= */
 
 async function convertSVG(file) {
-  setStatus(
-    "Converting SVG…",
-    8
-  );
+  setStatus("Converting SVG…", 8);
 
-  const svgText =
+  const text =
     await file.text();
 
   const blob =
     new Blob(
-      [svgText],
+      [text],
       {
         type: "image/svg+xml"
       }
@@ -495,64 +501,20 @@ async function convertSVG(file) {
   const image =
     await loadImage(blob);
 
-  let width =
-    image.naturalWidth;
-
-  let height =
-    image.naturalHeight;
-
-  if (
-    width > MAX_SIZE ||
-    height > MAX_SIZE
-  ) {
-    const scale =
-      Math.min(
-        MAX_SIZE / width,
-        MAX_SIZE / height
-      );
-
-    width =
-      Math.round(width * scale);
-
-    height =
-      Math.round(height * scale);
-  }
-
-  const canvas =
-    document.createElement("canvas");
-
-  canvas.width = width;
-  canvas.height = height;
-
-  const context =
-    canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error(
-      "Could not create SVG canvas."
-    );
-  }
-
-  context.drawImage(
+  return imageToPNG(
     image,
-    0,
-    0,
-    width,
-    height
+    image.naturalWidth,
+    image.naturalHeight
   );
-
-  return canvasToPNGFile(canvas);
 }
 
-/* ==========================================
-   PREPARE FILE FOR AI
-========================================== */
+/* =========================
+   PREPARE FOR AI
+========================= */
 
 async function prepareForAI(file) {
   const ext =
     getExtension(file);
-
-  /* HEIC / HEIF */
 
   if (
     ext === ".heic" ||
@@ -561,8 +523,6 @@ async function prepareForAI(file) {
     return convertHEIC(file);
   }
 
-  /* TIFF */
-
   if (
     ext === ".tif" ||
     ext === ".tiff"
@@ -570,33 +530,25 @@ async function prepareForAI(file) {
     return convertTIFF(file);
   }
 
-  /* SVG */
-
   if (ext === ".svg") {
     return convertSVG(file);
   }
 
   /*
-     ALL NORMAL IMAGE FORMATS ARE
-     NORMALIZED THROUGH CANVAS.
-
-     This is the important fix.
+     PNG/JPG/WEBP/etc.
+     go through createImageBitmap.
   */
 
   return normalImageToPNG(file);
 }
 
-/* ==========================================
-   CREATE PREVIEW
-========================================== */
+/* =========================
+   PREVIEW
+========================= */
 
 async function createPreview(file) {
   const ext =
     getExtension(file);
-
-  /*
-     Special formats
-  */
 
   if (
     ext === ".heic" ||
@@ -608,32 +560,27 @@ async function createPreview(file) {
     const png =
       await prepareForAI(file);
 
-    return URL.createObjectURL(
-      png
-    );
+    return URL.createObjectURL(png);
   }
 
   /*
-     Normal formats:
-     use original file for preview.
+     Do NOT decode normal PNG/JPG here.
+     Let the browser display the original
+     blob directly.
   */
 
-  return URL.createObjectURL(
-    file
-  );
+  return URL.createObjectURL(file);
 }
 
-/* ==========================================
+/* =========================
    HANDLE FILE
-========================================== */
+========================= */
 
 async function handleFile(file) {
-  if (!file) {
-    return;
-  }
+  if (!file) return;
 
   console.log(
-    "Selected file:",
+    "Selected:",
     file.name,
     file.type,
     file.size
@@ -655,14 +602,10 @@ async function handleFile(file) {
     return;
   }
 
-  selectedFile =
-    file;
+  selectedFile = file;
 
   if (resultUrl) {
-    URL.revokeObjectURL(
-      resultUrl
-    );
-
+    URL.revokeObjectURL(resultUrl);
     resultUrl = null;
   }
 
@@ -670,21 +613,15 @@ async function handleFile(file) {
     previewUrl &&
     previewUrl.startsWith("blob:")
   ) {
-    URL.revokeObjectURL(
-      previewUrl
-    );
+    URL.revokeObjectURL(previewUrl);
   }
 
   previewUrl = null;
 
-  removeButton.disabled =
-    true;
+  removeButton.disabled = true;
 
-  downloadButton.disabled =
-    true;
-
-  downloadButton.style.display =
-    "none";
+  downloadButton.disabled = true;
+  downloadButton.style.display = "none";
 
   try {
     setStatus(
@@ -713,17 +650,15 @@ async function handleFile(file) {
     };
 
     preview.onerror = () => {
+      removeButton.disabled = true;
+
       setStatus(
-        `The ${getFormatName(file)} image could not be displayed.`,
+        "The PNG could not be displayed by this browser.",
         0
       );
-
-      removeButton.disabled =
-        true;
     };
 
-    preview.src =
-      previewUrl;
+    preview.src = previewUrl;
 
   } catch (error) {
     console.error(
@@ -731,11 +666,9 @@ async function handleFile(file) {
       error
     );
 
-    selectedFile =
-      null;
+    selectedFile = null;
 
-    removeButton.disabled =
-      true;
+    removeButton.disabled = true;
 
     setStatus(
       `Error: ${
@@ -747,9 +680,9 @@ async function handleFile(file) {
   }
 }
 
-/* ==========================================
+/* =========================
    REMOVE BACKGROUND
-========================================== */
+========================= */
 
 async function processImage() {
   if (!selectedFile) {
@@ -761,25 +694,15 @@ async function processImage() {
   }
 
   try {
-    removeButton.disabled =
-      true;
+    removeButton.disabled = true;
 
-    downloadButton.disabled =
-      true;
-
-    downloadButton.style.display =
-      "none";
+    downloadButton.disabled = true;
+    downloadButton.style.display = "none";
 
     setStatus(
       "Preparing image for AI…",
       5
     );
-
-    /*
-       Create a completely clean PNG File.
-       This avoids the source-image decoder
-       problem inside @imgly/background-removal.
-    */
 
     const inputFile =
       await prepareForAI(
@@ -788,16 +711,16 @@ async function processImage() {
 
     if (!inputFile) {
       throw new Error(
-        "Could not prepare the source image."
+        "Could not prepare the image."
       );
     }
 
     if (
-      !inputFile.type ||
-      inputFile.type !== "image/png"
+      inputFile.type !==
+      "image/png"
     ) {
       throw new Error(
-        "The prepared image is not a valid PNG."
+        "Could not create a valid PNG."
       );
     }
 
@@ -865,11 +788,11 @@ async function processImage() {
       );
 
     /*
-       SAME IMAGE SECTION
+       Replace image in the
+       SAME preview section.
     */
 
-    preview.src =
-      resultUrl;
+    preview.src = resultUrl;
 
     previewCard.classList.add(
       "visible"
@@ -917,9 +840,9 @@ async function processImage() {
   }
 }
 
-/* ==========================================
+/* =========================
    DOWNLOAD
-========================================== */
+========================= */
 
 function downloadResult() {
   if (!resultUrl) {
@@ -933,34 +856,27 @@ function downloadResult() {
   const link =
     document.createElement("a");
 
-  link.href =
-    resultUrl;
+  link.href = resultUrl;
 
   link.download =
     "krishna-ai-studio-result.png";
 
-  document.body.appendChild(
-    link
-  );
+  document.body.appendChild(link);
 
   link.click();
 
   link.remove();
 }
 
-/* ==========================================
+/* =========================
    RESET
-========================================== */
+========================= */
 
 function resetApp() {
-  selectedFile =
-    null;
+  selectedFile = null;
 
   if (resultUrl) {
-    URL.revokeObjectURL(
-      resultUrl
-    );
-
+    URL.revokeObjectURL(resultUrl);
     resultUrl = null;
   }
 
@@ -968,35 +884,25 @@ function resetApp() {
     previewUrl &&
     previewUrl.startsWith("blob:")
   ) {
-    URL.revokeObjectURL(
-      previewUrl
-    );
+    URL.revokeObjectURL(previewUrl);
   }
 
   previewUrl = null;
 
-  preview.removeAttribute(
-    "src"
-  );
+  preview.removeAttribute("src");
 
   previewCard.classList.remove(
     "visible"
   );
 
-  dropZone.style.display =
-    "";
+  dropZone.style.display = "";
 
-  removeButton.disabled =
-    true;
+  removeButton.disabled = true;
 
-  downloadButton.disabled =
-    true;
+  downloadButton.disabled = true;
+  downloadButton.style.display = "none";
 
-  downloadButton.style.display =
-    "none";
-
-  fileInput.value =
-    "";
+  fileInput.value = "";
 
   setStatus(
     "Select an image to begin.",
@@ -1004,9 +910,9 @@ function resetApp() {
   );
 }
 
-/* ==========================================
+/* =========================
    EVENTS
-========================================== */
+========================= */
 
 fileInput.addEventListener(
   "change",
@@ -1076,18 +982,14 @@ dropZone.addEventListener(
   }
 );
 
-/* ==========================================
+/* =========================
    INITIAL STATE
-========================================== */
+========================= */
 
-removeButton.disabled =
-  true;
+removeButton.disabled = true;
 
-downloadButton.disabled =
-  true;
-
-downloadButton.style.display =
-  "none";
+downloadButton.disabled = true;
+downloadButton.style.display = "none";
 
 setStatus(
   "Select an image to begin.",
