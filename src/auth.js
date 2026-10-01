@@ -1,14 +1,30 @@
 import { createClient } from
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
+/* ==========================================
+   SUPABASE CONFIGURATION
+========================================== */
+
 const SUPABASE_URL =
   "https://kqhhjwmifqrkxhygjhap.supabase.co";
 
+/*
+  IMPORTANT:
+  Replace ONLY the value below with the
+  CURRENT Publishable key from:
+
+  Supabase
+  → Project Settings
+  → API
+  → Publishable key
+*/
+
 const SUPABASE_KEY =
-  "sb_publishable_BXXJIGsGG_6uIeyfGXPSKQ_uwjXdRa1";
+  "PASTE_YOUR_CURRENT_SUPABASE_PUBLISHABLE_KEY_HERE";
 
 const ADMIN_EMAIL =
   "jutruleelakrishna@gmail.com";
+
 
 const supabase = createClient(
   SUPABASE_URL,
@@ -295,8 +311,23 @@ loginForm?.addEventListener(
       return;
     }
 
+    if (
+      !SUPABASE_KEY ||
+      SUPABASE_KEY.includes(
+        "PASTE_YOUR_CURRENT"
+      )
+    ) {
+      showMessage(
+        "Supabase Publishable Key is not configured.",
+        true
+      );
+      return;
+    }
+
     if (loginButton) {
-      loginButton.disabled = true;
+      loginButton.disabled =
+        true;
+
       loginButton.textContent =
         "Signing in...";
     }
@@ -304,16 +335,6 @@ loginForm?.addEventListener(
     showMessage("");
 
     try {
-
-      console.log(
-        "Krishna AI Studio login:",
-        email
-      );
-
-      console.log(
-        "Supabase URL:",
-        SUPABASE_URL
-      );
 
       const {
         data,
@@ -324,35 +345,17 @@ loginForm?.addEventListener(
           password
         });
 
-      console.log(
-        "Supabase login response:",
-        data
-      );
-
-      console.log(
-        "Supabase login error:",
-        error
-      );
-
       if (error) {
-
         console.error(
-          "FULL SUPABASE ERROR:",
+          "Supabase login error:",
           error
         );
 
-        /*
-          SHOW THE REAL ERROR
-        */
-
-        const realError =
-          error.message ||
-          error.error_description ||
-          error.code ||
-          "Unknown Supabase authentication error.";
-
         showMessage(
-          `Supabase: ${realError}`,
+          `Supabase: ${
+            error.message ||
+            "Authentication failed."
+          }`,
           true
         );
 
@@ -360,19 +363,12 @@ loginForm?.addEventListener(
       }
 
       if (!data?.session) {
-
         showMessage(
-          "Supabase login succeeded, but no session was created.",
+          "Login succeeded, but no session was created.",
           true
         );
-
         return;
       }
-
-      console.log(
-        "LOGIN SUCCESS:",
-        data.session.user
-      );
 
       showApp();
 
@@ -393,14 +389,14 @@ loginForm?.addEventListener(
     } catch (error) {
 
       console.error(
-        "Unexpected login error:",
+        "Login error:",
         error
       );
 
       showMessage(
         `Login error: ${
           error?.message ||
-          "Unknown error"
+          "Unknown error."
         }`,
         true
       );
@@ -794,22 +790,16 @@ changePassword?.addEventListener(
 async function logout() {
 
   try {
-
     await supabase.auth.signOut();
-
   } catch (error) {
-
     console.error(
       "Logout error:",
       error
     );
-
   }
 
   closeSettingsModal();
-
   hideAdminMenu();
-
   showLogin();
 }
 
@@ -838,8 +828,7 @@ supabase.auth.onAuthStateChange(
 
     console.log(
       "Auth state:",
-      event,
-      session
+      event
     );
 
     if (session?.user) {
@@ -859,7 +848,6 @@ supabase.auth.onAuthStateChange(
     } else {
 
       hideAdminMenu();
-
       showLogin();
 
     }
@@ -906,7 +894,6 @@ async function initializeAuth() {
     } else {
 
       hideAdminMenu();
-
       showLogin();
 
     }
@@ -919,7 +906,6 @@ async function initializeAuth() {
     );
 
     hideAdminMenu();
-
     showLogin();
 
   }
@@ -931,7 +917,5 @@ async function initializeAuth() {
 ========================================== */
 
 showLogin();
-
 hideAdminMenu();
-
 initializeAuth();
