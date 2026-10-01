@@ -19,16 +19,34 @@ let previewUrl = null;
 
 const MAX_SIZE = 4096;
 
+/* ==========================================
+   STATUS
+========================================== */
+
 function setStatus(message, progress = 0) {
-  if (status) status.textContent = message;
-  if (progressBar) progressBar.style.width = `${progress}%`;
+  if (status) {
+    status.textContent = message;
+  }
+
+  if (progressBar) {
+    progressBar.style.width = `${progress}%`;
+  }
 }
+
+/* ==========================================
+   FILE EXTENSION
+========================================== */
 
 function getExtension(file) {
   const name = (file?.name || "").toLowerCase();
   const dot = name.lastIndexOf(".");
+
   return dot >= 0 ? name.slice(dot) : "";
 }
+
+/* ==========================================
+   FORMAT NAME
+========================================== */
 
 function getFormatName(file) {
   const formats = {
@@ -50,8 +68,14 @@ function getFormatName(file) {
   return formats[getExtension(file)] || "IMAGE";
 }
 
+/* ==========================================
+   SUPPORTED FILE CHECK
+========================================== */
+
 function isSupported(file) {
-  if (!file) return false;
+  if (!file) {
+    return false;
+  }
 
   const extensions = [
     ".jpg",
@@ -76,7 +100,7 @@ function isSupported(file) {
 }
 
 /* ==========================================
-   LOAD IMAGE DIRECTLY FROM FILE
+   LOAD IMAGE
 ========================================== */
 
 function loadImageFromFile(file) {
@@ -141,13 +165,14 @@ function canvasToPNG(canvas) {
 
 /* ==========================================
    NORMAL IMAGE TO PNG
+   Used only for preview conversion when
+   explicitly required.
 ========================================== */
 
 async function normalImageToPNG(file) {
   setStatus("Reading image…", 5);
 
-  const image =
-    await loadImageFromFile(file);
+  const image = await loadImageFromFile(file);
 
   let width = image.naturalWidth;
   let height = image.naturalHeight;
@@ -215,11 +240,10 @@ async function convertHEIC(file) {
     8
   );
 
-  const result =
-    await heicTo({
-      blob: file,
-      type: "image/png"
-    });
+  const result = await heicTo({
+    blob: file,
+    type: "image/png"
+  });
 
   if (!result) {
     throw new Error(
@@ -286,16 +310,11 @@ async function convertTIFF(file) {
       "canvas"
     );
 
-  sourceCanvas.width =
-    width;
-
-  sourceCanvas.height =
-    height;
+  sourceCanvas.width = width;
+  sourceCanvas.height = height;
 
   const sourceContext =
-    sourceCanvas.getContext(
-      "2d"
-    );
+    sourceCanvas.getContext("2d");
 
   if (!sourceContext) {
     throw new Error(
@@ -309,9 +328,7 @@ async function convertTIFF(file) {
       height
     );
 
-  imageData.data.set(
-    rgba
-  );
+  imageData.data.set(rgba);
 
   sourceContext.putImageData(
     imageData,
@@ -319,11 +336,8 @@ async function convertTIFF(file) {
     0
   );
 
-  let outputWidth =
-    width;
-
-  let outputHeight =
-    height;
+  let outputWidth = width;
+  let outputHeight = height;
 
   if (
     outputWidth > MAX_SIZE ||
@@ -351,16 +365,11 @@ async function convertTIFF(file) {
       "canvas"
     );
 
-  canvas.width =
-    outputWidth;
-
-  canvas.height =
-    outputHeight;
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
 
   const context =
-    canvas.getContext(
-      "2d"
-    );
+    canvas.getContext("2d");
 
   if (!context) {
     throw new Error(
@@ -376,9 +385,7 @@ async function convertTIFF(file) {
     outputHeight
   );
 
-  return canvasToPNG(
-    canvas
-  );
+  return canvasToPNG(canvas);
 }
 
 /* ==========================================
@@ -403,9 +410,7 @@ async function convertSVG(file) {
     );
 
   const url =
-    URL.createObjectURL(
-      blob
-    );
+    URL.createObjectURL(blob);
 
   try {
     const image =
@@ -473,16 +478,11 @@ async function convertSVG(file) {
         "canvas"
       );
 
-    canvas.width =
-      width;
-
-    canvas.height =
-      height;
+    canvas.width = width;
+    canvas.height = height;
 
     const context =
-      canvas.getContext(
-        "2d"
-      );
+      canvas.getContext("2d");
 
     if (!context) {
       throw new Error(
@@ -498,23 +498,23 @@ async function convertSVG(file) {
       height
     );
 
-    return canvasToPNG(
-      canvas
-    );
+    return canvasToPNG(canvas);
   } finally {
-    URL.revokeObjectURL(
-      url
-    );
+    URL.revokeObjectURL(url);
   }
 }
 
 /* ==========================================
-   CONVERT ANY SUPPORTED FILE TO PNG
+   CONVERT FILE FOR AI
 ========================================== */
 
 async function convertToPNG(file) {
   const ext =
     getExtension(file);
+
+  /*
+     HEIC / HEIF
+  */
 
   if (
     ext === ".heic" ||
@@ -523,6 +523,10 @@ async function convertToPNG(file) {
     return convertHEIC(file);
   }
 
+  /*
+     TIFF
+  */
+
   if (
     ext === ".tif" ||
     ext === ".tiff"
@@ -530,13 +534,25 @@ async function convertToPNG(file) {
     return convertTIFF(file);
   }
 
-  if (
-    ext === ".svg"
-  ) {
+  /*
+     SVG
+  */
+
+  if (ext === ".svg") {
     return convertSVG(file);
   }
 
-  return normalImageToPNG(file);
+  /*
+     IMPORTANT FIX
+
+     Do NOT convert normal JPG/PNG/WEBP/
+     GIF/BMP/AVIF/ICO files to PNG.
+
+     Send the original file directly
+     to the AI processor.
+  */
+
+  return file;
 }
 
 /* ==========================================
@@ -546,6 +562,11 @@ async function convertToPNG(file) {
 async function createPreview(file) {
   const ext =
     getExtension(file);
+
+  /*
+     Special formats need conversion
+     for browser preview.
+  */
 
   if (
     ext === ".heic" ||
@@ -563,14 +584,12 @@ async function createPreview(file) {
   }
 
   /*
-     IMPORTANT:
+     Normal images:
      Direct Blob URL.
      No FileReader.
   */
 
-  return URL.createObjectURL(
-    file
-  );
+  return URL.createObjectURL(file);
 }
 
 /* ==========================================
@@ -578,7 +597,9 @@ async function createPreview(file) {
 ========================================== */
 
 async function handleFile(file) {
-  if (!file) return;
+  if (!file) {
+    return;
+  }
 
   console.log(
     "Selected file:",
@@ -603,13 +624,13 @@ async function handleFile(file) {
     return;
   }
 
-  selectedFile =
-    file;
+  selectedFile = file;
 
   if (resultUrl) {
     URL.revokeObjectURL(
       resultUrl
     );
+
     resultUrl = null;
   }
 
@@ -624,11 +645,9 @@ async function handleFile(file) {
 
   previewUrl = null;
 
-  removeButton.disabled =
-    true;
+  removeButton.disabled = true;
 
-  downloadButton.disabled =
-    true;
+  downloadButton.disabled = true;
 
   downloadButton.style.display =
     "none";
@@ -640,41 +659,36 @@ async function handleFile(file) {
     );
 
     previewUrl =
-      await createPreview(
-        file
+      await createPreview(file);
+
+    preview.onload = () => {
+      previewCard.classList.add(
+        "visible"
       );
 
-    preview.onload =
-      () => {
-        previewCard.classList.add(
-          "visible"
-        );
+      dropZone.style.display =
+        "none";
 
-        dropZone.style.display =
-          "none";
+      removeButton.disabled =
+        false;
 
-        removeButton.disabled =
-          false;
+      setStatus(
+        `${getFormatName(file)} image ready.`,
+        0
+      );
+    };
 
-        setStatus(
-          `${getFormatName(file)} image ready.`,
-          0
-        );
-      };
+    preview.onerror = () => {
+      setStatus(
+        `The ${getFormatName(file)} image could not be displayed.`,
+        0
+      );
 
-    preview.onerror =
-      () => {
-        setStatus(
-          `The ${getFormatName(file)} image could not be displayed.`,
-          0
-        );
+      removeButton.disabled =
+        true;
+    };
 
-        removeButton.disabled =
-          true;
-      };
-
-    preview.src =
-      previewUrl;
+    preview.src = previewUrl;
 
   } catch (error) {
     console.error(
@@ -682,8 +696,7 @@ async function handleFile(file) {
       error
     );
 
-    selectedFile =
-      null;
+    selectedFile = null;
 
     removeButton.disabled =
       true;
@@ -712,11 +725,9 @@ async function processImage() {
   }
 
   try {
-    removeButton.disabled =
-      true;
+    removeButton.disabled = true;
 
-    downloadButton.disabled =
-      true;
+    downloadButton.disabled = true;
 
     downloadButton.style.display =
       "none";
@@ -725,6 +736,11 @@ async function processImage() {
       "Preparing image…",
       5
     );
+
+    /*
+       Normal images are now sent directly.
+       Only HEIC/HEIF/TIFF/SVG are converted.
+    */
 
     const inputBlob =
       await convertToPNG(
@@ -799,8 +815,7 @@ async function processImage() {
        preview section.
     */
 
-    preview.src =
-      resultUrl;
+    preview.src = resultUrl;
 
     previewCard.classList.add(
       "visible"
@@ -862,19 +877,14 @@ function downloadResult() {
   }
 
   const link =
-    document.createElement(
-      "a"
-    );
+    document.createElement("a");
 
-  link.href =
-    resultUrl;
+  link.href = resultUrl;
 
   link.download =
     "krishna-ai-studio-result.png";
 
-  document.body.appendChild(
-    link
-  );
+  document.body.appendChild(link);
 
   link.click();
 
@@ -886,13 +896,13 @@ function downloadResult() {
 ========================================== */
 
 function resetApp() {
-  selectedFile =
-    null;
+  selectedFile = null;
 
   if (resultUrl) {
     URL.revokeObjectURL(
       resultUrl
     );
+
     resultUrl = null;
   }
 
@@ -907,28 +917,22 @@ function resetApp() {
 
   previewUrl = null;
 
-  preview.removeAttribute(
-    "src"
-  );
+  preview.removeAttribute("src");
 
   previewCard.classList.remove(
     "visible"
   );
 
-  dropZone.style.display =
-    "";
+  dropZone.style.display = "";
 
-  removeButton.disabled =
-    true;
+  removeButton.disabled = true;
 
-  downloadButton.disabled =
-    true;
+  downloadButton.disabled = true;
 
   downloadButton.style.display =
     "none";
 
-  fileInput.value =
-    "";
+  fileInput.value = "";
 
   setStatus(
     "Select an image to begin.",
@@ -976,6 +980,7 @@ dropZone.addEventListener(
   "dragover",
   (event) => {
     event.preventDefault();
+
     dropZone.classList.add(
       "drag-over"
     );
@@ -1011,11 +1016,9 @@ dropZone.addEventListener(
    INITIAL STATE
 ========================================== */
 
-removeButton.disabled =
-  true;
+removeButton.disabled = true;
 
-downloadButton.disabled =
-  true;
+downloadButton.disabled = true;
 
 downloadButton.style.display =
   "none";
