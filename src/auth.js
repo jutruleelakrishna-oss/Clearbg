@@ -1,4 +1,10 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { createClient } from
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+
+/* =====================================================
+   SUPABASE
+===================================================== */
 
 const SUPABASE_URL =
   "https://kqhhjwmifqrkxhygjhap.supabase.co";
@@ -9,191 +15,677 @@ const SUPABASE_KEY =
 const ADMIN_EMAIL =
   "jutruleelakrishna@gmail.com";
 
-const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
 
-window.krishnaSupabase = supabase;
+const supabase =
+  createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
-/* ELEMENTS */
+/* =====================================================
+   ELEMENTS
+===================================================== */
 
-const settingsButton =
-  document.getElementById("settingsButton");
+const menuButton =
+  document.getElementById(
+    "menuButton"
+  );
+
+const menuOverlay =
+  document.getElementById(
+    "menuOverlay"
+  );
+
+const profileMenuButton =
+  document.getElementById(
+    "profileMenuButton"
+  );
+
+const settingsMenuButton =
+  document.getElementById(
+    "settingsMenuButton"
+  );
+
+const websiteSettingsMenuButton =
+  document.getElementById(
+    "websiteSettingsMenuButton"
+  );
 
 const settingsOverlay =
-  document.getElementById("settingsOverlay");
+  document.getElementById(
+    "settingsOverlay"
+  );
 
-const closeSettings =
-  document.getElementById("closeSettings");
+const profileSection =
+  document.getElementById(
+    "profileSection"
+  );
 
-const brandName =
-  document.getElementById("brandName");
+const securitySection =
+  document.getElementById(
+    "securitySection"
+  );
 
-const websiteName =
-  document.getElementById("websiteName");
+const websiteSettingsSection =
+  document.getElementById(
+    "websiteSettingsSection"
+  );
 
-const saveWebsiteName =
-  document.getElementById("saveWebsiteName");
+const settingMessage =
+  document.getElementById(
+    "settingMessage"
+  );
 
-const websiteMessage =
-  document.getElementById("websiteMessage");
+
+/* =====================================================
+   PROFILE ELEMENTS
+===================================================== */
+
+const profilePicture =
+  document.getElementById(
+    "profilePicture"
+  );
+
+const profileAvatarPlaceholder =
+  document.getElementById(
+    "profileAvatarPlaceholder"
+  );
+
+const profilePictureInput =
+  document.getElementById(
+    "profilePictureInput"
+  );
+
+const changeProfilePicture =
+  document.getElementById(
+    "changeProfilePicture"
+  );
+
+const removeProfilePicture =
+  document.getElementById(
+    "removeProfilePicture"
+  );
 
 const displayName =
-  document.getElementById("displayName");
+  document.getElementById(
+    "displayName"
+  );
 
 const profileEmail =
-  document.getElementById("profileEmail");
+  document.getElementById(
+    "profileEmail"
+  );
+
+const profilePhone =
+  document.getElementById(
+    "profilePhone"
+  );
+
+const profileLocation =
+  document.getElementById(
+    "profileLocation"
+  );
+
+const profileAbout =
+  document.getElementById(
+    "profileAbout"
+  );
+
+const accountCreated =
+  document.getElementById(
+    "accountCreated"
+  );
 
 const saveProfile =
-  document.getElementById("saveProfile");
+  document.getElementById(
+    "saveProfile"
+  );
 
-const profileMessage =
-  document.getElementById("profileMessage");
+
+/* =====================================================
+   SECURITY ELEMENTS
+===================================================== */
+
+const settingsEmail =
+  document.getElementById(
+    "settingsEmail"
+  );
 
 const newPassword =
-  document.getElementById("newPassword");
+  document.getElementById(
+    "newPassword"
+  );
 
 const changePassword =
-  document.getElementById("changePassword");
+  document.getElementById(
+    "changePassword"
+  );
 
-const passwordMessage =
-  document.getElementById("passwordMessage");
+const maxLoginCount =
+  document.getElementById(
+    "maxLoginCount"
+  );
 
 const adminLogout =
-  document.getElementById("adminLogout");
-
-
-/*
- * IMPORTANT:
- * Settings is hidden immediately.
- * It will ONLY become visible after
- * Supabase confirms the admin email.
- */
-
-if (settingsButton) {
-  settingsButton.style.display = "none";
-}
-
-
-/* SETTINGS OPEN */
-
-function openSettings() {
-  if (!settingsButton) return;
-
-  settingsOverlay.classList.add("open");
-
-  settingsOverlay.setAttribute(
-    "aria-hidden",
-    "false"
+  document.getElementById(
+    "adminLogout"
   );
-}
 
 
-/* SETTINGS CLOSE */
+/* =====================================================
+   WEBSITE SETTINGS
+===================================================== */
 
-function closeSettingsModal() {
-  if (!settingsOverlay) return;
-
-  settingsOverlay.classList.remove("open");
-
-  settingsOverlay.setAttribute(
-    "aria-hidden",
-    "true"
+const websiteName =
+  document.getElementById(
+    "websiteName"
   );
-}
 
-
-if (settingsButton) {
-  settingsButton.addEventListener(
-    "click",
-    openSettings
+const websiteDescription =
+  document.getElementById(
+    "websiteDescription"
   );
-}
 
-
-if (closeSettings) {
-  closeSettings.addEventListener(
-    "click",
-    closeSettingsModal
+const websiteTheme =
+  document.getElementById(
+    "websiteTheme"
   );
+
+const saveWebsiteName =
+  document.getElementById(
+    "saveWebsiteName"
+  );
+
+
+/* =====================================================
+   CURRENT USER
+===================================================== */
+
+let currentUser =
+  null;
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function isAdmin(
+  user
+) {
+
+  return (
+    user &&
+    user.email &&
+    user.email.toLowerCase() ===
+      ADMIN_EMAIL.toLowerCase()
+  );
+
 }
 
 
-if (settingsOverlay) {
-  settingsOverlay.addEventListener(
-    "click",
-    (event) => {
+function showMessage(
+  message,
+  success = true
+) {
 
-      if (
-        event.target === settingsOverlay
-      ) {
-        closeSettingsModal();
+  if (!settingMessage) {
+    return;
+  }
+
+
+  settingMessage.textContent =
+    message;
+
+
+  settingMessage.style.display =
+    "block";
+
+
+  settingMessage.dataset.type =
+    success
+      ? "success"
+      : "error";
+
+
+  setTimeout(
+    () => {
+
+      if (settingMessage) {
+
+        settingMessage.style.display =
+          "none";
+
       }
 
-    }
+    },
+    3500
   );
+
 }
 
 
-/* AUTHENTICATION */
+/* =====================================================
+   ADMIN VISIBILITY
+===================================================== */
 
-async function checkAuthentication() {
+function updateAdminVisibility(
+  user
+) {
+
+  const admin =
+    isAdmin(user);
+
 
   /*
-   * Always hide Settings first.
-   * This prevents normal users from
-   * seeing it while authentication loads.
+   * Hamburger is completely hidden
+   * for normal users.
    */
 
-  if (settingsButton) {
-    settingsButton.style.display = "none";
+  if (menuButton) {
+
+    menuButton.style.display =
+      admin
+        ? "flex"
+        : "none";
+
   }
 
 
-  const {
-    data: { session },
-    error
-  } = await supabase.auth.getSession();
+  if (!admin) {
+
+    closeAdminMenu();
+    closeSettings();
+
+  }
+
+}
 
 
-  if (error) {
+/* =====================================================
+   MENU
+===================================================== */
 
-    console.error(
-      "Authentication error:",
-      error
+function openAdminMenu() {
+
+  if (
+    !currentUser ||
+    !isAdmin(currentUser)
+  ) {
+
+    return;
+
+  }
+
+
+  if (menuOverlay) {
+
+    menuOverlay.classList.add(
+      "active"
     );
 
-    window.location.replace(
-      "/admin.html"
+  }
+
+}
+
+
+function closeAdminMenu() {
+
+  if (menuOverlay) {
+
+    menuOverlay.classList.remove(
+      "active"
     );
 
+  }
+
+}
+
+
+function toggleAdminMenu() {
+
+  if (
+    !currentUser ||
+    !isAdmin(currentUser)
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    menuOverlay?.classList.contains(
+      "active"
+    )
+  ) {
+
+    closeAdminMenu();
+
+  } else {
+
+    openAdminMenu();
+
+  }
+
+}
+
+
+menuButton?.addEventListener(
+  "click",
+  toggleAdminMenu
+);
+
+
+menuOverlay?.addEventListener(
+  "click",
+  (event) => {
+
+    if (
+      event.target ===
+      menuOverlay
+    ) {
+
+      closeAdminMenu();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   SETTINGS MODAL
+===================================================== */
+
+function openSettings() {
+
+  if (
+    !currentUser ||
+    !isAdmin(currentUser)
+  ) {
+
+    return;
+
+  }
+
+
+  settingsOverlay?.classList.add(
+    "active"
+  );
+
+}
+
+
+function closeSettings() {
+
+  settingsOverlay?.classList.remove(
+    "active"
+  );
+
+}
+
+
+settingsOverlay?.addEventListener(
+  "click",
+  (event) => {
+
+    if (
+      event.target ===
+      settingsOverlay
+    ) {
+
+      closeSettings();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   SETTINGS SECTIONS
+===================================================== */
+
+function hideSections() {
+
+  profileSection?.classList.remove(
+    "active"
+  );
+
+  securitySection?.classList.remove(
+    "active"
+  );
+
+  websiteSettingsSection?.classList.remove(
+    "active"
+  );
+
+}
+
+
+profileMenuButton?.addEventListener(
+  "click",
+  () => {
+
+    closeAdminMenu();
+
+    openSettings();
+
+    hideSections();
+
+    profileSection?.classList.add(
+      "active"
+    );
+
+  }
+);
+
+
+settingsMenuButton?.addEventListener(
+  "click",
+  () => {
+
+    closeAdminMenu();
+
+    openSettings();
+
+    hideSections();
+
+    securitySection?.classList.add(
+      "active"
+    );
+
+  }
+);
+
+
+websiteSettingsMenuButton?.addEventListener(
+  "click",
+  () => {
+
+    closeAdminMenu();
+
+    openSettings();
+
+    hideSections();
+
+    websiteSettingsSection?.classList.add(
+      "active"
+    );
+
+  }
+);
+
+
+/* =====================================================
+   PROFILE IMAGE
+===================================================== */
+
+function updateProfilePicture(
+  image
+) {
+
+  if (
+    !profilePicture ||
+    !profileAvatarPlaceholder
+  ) {
+
+    return;
+
+  }
+
+
+  if (image) {
+
+    profilePicture.src =
+      image;
+
+    profilePicture.style.display =
+      "block";
+
+    profileAvatarPlaceholder.style.display =
+      "none";
+
+  } else {
+
+    profilePicture.removeAttribute(
+      "src"
+    );
+
+    profilePicture.style.display =
+      "none";
+
+    profileAvatarPlaceholder.style.display =
+      "flex";
+
+  }
+
+}
+
+
+changeProfilePicture?.addEventListener(
+  "click",
+  () => {
+
+    profilePictureInput?.click();
+
+  }
+);
+
+
+profilePictureInput?.addEventListener(
+  "change",
+  () => {
+
+    const file =
+      profilePictureInput.files?.[0];
+
+
+    if (!file) {
+      return;
+    }
+
+
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+
+      showMessage(
+        "Please select an image.",
+        false
+      );
+
+      return;
+
+    }
+
+
+    const reader =
+      new FileReader();
+
+
+    reader.onload =
+      () => {
+
+        const image =
+          reader.result;
+
+
+        updateProfilePicture(
+          image
+        );
+
+
+        /*
+         * Store temporarily in memory
+         * until Save Profile is clicked.
+         */
+
+        profilePictureInput.dataset.image =
+          image;
+
+      };
+
+
+    reader.readAsDataURL(
+      file
+    );
+
+  }
+);
+
+
+removeProfilePicture?.addEventListener(
+  "click",
+  () => {
+
+    updateProfilePicture(
+      null
+    );
+
+
+    if (profilePictureInput) {
+
+      profilePictureInput.value =
+        "";
+
+      profilePictureInput.dataset.image =
+        "";
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   LOAD PROFILE
+===================================================== */
+
+function loadProfile(
+  user
+) {
+
+  if (!user) {
     return;
   }
 
 
-  /*
-   * No logged-in user
-   */
+  const metadata =
+    user.user_metadata || {};
 
-  if (!session) {
 
-    window.location.replace(
-      "/admin.html"
-    );
+  if (displayName) {
 
-    return;
+    displayName.value =
+      metadata.display_name ||
+      "Krishna AI Studio Admin";
+
   }
 
-
-  const user =
-    session.user;
-
-
-  /*
-   * Profile email
-   */
 
   if (profileEmail) {
 
@@ -203,301 +695,467 @@ async function checkAuthentication() {
   }
 
 
-  /*
-   * Display name
-   */
+  if (profilePhone) {
 
-  if (displayName) {
-
-    displayName.value =
-      user.user_metadata?.display_name || "";
+    profilePhone.value =
+      metadata.phone || "";
 
   }
 
 
-  /*
-   * Website name
-   */
+  if (profileLocation) {
 
-  const savedWebsiteName =
-    user.user_metadata?.website_name;
-
-
-  if (savedWebsiteName) {
-
-    if (brandName) {
-
-      brandName.textContent =
-        savedWebsiteName;
-
-    }
-
-
-    if (websiteName) {
-
-      websiteName.value =
-        savedWebsiteName;
-
-    }
-
-
-    document.title =
-      savedWebsiteName;
+    profileLocation.value =
+      metadata.location || "";
 
   }
 
 
-  /*
-   * ADMIN CHECK
-   *
-   * Settings is shown ONLY when
-   * the logged-in email exactly matches
-   * the admin email.
-   */
+  if (profileAbout) {
 
-  const loggedInEmail =
-    (user.email || "")
-      .trim()
-      .toLowerCase();
-
-
-  const adminEmail =
-    ADMIN_EMAIL
-      .trim()
-      .toLowerCase();
-
-
-  const isAdmin =
-    loggedInEmail === adminEmail;
-
-
-  if (
-    settingsButton
-  ) {
-
-    if (isAdmin) {
-
-      settingsButton.style.display =
-        "block";
-
-    } else {
-
-      settingsButton.style.display =
-        "none";
-
-    }
+    profileAbout.value =
+      metadata.about || "";
 
   }
 
 
-  /*
-   * Authentication completed
-   */
+  if (accountCreated) {
 
-  document.body.classList.remove(
-    "auth-checking"
+    accountCreated.value =
+      user.created_at
+        ? new Date(
+            user.created_at
+          ).toLocaleString()
+        : "";
+
+  }
+
+
+  if (settingsEmail) {
+
+    settingsEmail.value =
+      user.email || "";
+
+  }
+
+
+  updateProfilePicture(
+    metadata.profile_picture ||
+    null
   );
+
 }
 
 
-/* WEBSITE NAME */
+/* =====================================================
+   SAVE PROFILE
+===================================================== */
 
-if (saveWebsiteName) {
+saveProfile?.addEventListener(
+  "click",
+  async () => {
 
-  saveWebsiteName.addEventListener(
-    "click",
-    async () => {
+    if (
+      !currentUser ||
+      !isAdmin(currentUser)
+    ) {
 
-      const name =
-        websiteName.value.trim();
+      return;
+
+    }
 
 
-      if (!name) {
+    try {
 
-        websiteMessage.textContent =
-          "Please enter a website name.";
+      const existingMetadata =
+        currentUser.user_metadata || {};
 
-        return;
+
+      let profileImage =
+        existingMetadata.profile_picture ||
+        null;
+
+
+      /*
+       * New image selected.
+       */
+
+      if (
+        profilePictureInput?.dataset.image
+      ) {
+
+        profileImage =
+          profilePictureInput.dataset.image;
+
       }
 
 
-      saveWebsiteName.disabled =
-        true;
+      /*
+       * If image was removed.
+       */
 
-      websiteMessage.textContent =
-        "Saving...";
+      if (
+        profilePictureInput &&
+        profilePictureInput.dataset.image ===
+          ""
+      ) {
+
+        profileImage =
+          null;
+
+      }
+
+
+      const updates = {
+
+        display_name:
+          displayName?.value?.trim() ||
+          "Krishna AI Studio Admin",
+
+        phone:
+          profilePhone?.value?.trim() ||
+          "",
+
+        location:
+          profileLocation?.value?.trim() ||
+          "",
+
+        about:
+          profileAbout?.value?.trim() ||
+          "",
+
+        profile_picture:
+          profileImage
+
+      };
 
 
       const {
+        data,
         error
       } =
-        await supabase.auth.updateUser({
-
-          data: {
-            website_name: name
+        await supabase.auth.updateUser(
+          {
+            data: updates
           }
-
-        });
-
-
-      saveWebsiteName.disabled =
-        false;
+        );
 
 
       if (error) {
-
-        websiteMessage.textContent =
-          error.message;
-
-        return;
+        throw error;
       }
 
 
-      if (brandName) {
-
-        brandName.textContent =
-          name;
-
-      }
+      currentUser =
+        data.user;
 
 
-      document.title =
-        name;
+      showMessage(
+        "Profile saved successfully."
+      );
 
 
-      websiteMessage.textContent =
-        "Website name saved.";
+      loadProfile(
+        currentUser
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Profile update error:",
+        error
+      );
+
+
+      showMessage(
+        error.message ||
+          "Could not save profile.",
+        false
+      );
+
     }
-  );
 
-}
-
-
-/* PROFILE */
-
-if (saveProfile) {
-
-  saveProfile.addEventListener(
-    "click",
-    async () => {
-
-      const name =
-        displayName.value.trim();
+  }
+);
 
 
-      saveProfile.disabled =
-        true;
+/* =====================================================
+   CHANGE PASSWORD
+===================================================== */
 
-      profileMessage.textContent =
-        "Saving...";
+changePassword?.addEventListener(
+  "click",
+  async () => {
 
+    if (
+      !currentUser ||
+      !isAdmin(currentUser)
+    ) {
+
+      return;
+
+    }
+
+
+    const password =
+      newPassword?.value?.trim();
+
+
+    if (!password) {
+
+      showMessage(
+        "Enter a new password.",
+        false
+      );
+
+      return;
+
+    }
+
+
+    if (password.length < 6) {
+
+      showMessage(
+        "Password must contain at least 6 characters.",
+        false
+      );
+
+      return;
+
+    }
+
+
+    try {
 
       const {
         error
       } =
-        await supabase.auth.updateUser({
-
-          data: {
-            display_name: name
+        await supabase.auth.updateUser(
+          {
+            password
           }
-
-        });
-
-
-      saveProfile.disabled =
-        false;
+        );
 
 
       if (error) {
-
-        profileMessage.textContent =
-          error.message;
-
-        return;
+        throw error;
       }
 
 
-      profileMessage.textContent =
-        "Profile saved.";
+      if (newPassword) {
+
+        newPassword.value =
+          "";
+
+      }
+
+
+      showMessage(
+        "Password changed successfully."
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Password change error:",
+        error
+      );
+
+
+      showMessage(
+        error.message ||
+          "Could not change password.",
+        false
+      );
+
     }
-  );
+
+  }
+);
+
+
+/* =====================================================
+   WEBSITE SETTINGS
+===================================================== */
+
+function loadWebsiteSettings(
+  user
+) {
+
+  const metadata =
+    user?.user_metadata || {};
+
+
+  if (websiteName) {
+
+    websiteName.value =
+      metadata.website_name ||
+      "Krishna AI Studio";
+
+  }
+
+
+  if (websiteDescription) {
+
+    websiteDescription.value =
+      metadata.website_description ||
+      "AI-powered background removal studio.";
+
+  }
+
+
+  if (websiteTheme) {
+
+    websiteTheme.value =
+      metadata.website_theme ||
+      "dark";
+
+  }
+
+
+  if (maxLoginCount) {
+
+    maxLoginCount.value =
+      metadata.max_login_count ||
+      1;
+
+  }
 
 }
 
 
-/* CHANGE PASSWORD */
+saveWebsiteName?.addEventListener(
+  "click",
+  async () => {
 
-if (changePassword) {
+    if (
+      !currentUser ||
+      !isAdmin(currentUser)
+    ) {
 
-  changePassword.addEventListener(
-    "click",
-    async () => {
+      return;
 
-      const password =
-        newPassword.value;
-
-
-      if (password.length < 6) {
-
-        passwordMessage.textContent =
-          "Password must contain at least 6 characters.";
-
-        return;
-      }
+    }
 
 
-      changePassword.disabled =
-        true;
+    try {
 
-      passwordMessage.textContent =
-        "Updating password...";
+      const existingMetadata =
+        currentUser.user_metadata || {};
+
+
+      const maxLogins =
+        Number(
+          maxLoginCount?.value || 1
+        );
+
+
+      const safeMaxLogins =
+        Math.max(
+          1,
+          Math.min(
+            10,
+            maxLogins
+          )
+        );
+
+
+      const updates = {
+
+        ...existingMetadata,
+
+        website_name:
+          websiteName?.value?.trim() ||
+          "Krishna AI Studio",
+
+        website_description:
+          websiteDescription?.value?.trim() ||
+          "AI-powered background removal studio.",
+
+        website_theme:
+          websiteTheme?.value ||
+          "dark",
+
+        max_login_count:
+          safeMaxLogins
+
+      };
 
 
       const {
+        data,
         error
       } =
-        await supabase.auth.updateUser({
-
-          password: password
-
-        });
-
-
-      changePassword.disabled =
-        false;
+        await supabase.auth.updateUser(
+          {
+            data: updates
+          }
+        );
 
 
       if (error) {
-
-        passwordMessage.textContent =
-          error.message;
-
-        return;
+        throw error;
       }
 
 
-      newPassword.value =
-        "";
+      currentUser =
+        data.user;
 
-      passwordMessage.textContent =
-        "Password changed successfully.";
+
+      showMessage(
+        "Website settings saved."
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Website settings error:",
+        error
+      );
+
+
+      showMessage(
+        error.message ||
+          "Could not save website settings.",
+        false
+      );
+
     }
-  );
 
-}
+  }
+);
 
 
-/* ADMIN LOGOUT */
+/* =====================================================
+   LOGOUT
+===================================================== */
 
-if (adminLogout) {
+adminLogout?.addEventListener(
+  "click",
+  async () => {
 
-  adminLogout.addEventListener(
-    "click",
-    async () => {
+    if (
+      !currentUser ||
+      !isAdmin(currentUser)
+    ) {
 
-      adminLogout.disabled =
-        true;
+      return;
 
+    }
+
+
+    const confirmed =
+      window.confirm(
+        "Log out of your admin account on this device?"
+      );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    try {
 
       const {
         error
@@ -506,79 +1164,176 @@ if (adminLogout) {
 
 
       if (error) {
-
-        adminLogout.disabled =
-          false;
-
-        passwordMessage.textContent =
-          error.message;
-
-        return;
+        throw error;
       }
 
 
-      window.location.replace(
-        "/admin.html"
+      window.location.href =
+        "/";
+
+    } catch (error) {
+
+      console.error(
+        "Logout error:",
+        error
       );
+
+
+      showMessage(
+        error.message ||
+          "Could not log out.",
+        false
+      );
+
     }
-  );
+
+  }
+);
+
+
+/* =====================================================
+   AUTHENTICATION CHECK
+===================================================== */
+
+async function checkAuthentication() {
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabase.auth.getSession();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const session =
+      data?.session;
+
+
+    if (!session) {
+
+      currentUser =
+        null;
+
+
+      updateAdminVisibility(
+        null
+      );
+
+
+      /*
+       * Don't keep the website
+       * stuck on "Checking login..."
+       */
+
+      document.body.classList.remove(
+        "auth-checking"
+      );
+
+      return;
+
+    }
+
+
+    currentUser =
+      session.user;
+
+
+    updateAdminVisibility(
+      currentUser
+    );
+
+
+    if (
+      isAdmin(currentUser)
+    ) {
+
+      loadProfile(
+        currentUser
+      );
+
+      loadWebsiteSettings(
+        currentUser
+      );
+
+    }
+
+
+    document.body.classList.remove(
+      "auth-checking"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Authentication error:",
+      error
+    );
+
+
+    currentUser =
+      null;
+
+
+    updateAdminVisibility(
+      null
+    );
+
+
+    document.body.classList.remove(
+      "auth-checking"
+    );
+
+  }
 
 }
 
 
-/*
- * START AUTHENTICATION
- */
-
-checkAuthentication();
-
-
-/*
- * AUTH STATE CHANGES
- */
+/* =====================================================
+   AUTH STATE CHANGES
+===================================================== */
 
 supabase.auth.onAuthStateChange(
-  (event, session) => {
+  (
+    event,
+    session
+  ) => {
 
-    /*
-     * If user logs out,
-     * hide Settings immediately.
-     */
-
-    if (!session) {
-
-      if (settingsButton) {
-
-        settingsButton.style.display =
-          "none";
-
-      }
+    currentUser =
+      session?.user || null;
 
 
-      window.location.replace(
-        "/admin.html"
+    updateAdminVisibility(
+      currentUser
+    );
+
+
+    if (
+      currentUser &&
+      isAdmin(currentUser)
+    ) {
+
+      loadProfile(
+        currentUser
       );
 
-      return;
-    }
-
-
-    /*
-     * For every new session,
-     * hide Settings first.
-     * checkAuthentication() will
-     * show it only for the admin.
-     */
-
-    if (settingsButton) {
-
-      settingsButton.style.display =
-        "none";
+      loadWebsiteSettings(
+        currentUser
+      );
 
     }
-
-
-    checkAuthentication();
 
   }
 );
+
+
+/* =====================================================
+   START
+===================================================== */
+
+checkAuthentication();
