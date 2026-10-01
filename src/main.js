@@ -1340,4 +1340,227 @@ function resetApp() {
   }
 
 
-  /* Remove preview 
+    /* Remove preview URL */
+
+  if (previewUrl) {
+
+    URL.revokeObjectURL(
+      previewUrl
+    );
+
+    previewUrl =
+      null;
+  }
+
+
+  /* Clear preview */
+
+  preview.removeAttribute(
+    "src"
+  );
+
+
+  previewCard.classList.remove(
+    "visible"
+  );
+
+
+  /* Show upload section */
+
+  dropZone.style.display =
+    "";
+
+
+  /* Reset buttons */
+
+  removeButton.disabled =
+    true;
+
+
+  downloadButton.disabled =
+    true;
+
+
+  downloadButton.style.display =
+    "none";
+
+
+  /* Reset file input */
+
+  fileInput.value =
+    "";
+
+
+  /* Reset status */
+
+  setStatus(
+    "Select an image to begin.",
+    0
+  );
+
+
+  console.log(
+    "Krishna AI Studio reset."
+  );
+}
+
+
+/* ==========================================
+   FILE INPUT
+========================================== */
+
+fileInput.addEventListener(
+  "change",
+  async (event) => {
+
+    const file =
+      event.target.files?.[0];
+
+    if (file) {
+
+      await handleFile(
+        file
+      );
+    }
+  }
+);
+
+
+/* ==========================================
+   REMOVE BACKGROUND BUTTON
+========================================== */
+
+removeButton.addEventListener(
+  "click",
+  async () => {
+
+    await processImage();
+  }
+);
+
+
+/* ==========================================
+   DOWNLOAD BUTTON
+========================================== */
+
+downloadButton.addEventListener(
+  "click",
+  () => {
+
+    downloadResult();
+  }
+);
+
+
+/* ==========================================
+   RESET BUTTON
+========================================== */
+
+resetButton.addEventListener(
+  "click",
+  () => {
+
+    resetApp();
+  }
+);
+
+
+/* ==========================================
+   CLICK DROP ZONE
+========================================== */
+
+dropZone.addEventListener(
+  "click",
+  () => {
+
+    fileInput.click();
+  }
+);
+
+
+/* ==========================================
+   DRAG OVER
+========================================== */
+
+dropZone.addEventListener(
+  "dragover",
+  (event) => {
+
+    event.preventDefault();
+
+    dropZone.classList.add(
+      "drag-over"
+    );
+  }
+);
+
+
+/* ==========================================
+   DRAG LEAVE
+========================================== */
+
+dropZone.addEventListener(
+  "dragleave",
+  () => {
+
+    dropZone.classList.remove(
+      "drag-over"
+    );
+  }
+);
+
+
+/* ==========================================
+   DROP FILE
+========================================== */
+
+dropZone.addEventListener(
+  "drop",
+  async (event) => {
+
+    event.preventDefault();
+
+    dropZone.classList.remove(
+      "drag-over"
+    );
+
+
+    const file =
+      event.dataTransfer?.files?.[0];
+
+
+    if (file) {
+
+      await handleFile(
+        file
+      );
+    }
+  }
+);
+
+
+/* ==========================================
+   INITIAL STATE
+========================================== */
+
+removeButton.disabled =
+  true;
+
+
+downloadButton.disabled =
+  true;
+
+
+downloadButton.style.display =
+  "none";
+
+
+setStatus(
+  "Select an image to begin.",
+  0
+);
+
+
+console.log(
+  "Krishna AI Studio loaded successfully."
+);
