@@ -1,72 +1,211 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Krishna AI Studio</title>
+
   <meta
     name="description"
     content="Krishna AI Studio - AI powered background remover"
   />
-
-  <link rel="stylesheet" href="/src/style.css" />
 </head>
 
 <body class="auth-checking">
 
-  <div id="authLoading">
-    <div class="loader"></div>
+  <!-- AUTH LOADING -->
+  <div id="authLoading" class="auth-loading">
+    <div class="loading-spinner"></div>
+    <p>Checking login...</p>
   </div>
 
+
+  <!-- HEADER -->
   <header class="topbar">
 
     <div class="brand">
-      <span class="brand-mark">✦</span>
-      <span id="brandName">Krishna AI Studio</span>
+      <span class="brand-icon">✦</span>
+      <span id="headerWebsiteName">Krishna AI Studio</span>
     </div>
 
     <div class="header-actions">
-      <span class="privacy">Private by design</span>
 
-      <button id="settingsButton" type="button">
-        ⚙ Settings
+      <span class="privacy">
+        🔒 Private & Secure
+      </span>
+
+      <!-- ADMIN MENU -->
+      <button
+        id="menuButton"
+        class="menu-button"
+        type="button"
+        aria-label="Open admin menu"
+        style="display:none;"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
       </button>
+
     </div>
 
   </header>
 
 
+  <!-- =========================
+       ADMIN MENU
+  ========================== -->
+
+  <div
+    id="menuOverlay"
+    class="menu-overlay"
+  >
+
+    <div class="menu-panel">
+
+      <div class="menu-header">
+
+        <div>
+          <h2>Admin Menu</h2>
+          <p>Manage your account</p>
+        </div>
+
+        <button
+          id="closeMenu"
+          class="close-menu"
+          type="button"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- PROFILE -->
+      <button
+        id="profileMenuButton"
+        class="menu-item"
+        type="button"
+      >
+
+        <span class="menu-item-icon">
+          👤
+        </span>
+
+        <span class="menu-item-content">
+          <strong>Profile</strong>
+          <small>
+            Personal information & contact details
+          </small>
+        </span>
+
+        <span class="menu-arrow">
+          ›
+        </span>
+
+      </button>
+
+
+      <!-- SETTINGS -->
+      <button
+        id="settingsMenuButton"
+        class="menu-item"
+        type="button"
+      >
+
+        <span class="menu-item-icon">
+          ⚙️
+        </span>
+
+        <span class="menu-item-content">
+          <strong>Settings</strong>
+          <small>
+            Security, password & devices
+          </small>
+        </span>
+
+        <span class="menu-arrow">
+          ›
+        </span>
+
+      </button>
+
+
+      <!-- WEBSITE SETTINGS -->
+      <button
+        id="websiteSettingsMenuButton"
+        class="menu-item admin-menu-item"
+        type="button"
+        style="display:none;"
+      >
+
+        <span class="menu-item-icon">
+          🌐
+        </span>
+
+        <span class="menu-item-content">
+          <strong>Website Settings</strong>
+          <small>
+            Website & user management
+          </small>
+        </span>
+
+        <span class="menu-arrow">
+          ›
+        </span>
+
+      </button>
+
+
+      <div class="menu-admin-label">
+        👑 ADMINISTRATOR
+      </div>
+
+      <div class="menu-footer">
+        Krishna AI Studio
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       MAIN
+  ========================== -->
+
   <main>
 
     <section class="hero">
 
-      <p class="eyebrow">
-        AI BACKGROUND REMOVER
-      </p>
+      <div class="hero-badge">
+        ✨ AI POWERED
+      </div>
 
       <h1>
-        Remove backgrounds.<br />
-        <span>Keep the subject.</span>
+        Remove backgrounds
+        <span>in seconds.</span>
       </h1>
 
-      <p class="subtitle">
-        Turn your photos into clean, transparent PNGs in seconds.
+      <p>
+        Upload an image and let Krishna AI Studio
+        automatically remove the background.
       </p>
 
     </section>
 
 
+    <!-- WORKSPACE -->
     <section class="workspace">
 
       <div class="panel">
 
+
+        <!-- UPLOAD -->
         <div
           id="dropZone"
           class="drop-zone"
-          tabindex="0"
-          role="button"
-          aria-label="Choose an image"
         >
 
           <input
@@ -80,143 +219,152 @@
             ↑
           </div>
 
-          <strong>
+          <h3>
             Drop your image here
-          </strong>
+          </h3>
 
           <p>
-            or tap to choose an image
+            or click to browse
           </p>
 
-          <small>
-            JPG, JPEG, PNG, WEBP, GIF, BMP, AVIF and other common image formats
-          </small>
+          <span class="supported">
+            JPG · PNG · WEBP · GIF · BMP · AVIF
+          </span>
 
         </div>
 
 
-        <div class="preview-grid">
+        <!-- PREVIEW -->
+        <div
+          id="previewCard"
+          class="preview-card"
+          style="display:none;"
+        >
 
-          <div class="preview-card">
+          <div class="preview-header">
 
-            <div class="preview-header">
+            <div>
 
-              <span
-                id="previewLabel"
-                class="preview-label"
-              >
-                Your image
-              </span>
+              <strong id="previewLabel">
+                Your Image
+              </strong>
 
-              <span id="fileName"></span>
-
-            </div>
-
-
-            <div class="image-wrap">
-
-              <img
-                id="preview"
-                alt="Selected image"
-              />
+              <div id="fileName">
+                image
+              </div>
 
             </div>
+
+          </div>
+
+
+          <div class="image-wrap">
+
+            <img
+              id="preview"
+              alt="Image preview"
+            />
 
           </div>
 
         </div>
 
 
-        <div class="actions">
+        <!-- ACTION BUTTONS -->
+        <div class="action-buttons">
 
           <button
             id="removeButton"
-            class="action-button"
+            class="primary-button"
             type="button"
             disabled
           >
-            Remove Background
+            ✨ Remove Background
           </button>
-
 
           <button
             id="downloadButton"
-            class="action-button"
+            class="secondary-button"
             type="button"
+            style="display:none;"
           >
-            Download PNG
+            ↓ Download PNG
           </button>
-
 
           <button
             id="resetButton"
-            class="action-button"
+            class="secondary-button"
             type="button"
           >
-            Reset
+            ↻ Reset
           </button>
 
         </div>
 
 
+        <!-- STATUS -->
         <div
-          id="statusArea"
-          class="status-area"
+          id="status"
+          class="status"
         >
-
-          <div id="status">
-            Ready
-          </div>
-
-          <div class="progress-track">
-
-            <div id="progressBar"></div>
-
-          </div>
-
+          Ready
         </div>
 
 
-        <div class="info-grid">
+        <div class="progress-container">
 
-          <div class="info-card">
+          <div
+            id="progressBar"
+            class="progress-bar"
+          ></div>
 
-            <strong>
-              ⚡ Fast AI Processing
-            </strong>
+        </div>
 
-            <p>
-              Background removal is processed directly in your browser.
-            </p>
+      </div>
 
-          </div>
-
-
-          <div class="info-card">
-
-            <strong>
-              🔒 Private
-            </strong>
-
-            <p>
-              Your image stays on your device during processing.
-            </p>
-
-          </div>
+    </section>
 
 
-          <div class="info-card">
+    <!-- INFO -->
+    <section class="info-section">
 
-            <strong>
-              ✨ Clean PNG
-            </strong>
+      <div class="info-card">
 
-            <p>
-              Download your finished image with the background removed.
-            </p>
+        <span>⚡</span>
 
-          </div>
+        <div>
+          <strong>Fast Processing</strong>
+          <p>
+            AI removes backgrounds automatically.
+          </p>
+        </div>
 
+      </div>
+
+
+      <div class="info-card">
+
+        <span>🔒</span>
+
+        <div>
+          <strong>Private</strong>
+          <p>
+            Your images stay on your device.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="info-card">
+
+        <span>✨</span>
+
+        <div>
+          <strong>High Quality</strong>
+          <p>
+            Clean edges with AI processing.
+          </p>
         </div>
 
       </div>
@@ -226,24 +374,40 @@
   </main>
 
 
+  <!-- FOOTER -->
   <footer>
     © 2026 Krishna AI Studio
   </footer>
 
 
+
+  <!-- ==================================
+       ADMIN SETTINGS MODAL
+  =================================== -->
+
   <div
     id="settingsOverlay"
     class="settings-overlay"
-    aria-hidden="true"
   >
 
     <div class="settings-modal">
 
+
+      <!-- SETTINGS HEADER -->
       <div class="settings-title">
 
-        <h2>
-          Settings
-        </h2>
+        <div>
+
+          <h2 id="settingsModalTitle">
+            Profile
+          </h2>
+
+          <p id="settingsModalSubtitle">
+            Manage your profile
+          </p>
+
+        </div>
+
 
         <button
           id="closeSettings"
@@ -256,76 +420,170 @@
       </div>
 
 
-      <section class="settings-section">
 
-        <h3>
-          Website Settings
-        </h3>
+      <!-- ==================================
+           PROFILE
+      =================================== -->
 
-        <div class="field">
+      <section
+        id="profileSection"
+        class="settings-section"
+        style="display:none;"
+      >
 
-          <label for="websiteName">
-            Website Name
-          </label>
+        <div class="profile-header">
 
-          <input
-            id="websiteName"
-            type="text"
-            value="Krishna AI Studio"
-            maxlength="60"
-          />
+          <div class="profile-avatar">
+
+            <img
+              id="profilePicture"
+              src=""
+              alt="Profile picture"
+            />
+
+            <div
+              id="profileAvatarPlaceholder"
+              class="profile-avatar-placeholder"
+            >
+              👤
+            </div>
+
+          </div>
+
+
+          <div class="profile-photo-actions">
+
+            <h3>
+              Profile Picture
+            </h3>
+
+            <p>
+              Add a profile photo
+            </p>
+
+            <input
+              id="profilePictureInput"
+              type="file"
+              accept="image/*"
+              hidden
+            />
+
+            <button
+              id="changeProfilePicture"
+              class="small-button"
+              type="button"
+            >
+              Change Photo
+            </button>
+
+            <button
+              id="removeProfilePicture"
+              class="small-button danger-small"
+              type="button"
+            >
+              Remove
+            </button>
+
+          </div>
 
         </div>
 
-        <button
-          id="saveWebsiteName"
-          class="settings-save"
-          type="button"
-        >
-          Save Changes
-        </button>
 
-        <div
-          id="websiteMessage"
-          class="setting-message"
-        ></div>
-
-      </section>
+        <div class="admin-profile-badge">
+          👑 ADMINISTRATOR
+        </div>
 
 
-      <section class="settings-section">
+        <!-- DISPLAY NAME -->
+        <label class="field">
 
-        <h3>
-          Profile Settings
-        </h3>
-
-        <div class="field">
-
-          <label for="displayName">
+          <span>
             Display Name
-          </label>
+          </span>
 
           <input
             id="displayName"
             type="text"
-            placeholder="Your display name"
-            maxlength="60"
+            placeholder="Your name"
           />
 
-        </div>
+        </label>
 
 
-        <div class="field">
+        <!-- EMAIL -->
+        <label class="field">
 
-          <label for="profileEmail">
-            Email
-          </label>
+          <span>
+            Email Address
+          </span>
 
           <input
             id="profileEmail"
             type="email"
             readonly
           />
+
+        </label>
+
+
+        <!-- PHONE -->
+        <label class="field">
+
+          <span>
+            Phone Number
+          </span>
+
+          <input
+            id="profilePhone"
+            type="tel"
+            placeholder="+91 XXXXX XXXXX"
+          />
+
+        </label>
+
+
+        <!-- LOCATION -->
+        <label class="field">
+
+          <span>
+            Location
+          </span>
+
+          <input
+            id="profileLocation"
+            type="text"
+            placeholder="City, Country"
+          />
+
+        </label>
+
+
+        <!-- ABOUT -->
+        <label class="field">
+
+          <span>
+            About
+          </span>
+
+          <textarea
+            id="profileAbout"
+            rows="4"
+            placeholder="Tell something about yourself..."
+          ></textarea>
+
+        </label>
+
+
+        <!-- ACCOUNT CREATED -->
+        <div class="profile-info-row">
+
+          <span>
+            Account Created
+          </span>
+
+          <strong id="accountCreated">
+            —
+          </strong>
 
         </div>
 
@@ -338,34 +596,61 @@
           Save Profile
         </button>
 
-        <div
-          id="profileMessage"
-          class="setting-message"
-        ></div>
-
       </section>
 
 
-      <section class="settings-section">
+
+      <!-- ==================================
+           SETTINGS
+      =================================== -->
+
+      <section
+        id="securitySection"
+        class="settings-section"
+        style="display:none;"
+      >
 
         <h3>
-          Change Password
+          🔐 Account & Security
         </h3>
 
-        <div class="field">
 
-          <label for="newPassword">
+        <!-- EMAIL -->
+        <div class="settings-info-box">
+
+          <span>
+            📧
+          </span>
+
+          <div>
+
+            <strong>
+              Email Address
+            </strong>
+
+            <p id="settingsEmail">
+              —
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- PASSWORD -->
+        <label class="field">
+
+          <span>
             New Password
-          </label>
+          </span>
 
           <input
             id="newPassword"
             type="password"
             placeholder="Enter new password"
-            minlength="6"
           />
 
-        </div>
+        </label>
 
 
         <button
@@ -376,29 +661,138 @@
           Change Password
         </button>
 
-        <div
-          id="passwordMessage"
-          class="setting-message"
-        ></div>
 
-      </section>
+        <!-- SECURITY -->
+        <div class="settings-option">
 
+          <div>
 
-      <section class="settings-section">
+            <strong>
+              🛡️ Login Security
+            </strong>
 
-        <h3>
-          Login & Devices
-        </h3>
+            <p>
+              Manage how your account is protected.
+            </p>
 
-        <div class="admin-badge">
-          👑 ADMIN / CURRENT DEVICE
+          </div>
+
+          <span class="coming-soon">
+            Available soon
+          </span>
+
         </div>
 
-        <div class="device-note">
-          Device management and maximum simultaneous-login
-          controls will be connected to the secure Supabase
-          device system.
+
+        <!-- DEVICES -->
+        <div class="settings-option">
+
+          <div>
+
+            <strong>
+              💻 Login & Devices
+            </strong>
+
+            <p>
+              View and manage logged-in devices.
+            </p>
+
+          </div>
+
+          <span class="coming-soon">
+            Available soon
+          </span>
+
         </div>
+
+
+        <!-- LOGIN LIMIT -->
+        <div class="settings-option">
+
+          <div>
+
+            <strong>
+              👥 Maximum Simultaneous Logins
+            </strong>
+
+            <p>
+              Maximum number of active devices.
+            </p>
+
+          </div>
+
+
+          <select
+            id="maxLoginCount"
+            class="settings-select"
+          >
+
+            <option value="1">
+              1
+            </option>
+
+            <option value="2">
+              2
+            </option>
+
+            <option value="3">
+              3
+            </option>
+
+            <option value="4">
+              4
+            </option>
+
+            <option value="5">
+              5
+            </option>
+
+            <option value="6">
+              6
+            </option>
+
+            <option value="7">
+              7
+            </option>
+
+            <option value="8">
+              8
+            </option>
+
+            <option value="9">
+              9
+            </option>
+
+            <option value="10">
+              10
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- ADMIN DEVICE -->
+        <div class="current-device">
+
+          <div class="current-device-icon">
+            👑
+          </div>
+
+          <div>
+
+            <strong>
+              ADMIN · CURRENT DEVICE
+            </strong>
+
+            <p>
+              This is your current login.
+            </p>
+
+          </div>
+
+        </div>
+
 
         <button
           id="adminLogout"
@@ -410,12 +804,187 @@
 
       </section>
 
+
+
+      <!-- ==================================
+           WEBSITE SETTINGS
+      =================================== -->
+
+      <section
+        id="websiteSettingsSection"
+        class="settings-section"
+        style="display:none;"
+      >
+
+        <h3>
+          🌐 Website Settings
+        </h3>
+
+
+        <!-- WEBSITE NAME -->
+        <label class="field">
+
+          <span>
+            Website Name
+          </span>
+
+          <input
+            id="websiteName"
+            type="text"
+            value="Krishna AI Studio"
+            placeholder="Website name"
+          />
+
+        </label>
+
+
+        <!-- WEBSITE DESCRIPTION -->
+        <label class="field">
+
+          <span>
+            Website Description
+          </span>
+
+          <textarea
+            id="websiteDescription"
+            rows="4"
+            placeholder="Website description"
+          ></textarea>
+
+        </label>
+
+
+        <!-- APPEARANCE -->
+        <div class="settings-option">
+
+          <div>
+
+            <strong>
+              🎨 Appearance
+            </strong>
+
+            <p>
+              Manage website appearance.
+            </p>
+
+          </div>
+
+          <select
+            id="websiteTheme"
+            class="settings-select"
+          >
+
+            <option value="dark">
+              Dark
+            </option>
+
+            <option value="light">
+              Light
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- IMAGE SETTINGS -->
+        <div class="settings-option">
+
+          <div>
+
+            <strong>
+              🖼️ Image Processing
+            </strong>
+
+            <p>
+              Configure image processing options.
+            </p>
+
+          </div>
+
+          <span class="enabled-badge">
+            Enabled
+          </span>
+
+        </div>
+
+
+        <!-- SUPPORTED FORMATS -->
+        <div class="formats-box">
+
+          <strong>
+            📁 Supported Formats
+          </strong>
+
+          <div class="format-tags">
+
+            <span>JPG</span>
+            <span>JPEG</span>
+            <span>PNG</span>
+            <span>WEBP</span>
+            <span>GIF</span>
+            <span>BMP</span>
+            <span>AVIF</span>
+
+          </div>
+
+        </div>
+
+
+        <!-- USER MANAGEMENT -->
+        <div class="settings-option">
+
+          <div>
+
+            <strong>
+              👥 User Management
+            </strong>
+
+            <p>
+              Manage normal website users.
+            </p>
+
+          </div>
+
+          <span class="coming-soon">
+            Available soon
+          </span>
+
+        </div>
+
+
+        <button
+          id="saveWebsiteName"
+          class="settings-save"
+          type="button"
+        >
+          Save Website Settings
+        </button>
+
+      </section>
+
+
+      <!-- MESSAGE -->
+      <div
+        id="settingMessage"
+        class="setting-message"
+      ></div>
+
     </div>
 
   </div>
 
 
-  <script type="module" src="/src/auth.js"></script>
+  <!-- SCRIPTS -->
+  <script
+    type="module"
+    src="/src/main.js"
+  ></script>
+
+  <script
+    type="module"
+    src="/src/auth.js"
+  ></script>
 
 </body>
-</html>
+          </html>
