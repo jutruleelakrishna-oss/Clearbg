@@ -1,1 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClearBG Admin</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #070b14;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      padding: 32px;
+      border-radius: 20px;
+      background: #101624;
+      border: 1px solid #293147;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+    }
+
+    p {
+      color: #929bb0;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      margin: 20px 0 8px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #30394f;
+      background: #080d18;
+      color: white;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #727bff;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #eef0ff;
+      color: #080b14;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+    }
+
+    #message {
+      min-height: 22px;
+      margin-top: 14px;
+      color: #ff8f8f;
+      font-size: 14px;
+    }
+
+    #dashboard {
+      display: none;
+    }
+
+    .success {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #10261e;
+      border: 1px solid #245b45;
+      color: #8ff0bf;
+    }
+
+    .logout {
+      background: transparent;
+      color: white;
+      border: 1px solid #30394f;
+    }
+
+    .back {
+      display: block;
+      margin-top: 20px;
+      color: #9da5ff;
+      text-decoration: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LOGIN -->
+  <div class="card" id="loginCard">
+
+    <h1>ClearBG Admin</h1>
+
+    <p>
+      Sign in to access the ClearBG administration panel.
+    </p>
+
+    <form id="loginForm">
+
+      <label for="email">Email</label>
+
+      <input
+        id="email"
+        type="email"
+        placeholder="Admin email"
+        autocomplete="username"
+        required
+      >
+
+      <label for="password">Password</label>
+
+      <input
+        id="password"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button id="loginButton" type="submit">
+        Sign In
+      </button>
+
+      <div id="message"></div>
+
+    </form>
+
+    <a class="back" href="/">
+      ← Back to ClearBG
+    </a>
+
+  </div>
+
+
+  <!-- DASHBOARD -->
+  <div class="card" id="dashboard">
+
+    <h1>ClearBG Dashboard</h1>
+
+    <p id="userEmail"></p>
+
+    <div class="success">
+      ✓ Admin login successful.
+      <br><br>
+      You are now signed in securely.
+    </div>
+
+    <button class="logout
