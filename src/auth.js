@@ -17,6 +17,8 @@ const supabase = createClient(
 window.krishnaSupabase = supabase;
 
 
+/* ELEMENTS */
+
 const settingsButton =
   document.getElementById("settingsButton");
 
@@ -63,8 +65,25 @@ const adminLogout =
   document.getElementById("adminLogout");
 
 
+/*
+ * IMPORTANT:
+ * Settings is hidden immediately.
+ * It will ONLY become visible after
+ * Supabase confirms the admin email.
+ */
+
+if (settingsButton) {
+  settingsButton.style.display = "none";
+}
+
+
+/* SETTINGS OPEN */
+
 function openSettings() {
+  if (!settingsButton) return;
+
   settingsOverlay.classList.add("open");
+
   settingsOverlay.setAttribute(
     "aria-hidden",
     "false"
@@ -72,8 +91,13 @@ function openSettings() {
 }
 
 
+/* SETTINGS CLOSE */
+
 function closeSettingsModal() {
+  if (!settingsOverlay) return;
+
   settingsOverlay.classList.remove("open");
+
   settingsOverlay.setAttribute(
     "aria-hidden",
     "true"
@@ -81,51 +105,119 @@ function closeSettingsModal() {
 }
 
 
-settingsButton.addEventListener(
-  "click",
-  openSettings
-);
+if (settingsButton) {
+  settingsButton.addEventListener(
+    "click",
+    openSettings
+  );
+}
 
 
-closeSettings.addEventListener(
-  "click",
-  closeSettingsModal
-);
+if (closeSettings) {
+  closeSettings.addEventListener(
+    "click",
+    closeSettingsModal
+  );
+}
 
 
-settingsOverlay.addEventListener(
-  "click",
-  (event) => {
-    if (event.target === settingsOverlay) {
-      closeSettingsModal();
+if (settingsOverlay) {
+  settingsOverlay.addEventListener(
+    "click",
+    (event) => {
+
+      if (
+        event.target === settingsOverlay
+      ) {
+        closeSettingsModal();
+      }
+
     }
-  }
-);
+  );
+}
 
+
+/* AUTHENTICATION */
 
 async function checkAuthentication() {
 
+  /*
+   * Always hide Settings first.
+   * This prevents normal users from
+   * seeing it while authentication loads.
+   */
+
+  if (settingsButton) {
+    settingsButton.style.display = "none";
+  }
+
+
   const {
-    data: { session }
+    data: { session },
+    error
   } = await supabase.auth.getSession();
 
 
-  if (!session) {
-    window.location.replace("/admin.html");
+  if (error) {
+
+    console.error(
+      "Authentication error:",
+      error
+    );
+
+    window.location.replace(
+      "/admin.html"
+    );
+
     return;
   }
 
 
-  const user = session.user;
+  /*
+   * No logged-in user
+   */
+
+  if (!session) {
+
+    window.location.replace(
+      "/admin.html"
+    );
+
+    return;
+  }
 
 
-  profileEmail.value =
-    user.email || "";
+  const user =
+    session.user;
 
 
-  displayName.value =
-    user.user_metadata?.display_name || "";
+  /*
+   * Profile email
+   */
 
+  if (profileEmail) {
+
+    profileEmail.value =
+      user.email || "";
+
+  }
+
+
+  /*
+   * Display name
+   */
+
+  if (displayName) {
+
+    displayName.value =
+      user.user_metadata?.display_name || "";
+
+  }
+
+
+  /*
+   * Website name
+   */
 
   const savedWebsiteName =
     user.user_metadata?.website_name;
@@ -133,32 +225,74 @@ async function checkAuthentication() {
 
   if (savedWebsiteName) {
 
-    brandName.textContent =
-      savedWebsiteName;
+    if (brandName) {
 
-    websiteName.value =
-      savedWebsiteName;
+      brandName.textContent =
+        savedWebsiteName;
+
+    }
+
+
+    if (websiteName) {
+
+      websiteName.value =
+        savedWebsiteName;
+
+    }
+
 
     document.title =
       savedWebsiteName;
+
   }
+
+
+  /*
+   * ADMIN CHECK
+   *
+   * Settings is shown ONLY when
+   * the logged-in email exactly matches
+   * the admin email.
+   */
+
+  const loggedInEmail =
+    (user.email || "")
+      .trim()
+      .toLowerCase();
+
+
+  const adminEmail =
+    ADMIN_EMAIL
+      .trim()
+      .toLowerCase();
+
+
+  const isAdmin =
+    loggedInEmail === adminEmail;
 
 
   if (
-    user.email &&
-    user.email.toLowerCase() ===
-      ADMIN_EMAIL.toLowerCase()
+    settingsButton
   ) {
 
-    settingsButton.style.display =
-      "block";
+    if (isAdmin) {
 
-  } else {
+      settingsButton.style.display =
+        "block";
 
-    settingsButton.style.display =
-      "none";
+    } else {
+
+      settingsButton.style.display =
+        "none";
+
+    }
+
   }
 
+
+  /*
+   * Authentication completed
+   */
 
   document.body.classList.remove(
     "auth-checking"
@@ -168,199 +302,283 @@ async function checkAuthentication() {
 
 /* WEBSITE NAME */
 
-saveWebsiteName.addEventListener(
-  "click",
-  async () => {
+if (saveWebsiteName) {
 
-    const name =
-      websiteName.value.trim();
+  saveWebsiteName.addEventListener(
+    "click",
+    async () => {
 
-
-    if (!name) {
-
-      websiteMessage.textContent =
-        "Please enter a website name.";
-
-      return;
-    }
+      const name =
+        websiteName.value.trim();
 
 
-    saveWebsiteName.disabled = true;
+      if (!name) {
 
-    websiteMessage.textContent =
-      "Saving...";
+        websiteMessage.textContent =
+          "Please enter a website name.";
 
-
-    const { error } =
-      await supabase.auth.updateUser({
-        data: {
-          website_name: name
-        }
-      });
+        return;
+      }
 
 
-    saveWebsiteName.disabled = false;
-
-
-    if (error) {
+      saveWebsiteName.disabled =
+        true;
 
       websiteMessage.textContent =
-        error.message;
+        "Saving...";
 
-      return;
+
+      const {
+        error
+      } =
+        await supabase.auth.updateUser({
+
+          data: {
+            website_name: name
+          }
+
+        });
+
+
+      saveWebsiteName.disabled =
+        false;
+
+
+      if (error) {
+
+        websiteMessage.textContent =
+          error.message;
+
+        return;
+      }
+
+
+      if (brandName) {
+
+        brandName.textContent =
+          name;
+
+      }
+
+
+      document.title =
+        name;
+
+
+      websiteMessage.textContent =
+        "Website name saved.";
     }
+  );
 
-
-    brandName.textContent =
-      name;
-
-    document.title =
-      name;
-
-    websiteMessage.textContent =
-      "Website name saved.";
-  }
-);
+}
 
 
 /* PROFILE */
 
-saveProfile.addEventListener(
-  "click",
-  async () => {
+if (saveProfile) {
 
-    const name =
-      displayName.value.trim();
+  saveProfile.addEventListener(
+    "click",
+    async () => {
 
-
-    saveProfile.disabled = true;
-
-    profileMessage.textContent =
-      "Saving...";
+      const name =
+        displayName.value.trim();
 
 
-    const { error } =
-      await supabase.auth.updateUser({
-        data: {
-          display_name: name
-        }
-      });
-
-
-    saveProfile.disabled = false;
-
-
-    if (error) {
+      saveProfile.disabled =
+        true;
 
       profileMessage.textContent =
-        error.message;
+        "Saving...";
 
-      return;
+
+      const {
+        error
+      } =
+        await supabase.auth.updateUser({
+
+          data: {
+            display_name: name
+          }
+
+        });
+
+
+      saveProfile.disabled =
+        false;
+
+
+      if (error) {
+
+        profileMessage.textContent =
+          error.message;
+
+        return;
+      }
+
+
+      profileMessage.textContent =
+        "Profile saved.";
     }
+  );
+
+}
 
 
-    profileMessage.textContent =
-      "Profile saved.";
-  }
-);
+/* CHANGE PASSWORD */
+
+if (changePassword) {
+
+  changePassword.addEventListener(
+    "click",
+    async () => {
+
+      const password =
+        newPassword.value;
 
 
-/* PASSWORD */
+      if (password.length < 6) {
 
-changePassword.addEventListener(
-  "click",
-  async () => {
+        passwordMessage.textContent =
+          "Password must contain at least 6 characters.";
 
-    const password =
-      newPassword.value;
+        return;
+      }
 
 
-    if (password.length < 6) {
+      changePassword.disabled =
+        true;
 
       passwordMessage.textContent =
-        "Password must contain at least 6 characters.";
-
-      return;
-    }
+        "Updating password...";
 
 
-    changePassword.disabled = true;
+      const {
+        error
+      } =
+        await supabase.auth.updateUser({
 
-    passwordMessage.textContent =
-      "Updating password...";
+          password: password
 
-
-    const { error } =
-      await supabase.auth.updateUser({
-        password: password
-      });
+        });
 
 
-    changePassword.disabled = false;
+      changePassword.disabled =
+        false;
 
 
-    if (error) {
+      if (error) {
+
+        passwordMessage.textContent =
+          error.message;
+
+        return;
+      }
+
+
+      newPassword.value =
+        "";
 
       passwordMessage.textContent =
-        error.message;
-
-      return;
+        "Password changed successfully.";
     }
+  );
 
-
-    newPassword.value = "";
-
-    passwordMessage.textContent =
-      "Password changed successfully.";
-  }
-);
+}
 
 
 /* ADMIN LOGOUT */
 
-adminLogout.addEventListener(
-  "click",
-  async () => {
+if (adminLogout) {
 
-    adminLogout.disabled = true;
+  adminLogout.addEventListener(
+    "click",
+    async () => {
 
-
-    const { error } =
-      await supabase.auth.signOut();
-
-
-    if (error) {
-
-      adminLogout.disabled = false;
-
-      passwordMessage.textContent =
-        error.message;
-
-      return;
-    }
+      adminLogout.disabled =
+        true;
 
 
-    window.location.replace(
-      "/admin.html"
-    );
-  }
-);
+      const {
+        error
+      } =
+        await supabase.auth.signOut();
 
 
-/* AUTH CHECK */
+      if (error) {
 
-checkAuthentication();
+        adminLogout.disabled =
+          false;
 
+        passwordMessage.textContent =
+          error.message;
 
-supabase.auth.onAuthStateChange(
-  (event, session) => {
+        return;
+      }
 
-    if (!session) {
 
       window.location.replace(
         "/admin.html"
       );
     }
+  );
+
+}
+
+
+/*
+ * START AUTHENTICATION
+ */
+
+checkAuthentication();
+
+
+/*
+ * AUTH STATE CHANGES
+ */
+
+supabase.auth.onAuthStateChange(
+  (event, session) => {
+
+    /*
+     * If user logs out,
+     * hide Settings immediately.
+     */
+
+    if (!session) {
+
+      if (settingsButton) {
+
+        settingsButton.style.display =
+          "none";
+
+      }
+
+
+      window.location.replace(
+        "/admin.html"
+      );
+
+      return;
+    }
+
+
+    /*
+     * For every new session,
+     * hide Settings first.
+     * checkAuthentication() will
+     * show it only for the admin.
+     */
+
+    if (settingsButton) {
+
+      settingsButton.style.display =
+        "none";
+
+    }
+
+
+    checkAuthentication();
 
   }
 );
