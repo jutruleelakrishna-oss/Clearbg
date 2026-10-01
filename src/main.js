@@ -35,6 +35,7 @@ const MAX_IMAGE_SIZE = 4096;
 ========================================== */
 
 function setStatus(message, progress = 0) {
+
   if (status) {
     status.textContent = message;
   }
@@ -50,32 +51,71 @@ function setStatus(message, progress = 0) {
 ========================================== */
 
 function isSupportedImage(file) {
+
   if (!file) {
     return false;
   }
 
   const supportedTypes = [
+
     "image/jpeg",
     "image/jpg",
+
     "image/png",
+
     "image/webp",
+
     "image/gif",
+
     "image/bmp",
-    "image/avif"
+    "image/x-ms-bmp",
+
+    "image/avif",
+
+    "image/x-icon",
+    "image/vnd.microsoft.icon",
+
+    "image/svg+xml",
+
+    "image/tiff",
+
+    "image/heic",
+    "image/heif"
+
   ];
+
 
   const supportedExtensions = [
+
     ".jpg",
     ".jpeg",
+
     ".png",
+
     ".webp",
+
     ".gif",
+
     ".bmp",
-    ".avif"
+
+    ".avif",
+
+    ".ico",
+
+    ".svg",
+
+    ".tif",
+    ".tiff",
+
+    ".heic",
+    ".heif"
+
   ];
 
+
   const fileName =
-    file.name.toLowerCase();
+    (file.name || "").toLowerCase();
+
 
   return (
     supportedTypes.includes(file.type) ||
@@ -88,48 +128,183 @@ function isSupportedImage(file) {
 
 
 /* ==========================================
-   LOAD IMAGE
+   FILE TYPE NAME
 ========================================== */
 
-function loadImage(file) {
-  return new Promise((resolve, reject) => {
-    const image =
-      document.createElement("img");
+function getFormatName(file) {
 
-    const url =
-      URL.createObjectURL(file);
+  const name =
+    (file.name || "").toLowerCase();
 
-    image.onload = () => {
-      URL.revokeObjectURL(url);
+
+  if (name.endsWith(".jpg")) return "JPG";
+  if (name.endsWith(".jpeg")) return "JPEG";
+  if (name.endsWith(".png")) return "PNG";
+  if (name.endsWith(".webp")) return "WEBP";
+  if (name.endsWith(".gif")) return "GIF";
+  if (name.endsWith(".bmp")) return "BMP";
+  if (name.endsWith(".avif")) return "AVIF";
+  if (name.endsWith(".ico")) return "ICO";
+  if (name.endsWith(".svg")) return "SVG";
+  if (name.endsWith(".tif")) return "TIFF";
+  if (name.endsWith(".tiff")) return "TIFF";
+  if (name.endsWith(".heic")) return "HEIC";
+  if (name.endsWith(".heif")) return "HEIF";
+
+  return "IMAGE";
+}
+
+
+/* ==========================================
+   RELIABLE IMAGE DECODER
+========================================== */
+
+async function decodeImage(file) {
+
+  /*
+     METHOD 1
+     Native createImageBitmap
+  */
+
+  if (
+    "createImageBitmap" in window
+  ) {
+
+    try {
+
+      const bitmap =
+        await createImageBitmap(file);
+
 
       if (
-        !image.naturalWidth ||
-        !image.naturalHeight
+        bitmap.width > 0 &&
+        bitmap.height > 0
       ) {
-        reject(
-          new Error(
-            "The image has invalid dimensions."
-          )
-        );
 
-        return;
+        return {
+
+          image: bitmap,
+
+          width: bitmap.width,
+
+          height: bitmap.height,
+
+          isBitmap: true
+
+        };
       }
 
-      resolve(image);
-    };
+    } catch (error) {
 
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-
-      reject(
-        new Error(
-          "The image could not be decoded. Please try a JPG or PNG image."
-        )
+      console.warn(
+        "createImageBitmap failed:",
+        error
       );
-    };
+    }
+  }
 
-    image.src = url;
-  });
+
+  /*
+     METHOD 2
+     FileReader + Image
+  */
+
+  const dataUrl =
+    await new Promise(
+      (resolve, reject) => {
+
+        const reader =
+          new FileReader();
+
+
+        reader.onload =
+          () => {
+
+            resolve(
+              reader.result
+            );
+          };
+
+
+        reader.onerror =
+          () => {
+
+            reject(
+              new Error(
+                "The selected file could not be read."
+              )
+            );
+          };
+
+
+        reader.readAsDataURL(
+          file
+        );
+
+      }
+    );
+
+
+  const image =
+    await new Promise(
+      (resolve, reject) => {
+
+        const img =
+          new Image();
+
+
+        img.onload =
+          () => {
+
+            if (
+              img.naturalWidth > 0 &&
+              img.naturalHeight > 0
+            ) {
+
+              resolve(img);
+
+            } else {
+
+              reject(
+                new Error(
+                  "The image has invalid dimensions."
+                )
+              );
+            }
+          };
+
+
+        img.onerror =
+          () => {
+
+            reject(
+              new Error(
+                `The ${getFormatName(file)} image could not be decoded by this browser.`
+              )
+            );
+          };
+
+
+        img.src =
+          dataUrl;
+
+      }
+    );
+
+
+  return {
+
+    image,
+
+    width:
+      image.naturalWidth,
+
+    height:
+      image.naturalHeight,
+
+    isBitmap: false
+
+  };
 }
 
 
@@ -138,37 +313,45 @@ function loadImage(file) {
 ========================================== */
 
 async function convertToPNG(file) {
+
   setStatus(
-    "Preparing image…",
+    "Reading image…",
     5
   );
 
-  const image =
-    await loadImage(file);
+
+  const decoded =
+    await decodeImage(file);
+
 
   let width =
-    image.naturalWidth;
+    decoded.width;
 
   let height =
-    image.naturalHeight;
+    decoded.height;
 
 
-  /* Limit very large images */
+  /*
+     Limit very large images
+  */
 
   if (
     width > MAX_IMAGE_SIZE ||
     height > MAX_IMAGE_SIZE
   ) {
+
     const scale =
       Math.min(
         MAX_IMAGE_SIZE / width,
         MAX_IMAGE_SIZE / height
       );
 
+
     width =
       Math.round(
         width * scale
       );
+
 
     height =
       Math.round(
@@ -182,17 +365,25 @@ async function convertToPNG(file) {
       "canvas"
     );
 
-  canvas.width = width;
-  canvas.height = height;
+
+  canvas.width =
+    width;
+
+  canvas.height =
+    height;
 
 
   const context =
-    canvas.getContext("2d", {
-      alpha: true
-    });
+    canvas.getContext(
+      "2d",
+      {
+        alpha: true
+      }
+    );
 
 
   if (!context) {
+
     throw new Error(
       "Your browser does not support image processing."
     );
@@ -208,7 +399,7 @@ async function convertToPNG(file) {
 
 
   context.drawImage(
-    image,
+    decoded.image,
     0,
     0,
     width,
@@ -216,93 +407,137 @@ async function convertToPNG(file) {
   );
 
 
+  /*
+     Close ImageBitmap
+  */
+
+  if (
+    decoded.isBitmap &&
+    decoded.image.close
+  ) {
+
+    decoded.image.close();
+  }
+
+
+  /*
+     Convert to PNG
+  */
+
   return new Promise(
     (resolve, reject) => {
+
       canvas.toBlob(
+
         (blob) => {
+
           if (!blob) {
+
             reject(
               new Error(
-                "The image could not be converted."
+                "The image could not be converted to PNG."
               )
             );
 
             return;
           }
 
+
           resolve(blob);
+
         },
+
         "image/png",
+
         1
+
       );
+
     }
   );
 }
 
 
 /* ==========================================
-   SHOW IMAGE
+   SHOW SELECTED IMAGE
 ========================================== */
 
 function showImage(file) {
+
   if (!preview) {
     return;
   }
 
 
-  /* Remove previous preview URL */
+  /*
+     Remove old preview URL
+  */
 
   if (previewUrl) {
+
     URL.revokeObjectURL(
       previewUrl
     );
 
-    previewUrl = null;
+    previewUrl =
+      null;
   }
 
 
+  /*
+     Create new preview URL
+  */
+
   previewUrl =
-    URL.createObjectURL(file);
-
-
-  preview.onload = () => {
-
-    /* IMPORTANT:
-       Your CSS uses .visible,
-       not .show */
-
-    previewCard.classList.add(
-      "visible"
+    URL.createObjectURL(
+      file
     );
 
-    dropZone.style.display =
-      "none";
+
+  preview.onload =
+    () => {
+
+      previewCard.classList.add(
+        "visible"
+      );
 
 
-    removeButton.disabled =
-      false;
-
-    downloadButton.disabled =
-      true;
+      dropZone.style.display =
+        "none";
 
 
-    setStatus(
-      "Image ready. Remove the background.",
-      0
-    );
-  };
+      removeButton.disabled =
+        false;
 
 
-  preview.onerror = () => {
+      downloadButton.disabled =
+        true;
 
-    setStatus(
-      "The image could not be displayed. Try JPG or PNG.",
-      0
-    );
 
-    removeButton.disabled =
-      true;
-  };
+      downloadButton.style.display =
+        "none";
+
+
+      setStatus(
+        `${getFormatName(file)} image ready. Remove the background.`,
+        0
+      );
+
+    };
+
+
+  preview.onerror =
+    () => {
+
+      setStatus(
+        `The ${getFormatName(file)} image could not be displayed.`,
+        0
+      );
+
+
+      removeButton.disabled =
+        true;
+    };
 
 
   preview.src =
@@ -323,14 +558,41 @@ async function handleFile(file) {
 
   console.log(
     "Krishna AI Studio selected file:",
-    file
+    {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    }
   );
 
 
-  if (!isSupportedImage(file)) {
+  /*
+     Empty file check
+  */
+
+  if (
+    file.size === 0
+  ) {
 
     setStatus(
-      "Unsupported image format. Please select JPG, PNG, WEBP, GIF, BMP or AVIF.",
+      "The selected file is empty.",
+      0
+    );
+
+    return;
+  }
+
+
+  /*
+     Format check
+  */
+
+  if (
+    !isSupportedImage(file)
+  ) {
+
+    setStatus(
+      "Unsupported image format. Supported formats: JPG, JPEG, PNG, WEBP, GIF, BMP, AVIF, ICO, SVG, TIFF, HEIC and HEIF.",
       0
     );
 
@@ -342,19 +604,27 @@ async function handleFile(file) {
     file;
 
 
-  /* Remove old result */
+  /*
+     Remove previous result
+  */
 
   if (resultUrl) {
+
     URL.revokeObjectURL(
       resultUrl
     );
 
-    resultUrl = null;
+    resultUrl =
+      null;
   }
 
 
   downloadButton.disabled =
     true;
+
+
+  downloadButton.style.display =
+    "none";
 
 
   try {
@@ -406,19 +676,20 @@ async function processImage() {
     removeButton.disabled =
       true;
 
+
     downloadButton.disabled =
       true;
 
 
     setStatus(
-      "Preparing image for AI…",
+      "Reading image…",
       10
     );
 
 
     /*
-      Convert uploaded image to PNG
-      before sending it to IMG.LY.
+       Convert ANY browser-readable
+       supported image into PNG.
     */
 
     const processingBlob =
@@ -438,62 +709,86 @@ async function processImage() {
     );
 
 
+    /*
+       IMG.LY background removal
+    */
+
     const resultBlob =
       await removeBackground(
+
         processingBlob,
+
         {
+
           debug: true,
+
 
           publicPath:
             "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/",
 
-          device: "cpu",
 
-          model: "isnet_quint8",
-
-          progress: (
-            key,
-            current,
-            total
-          ) => {
-
-            let percent = 15;
+          device:
+            "cpu",
 
 
-            if (total) {
-
-              percent =
-                15 +
-                Math.round(
-                  (current / total) *
-                    80
-                );
-            }
+          model:
+            "isnet_quint8",
 
 
-            percent =
-              Math.min(
-                percent,
-                95
-              );
-
-
-            setStatus(
-              `Removing background… ${percent}%`,
-              percent
-            );
-
-
-            console.log(
-              "Krishna AI Studio:",
+          progress:
+            (
               key,
               current,
               total
-            );
-          }
+            ) => {
+
+              let percent =
+                15;
+
+
+              if (total) {
+
+                percent =
+                  15 +
+                  Math.round(
+                    (
+                      current /
+                      total
+                    ) * 80
+                  );
+              }
+
+
+              percent =
+                Math.min(
+                  percent,
+                  95
+                );
+
+
+              setStatus(
+                `Removing background… ${percent}%`,
+                percent
+              );
+
+
+              console.log(
+                "Krishna AI Studio:",
+                key,
+                current,
+                total
+              );
+
+            }
+
         }
+
       );
 
+
+    /*
+       Check result
+    */
 
     if (!resultBlob) {
 
@@ -503,7 +798,9 @@ async function processImage() {
     }
 
 
-    /* Remove old result URL */
+    /*
+       Remove previous result URL
+    */
 
     if (resultUrl) {
 
@@ -513,7 +810,9 @@ async function processImage() {
     }
 
 
-    /* Create result URL */
+    /*
+       Create result URL
+    */
 
     resultUrl =
       URL.createObjectURL(
@@ -522,9 +821,9 @@ async function processImage() {
 
 
     /*
-      IMPORTANT:
-      Result stays in the SAME
-      preview section.
+       IMPORTANT:
+       Result stays in SAME
+       preview section.
     */
 
     preview.src =
@@ -535,12 +834,22 @@ async function processImage() {
       "visible"
     );
 
+
     dropZone.style.display =
       "none";
 
 
+    /*
+       SHOW DOWNLOAD BUTTON
+    */
+
+    downloadButton.style.display =
+      "block";
+
+
     downloadButton.disabled =
       false;
+
 
     removeButton.disabled =
       false;
@@ -632,6 +941,10 @@ function resetApp() {
     null;
 
 
+  /*
+     Remove result
+  */
+
   if (resultUrl) {
 
     URL.revokeObjectURL(
@@ -642,6 +955,10 @@ function resetApp() {
       null;
   }
 
+
+  /*
+     Remove preview
+  */
 
   if (previewUrl) {
 
@@ -674,6 +991,10 @@ function resetApp() {
 
   downloadButton.disabled =
     true;
+
+
+  downloadButton.style.display =
+    "none";
 
 
   fileInput.value =
@@ -712,6 +1033,7 @@ fileInput.addEventListener(
 
       handleFile(file);
     }
+
   }
 );
 
@@ -765,6 +1087,7 @@ dropZone.addEventListener(
 
       handleFile(file);
     }
+
   }
 );
 
@@ -801,6 +1124,10 @@ removeButton.disabled =
 
 downloadButton.disabled =
   true;
+
+
+downloadButton.style.display =
+  "none";
 
 
 setStatus(
