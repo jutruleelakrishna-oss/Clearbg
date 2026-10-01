@@ -1,9 +1,15 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ClearBG - AI background remover">
+
+  <meta
+    name="description"
+    content="ClearBG - AI background remover"
+  >
+
   <title>ClearBG — AI Background Remover</title>
 
   <style>
@@ -16,7 +22,8 @@
       background: #070b14;
       color: white;
       font-family: Arial, sans-serif;
-      z-index: 9999;
+      font-size: 16px;
+      z-index: 99999;
     }
 
     body.auth-checking > *:not(#authLoading) {
@@ -27,22 +34,35 @@
 
 <body class="auth-checking">
 
+  <!-- Authentication loading screen -->
   <div id="authLoading">
     Checking access...
   </div>
 
+
+  <!-- ClearBG header -->
   <header class="topbar">
+
     <div class="brand">
       <span class="brand-mark">✦</span>
       ClearBG
     </div>
-    <span class="privacy">Private by design</span>
+
+    <span class="privacy">
+      Private by design
+    </span>
+
   </header>
 
+
+  <!-- Main application -->
   <main class="container">
 
     <section class="hero">
-      <p class="eyebrow">AI BACKGROUND REMOVER</p>
+
+      <p class="eyebrow">
+        AI BACKGROUND REMOVER
+      </p>
 
       <h1>
         Remove backgrounds.<br>
@@ -52,7 +72,9 @@
       <p class="subtitle">
         Turn your photos into clean, transparent PNGs in seconds.
       </p>
+
     </section>
+
 
     <section class="workspace">
 
@@ -73,17 +95,24 @@
             hidden
           >
 
-          <div class="upload-icon">↑</div>
+          <div class="upload-icon">
+            ↑
+          </div>
 
-          <h2>Drop an image here</h2>
+          <h2>
+            Drop an image here
+          </h2>
 
-          <p>or tap to choose a photo</p>
+          <p>
+            or tap to choose a photo
+          </p>
 
           <small>
             JPG, PNG, WEBP and other common image formats
           </small>
 
         </div>
+
 
         <div class="preview-grid">
 
@@ -94,14 +123,17 @@
             </div>
 
             <div class="image-wrap">
+
               <img
                 id="preview"
                 alt="Original preview"
                 hidden
               >
+
             </div>
 
           </div>
+
 
           <div class="preview-card checker">
 
@@ -110,16 +142,19 @@
             </div>
 
             <div class="image-wrap">
+
               <img
                 id="result"
                 alt="Background removed result"
                 hidden
               >
+
             </div>
 
           </div>
 
         </div>
+
 
         <div class="actions">
 
@@ -131,6 +166,7 @@
             ✨ Remove Background
           </button>
 
+
           <button
             id="downloadButton"
             class="secondary"
@@ -138,6 +174,7 @@
           >
             ⬇ Download PNG
           </button>
+
 
           <button
             id="resetButton"
@@ -148,6 +185,7 @@
 
         </div>
 
+
         <div class="status-wrap">
 
           <div
@@ -157,11 +195,14 @@
             Choose an image to begin.
           </div>
 
+
           <div class="progress-track">
+
             <div
               id="progressBar"
               class="progress-bar"
             ></div>
+
           </div>
 
         </div>
@@ -170,46 +211,71 @@
 
     </section>
 
+
     <section class="info">
 
       <div>
-        <strong>⚡ Runs in your browser</strong>
+
+        <strong>
+          ⚡ Runs in your browser
+        </strong>
+
         <span>
           Your image is processed locally by the AI model.
         </span>
+
       </div>
 
+
       <div>
-        <strong>🎯 Transparent PNG</strong>
+
+        <strong>
+          🎯 Transparent PNG
+        </strong>
+
         <span>
           Download a clean cutout with transparency.
         </span>
+
       </div>
 
+
       <div>
-        <strong>📱 Phone friendly</strong>
+
+        <strong>
+          📱 Phone friendly
+        </strong>
+
         <span>
           Designed to work on mobile and desktop.
         </span>
+
       </div>
 
     </section>
 
   </main>
 
+
   <footer>
     © 2026 ClearBG
   </footer>
 
+
+  <!-- Supabase authentication -->
   <script type="module">
+
     import { createClient }
       from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
 
     const SUPABASE_URL =
       "https://kqhhjwmifqrkxhygjhap.supabase.co";
 
+
     const SUPABASE_KEY =
       "sb_publishable_BXXJIGsGG_6uIeyfGXPSKQ_uwjXdRa1";
+
 
     const supabase =
       createClient(
@@ -217,42 +283,96 @@
         SUPABASE_KEY
       );
 
-    async function checkAccess() {
+
+    async function checkAuthentication() {
 
       try {
 
-        const {
-          data: { session },
-          error
-        } = await supabase.auth.getSession();
+        const result =
+          await supabase.auth.getSession();
+
+
+        const session =
+          result?.data?.session;
+
+
+        const error =
+          result?.error;
+
 
         if (error) {
-          console.error("Auth error:", error);
-          window.location.replace("/admin.html");
+
+          console.error(
+            "Supabase authentication error:",
+            error
+          );
+
+          window.location.replace(
+            "/admin.html"
+          );
+
           return;
         }
+
 
         if (!session) {
-          window.location.replace("/admin.html");
+
+          window.location.replace(
+            "/admin.html"
+          );
+
           return;
         }
 
-        // User is logged in.
-        document.body.classList.remove("auth-checking");
 
-        document
-          .getElementById("authLoading")
-          .remove();
+        /*
+          User is authenticated.
+          Now allow ClearBG to appear.
+        */
+
+        const loading =
+          document.getElementById(
+            "authLoading"
+          );
+
+
+        document.body.classList.remove(
+          "auth-checking"
+        );
+
+
+        if (loading) {
+          loading.remove();
+        }
 
       } catch (error) {
 
-        console.error("Authentication check failed:", error);
+        console.error(
+          "Authentication check failed:",
+          error
+        );
 
-        window.location.replace("/admin.html");
+
+        window.location.replace(
+          "/admin.html"
+        );
+
       }
+
     }
 
-    checkAccess();
+
+    checkAuthentication();
+
   </script>
 
-  <script type="module" src="/src/main
+
+  <!-- ClearBG application -->
+  <script
+    type="module"
+    src="/src/main.js"
+  ></script>
+
+
+</body>
+</html>
