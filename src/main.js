@@ -57,9 +57,9 @@ function setStatus(
 ) {
 
   if (status) {
-    status.textContent = message;
+    status.textContent =
+      message;
   }
-
 
   if (
     progressBar &&
@@ -75,12 +75,9 @@ function setStatus(
         )
       );
 
-
     progressBar.style.width =
       `${safePercent}%`;
-
   }
-
 }
 
 
@@ -96,11 +93,9 @@ function showPreview(
     return;
   }
 
-
   previewCard.classList.add(
     "visible"
   );
-
 
   if (preview) {
 
@@ -109,14 +104,55 @@ function showPreview(
 
     preview.style.display =
       "block";
-
   }
-
 }
 
 
 /* ==========================================
-   IMAGE LOADING
+   IMAGE TYPE CHECK
+========================================== */
+
+function isSupportedImage(
+  file
+) {
+
+  if (!file) {
+    return false;
+  }
+
+  if (
+    file.type &&
+    file.type.startsWith(
+      "image/"
+    )
+  ) {
+    return true;
+  }
+
+  const extension =
+    file.name
+      .split(".")
+      .pop()
+      .toLowerCase();
+
+  const supportedExtensions = [
+    "jpg",
+    "jpeg",
+    "png",
+    "webp",
+    "gif",
+    "bmp",
+    "avif"
+  ];
+
+  return supportedExtensions.includes(
+    extension
+  );
+}
+
+
+/* ==========================================
+   LOAD IMAGE SAFELY
 ========================================== */
 
 function loadImage(
@@ -134,7 +170,6 @@ function loadImage(
           file
         );
 
-
       image.onload = () => {
 
         URL.revokeObjectURL(
@@ -142,9 +177,7 @@ function loadImage(
         );
 
         resolve(image);
-
       };
-
 
       image.onerror = () => {
 
@@ -154,34 +187,92 @@ function loadImage(
 
         reject(
           new Error(
-            "The image could not be decoded."
+            "Your browser could not decode this image. Try saving it as JPG or PNG and upload again."
           )
         );
-
       };
-
 
       image.src =
         url;
-
     }
   );
-
 }
 
 
 /* ==========================================
-   PREPARE IMAGE
+   CREATE PNG FOR AI
 ========================================== */
 
 async function createProcessingBlob(
   file
 ) {
 
+  /*
+    First try the browser's
+    native image decoder.
+  */
+
   const image =
     await loadImage(
       file
     );
+
+  const width =
+    image.naturalWidth ||
+    image.width;
+
+  const height =
+    image.naturalHeight ||
+    image.height;
+
+  if (
+    !width ||
+    !height
+  ) {
+
+    throw new Error(
+      "The image has invalid dimensions."
+    );
+  }
+
+
+  /*
+    Prevent extremely large
+    canvas sizes from crashing
+    mobile browsers.
+  */
+
+  const MAX_SIZE =
+    4096;
+
+  let outputWidth =
+    width;
+
+  let outputHeight =
+    height;
+
+
+  if (
+    width > MAX_SIZE ||
+    height > MAX_SIZE
+  ) {
+
+    const scale =
+      Math.min(
+        MAX_SIZE / width,
+        MAX_SIZE / height
+      );
+
+    outputWidth =
+      Math.round(
+        width * scale
+      );
+
+    outputHeight =
+      Math.round(
+        height * scale
+      );
+  }
 
 
   const canvas =
@@ -189,135 +280,78 @@ async function createProcessingBlob(
       "canvas"
     );
 
-
-  const width =
-    image.naturalWidth ||
-    image.width;
-
-
-  const height =
-    image.naturalHeight ||
-    image.height;
-
-
-  if (!width || !height) {
-
-    throw new Error(
-      "Invalid image dimensions."
-    );
-
-  }
-
-
   canvas.width =
-    width;
+    outputWidth;
 
   canvas.height =
-    height;
+    outputHeight;
 
 
   const context =
     canvas.getContext(
-      "2d"
+      "2d",
+      {
+        alpha: true
+      }
     );
-
 
   if (!context) {
 
     throw new Error(
       "Could not create image canvas."
     );
-
   }
+
+
+  context.clearRect(
+    0,
+    0,
+    outputWidth,
+    outputHeight
+  );
 
 
   context.drawImage(
     image,
     0,
     0,
-    width,
-    height
+    outputWidth,
+    outputHeight
   );
 
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
 
       canvas.toBlob(
-        (blob) => {
+        (
+          blob
+        ) => {
 
           if (!blob) {
 
             reject(
               new Error(
-                "Could not prepare the image."
+                "Could not convert the image to PNG."
               )
             );
 
             return;
-
           }
 
-
-          resolve(blob);
-
+          resolve(
+            blob
+          );
         },
-        "image/png"
+        "image/png",
+        1.0
       );
 
     }
   );
-
-}
-
-
-/* ==========================================
-   SUPPORTED FILE
-========================================== */
-
-function isSupportedImage(
-  file
-) {
-
-  if (!file) {
-    return false;
-  }
-
-
-  if (
-    file.type &&
-    file.type.startsWith(
-      "image/"
-    )
-  ) {
-
-    return true;
-
-  }
-
-
-  const extension =
-    file.name
-      .split(".")
-      .pop()
-      .toLowerCase();
-
-
-  const supportedExtensions = [
-    "jpg",
-    "jpeg",
-    "png",
-    "webp",
-    "gif",
-    "bmp",
-    "avif"
-  ];
-
-
-  return supportedExtensions.includes(
-    extension
-  );
-
 }
 
 
@@ -334,14 +368,17 @@ async function handleFile(
   }
 
 
-  if (!isSupportedImage(file)) {
+  if (
+    !isSupportedImage(
+      file
+    )
+  ) {
 
     setStatus(
       "Please select a supported image file."
     );
 
     return;
-
   }
 
 
@@ -357,7 +394,6 @@ async function handleFile(
 
     resultUrl =
       null;
-
   }
 
 
@@ -369,7 +405,6 @@ async function handleFile(
 
     selectedPreviewUrl =
       null;
-
   }
 
 
@@ -377,7 +412,6 @@ async function handleFile(
 
     downloadButton.style.display =
       "none";
-
   }
 
 
@@ -398,20 +432,17 @@ async function handleFile(
       `${file.name} selected.`
     );
 
-
   } catch (error) {
 
     console.error(
+      "Preview error:",
       error
     );
-
 
     setStatus(
       "Could not display this image."
     );
-
   }
-
 }
 
 
@@ -426,30 +457,28 @@ fileInput?.addEventListener(
     const file =
       fileInput.files?.[0];
 
-
     await handleFile(
       file
     );
-
   }
 );
 
 
 /* ==========================================
-   DROP ZONE CLICK
+   CLICK UPLOAD
 ========================================== */
 
 dropZone?.addEventListener(
   "click",
   () => {
 
-    if (isProcessing) {
+    if (
+      isProcessing
+    ) {
       return;
     }
 
-
     fileInput?.click();
-
   }
 );
 
@@ -464,16 +493,15 @@ dropZone?.addEventListener(
 
     event.preventDefault();
 
-
-    if (isProcessing) {
+    if (
+      isProcessing
+    ) {
       return;
     }
-
 
     dropZone.classList.add(
       "dragover"
     );
-
   }
 );
 
@@ -489,7 +517,6 @@ dropZone?.addEventListener(
     dropZone.classList.remove(
       "dragover"
     );
-
   }
 );
 
@@ -504,26 +531,23 @@ dropZone?.addEventListener(
 
     event.preventDefault();
 
-
     dropZone.classList.remove(
       "dragover"
     );
 
-
-    if (isProcessing) {
+    if (
+      isProcessing
+    ) {
       return;
     }
-
 
     const file =
       event.dataTransfer
         ?.files?.[0];
 
-
     await handleFile(
       file
     );
-
   }
 );
 
@@ -540,9 +564,7 @@ removeButton?.addEventListener(
       !selectedFile ||
       isProcessing
     ) {
-
       return;
-
     }
 
 
@@ -558,7 +580,6 @@ removeButton?.addEventListener(
 
       downloadButton.style.display =
         "none";
-
     }
 
 
@@ -570,9 +591,10 @@ removeButton?.addEventListener(
 
     try {
 
-      /* -------------------------------
-         Convert image to PNG first
-      -------------------------------- */
+      /*
+        Convert original image
+        to browser-compatible PNG.
+      */
 
       const processingBlob =
         await createProcessingBlob(
@@ -586,9 +608,9 @@ removeButton?.addEventListener(
       );
 
 
-      /* -------------------------------
-         AI BACKGROUND REMOVAL
-      -------------------------------- */
+      /*
+        AI BACKGROUND REMOVAL
+      */
 
       const resultBlob =
         await removeBackground(
@@ -606,45 +628,53 @@ removeButton?.addEventListener(
             model:
               "isnet_quint8",
 
-            progress: (
-              key,
-              current,
-              total
-            ) => {
-
-              const percent =
-                total
-                  ? Math.round(
-                      (
-                        current /
-                        total
-                      ) * 100
-                    )
-                  : 0;
-
-
-              setStatus(
-                `Processing… ${percent}%`,
-                percent
-              );
-
-
-              console.log(
-                "Krishna AI Studio:",
+            progress:
+              (
                 key,
                 current,
                 total
-              );
+              ) => {
 
-            }
+                const percent =
+                  total
+                    ? Math.round(
+                        (
+                          current /
+                          total
+                        ) * 100
+                      )
+                    : 0;
 
+
+                setStatus(
+                  `Processing… ${percent}%`,
+                  percent
+                );
+
+
+                console.log(
+                  "Krishna AI Studio:",
+                  key,
+                  current,
+                  total
+                );
+              }
           }
         );
 
 
-      /* -------------------------------
-         SHOW RESULT IN SAME SECTION
-      -------------------------------- */
+      /*
+        Show result in the
+        SAME preview section.
+      */
+
+      if (resultUrl) {
+
+        URL.revokeObjectURL(
+          resultUrl
+        );
+      }
+
 
       resultUrl =
         URL.createObjectURL(
@@ -657,15 +687,10 @@ removeButton?.addEventListener(
       );
 
 
-      /* -------------------------------
-         DOWNLOAD
-      -------------------------------- */
-
       if (downloadButton) {
 
         downloadButton.style.display =
           "inline-flex";
-
       }
 
 
@@ -678,7 +703,7 @@ removeButton?.addEventListener(
     } catch (error) {
 
       console.error(
-        "Background removal error:",
+        "Krishna AI Studio background removal error:",
         error
       );
 
@@ -687,11 +712,12 @@ removeButton?.addEventListener(
         "AI processing failed.";
 
 
-      if (error?.message) {
+      if (
+        error?.message
+      ) {
 
         message =
           error.message;
-
       }
 
 
@@ -699,18 +725,14 @@ removeButton?.addEventListener(
         message
       );
 
-
     } finally {
 
       isProcessing =
         false;
 
-
       removeButton.disabled =
         false;
-
     }
-
   }
 );
 
@@ -751,7 +773,6 @@ downloadButton?.addEventListener(
 
 
     link.remove();
-
   }
 );
 
@@ -772,11 +793,12 @@ resetButton?.addEventListener(
 
       resultUrl =
         null;
-
     }
 
 
-    if (selectedPreviewUrl) {
+    if (
+      selectedPreviewUrl
+    ) {
 
       URL.revokeObjectURL(
         selectedPreviewUrl
@@ -784,7 +806,6 @@ resetButton?.addEventListener(
 
       selectedPreviewUrl =
         null;
-
     }
 
 
@@ -800,7 +821,6 @@ resetButton?.addEventListener(
 
       fileInput.value =
         "";
-
     }
 
 
@@ -809,7 +829,6 @@ resetButton?.addEventListener(
       previewCard.classList.remove(
         "visible"
       );
-
     }
 
 
@@ -821,7 +840,6 @@ resetButton?.addEventListener(
 
       preview.style.display =
         "none";
-
     }
 
 
@@ -829,7 +847,6 @@ resetButton?.addEventListener(
 
       downloadButton.style.display =
         "none";
-
     }
 
 
@@ -837,7 +854,6 @@ resetButton?.addEventListener(
 
       progressBar.style.width =
         "0%";
-
     }
 
 
@@ -845,14 +861,12 @@ resetButton?.addEventListener(
 
       removeButton.disabled =
         false;
-
     }
 
 
     setStatus(
       "Select an image to get started."
     );
-
   }
 );
 
@@ -865,7 +879,6 @@ if (downloadButton) {
 
   downloadButton.style.display =
     "none";
-
 }
 
 
@@ -874,7 +887,6 @@ if (previewCard) {
   previewCard.classList.remove(
     "visible"
   );
-
 }
 
 
@@ -882,7 +894,6 @@ if (preview) {
 
   preview.style.display =
     "none";
-
 }
 
 
