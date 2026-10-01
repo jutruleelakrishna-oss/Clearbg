@@ -1,1320 +1,572 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { removeBackground } from "@imgly/background-removal";
+import "./style.css";
 
-const SUPABASE_URL =
-  "https://kqhhjwmifqrkxhygjhap.supabase.co";
+const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
+const previewCard = document.getElementById("previewCard");
+const preview = document.getElementById("preview");
 
-const SUPABASE_KEY =
-  "sb_publishable_BXXJIGsGG_6uIeyfGXPSKQ_uwjXdRa1";
+const removeButton = document.getElementById("removeButton");
+const downloadButton = document.getElementById("downloadButton");
+const resetButton = document.getElementById("resetButton");
 
-const ADMIN_EMAIL =
-  "jutruleelakrishna@gmail.com";
+const status = document.getElementById("status");
+const progressBar = document.getElementById("progressBar");
 
-const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+let selectedFile = null;
+let resultUrl = null;
 
-window.krishnaSupabase = supabase;
+const MAX_IMAGE_SIZE = 4096;
 
+/* -----------------------------
+   STATUS
+----------------------------- */
 
-/* =====================================================
-   ELEMENTS
-===================================================== */
-
-const menuButton =
-  document.getElementById("menuButton");
-
-const menuOverlay =
-  document.getElementById("menuOverlay");
-
-const closeMenu =
-  document.getElementById("closeMenu");
-
-const profileMenuButton =
-  document.getElementById("profileMenuButton");
-
-const settingsMenuButton =
-  document.getElementById("settingsMenuButton");
-
-const websiteSettingsMenuButton =
-  document.getElementById("websiteSettingsMenuButton");
-
-const settingsOverlay =
-  document.getElementById("settingsOverlay");
-
-const closeSettings =
-  document.getElementById("closeSettings");
-
-const profileSection =
-  document.getElementById("profileSection");
-
-const securitySection =
-  document.getElementById("securitySection");
-
-const websiteSettingsSection =
-  document.getElementById("websiteSettingsSection");
-
-const settingsModalTitle =
-  document.getElementById("settingsModalTitle");
-
-const settingsModalSubtitle =
-  document.getElementById("settingsModalSubtitle");
-
-const displayName =
-  document.getElementById("displayName");
-
-const profileEmail =
-  document.getElementById("profileEmail");
-
-const profilePhone =
-  document.getElementById("profilePhone");
-
-const profileLocation =
-  document.getElementById("profileLocation");
-
-const profileAbout =
-  document.getElementById("profileAbout");
-
-const accountCreated =
-  document.getElementById("accountCreated");
-
-const profilePicture =
-  document.getElementById("profilePicture");
-
-const profileAvatarPlaceholder =
-  document.getElementById(
-    "profileAvatarPlaceholder"
-  );
-
-const profilePictureInput =
-  document.getElementById(
-    "profilePictureInput"
-  );
-
-const changeProfilePicture =
-  document.getElementById(
-    "changeProfilePicture"
-  );
-
-const removeProfilePicture =
-  document.getElementById(
-    "removeProfilePicture"
-  );
-
-const saveProfile =
-  document.getElementById("saveProfile");
-
-const newPassword =
-  document.getElementById("newPassword");
-
-const changePassword =
-  document.getElementById("changePassword");
-
-const adminLogout =
-  document.getElementById("adminLogout");
-
-const websiteName =
-  document.getElementById("websiteName");
-
-const websiteDescription =
-  document.getElementById(
-    "websiteDescription"
-  );
-
-const websiteTheme =
-  document.getElementById("websiteTheme");
-
-const maxLoginCount =
-  document.getElementById("maxLoginCount");
-
-const saveWebsiteName =
-  document.getElementById(
-    "saveWebsiteName"
-  );
-
-const settingMessage =
-  document.getElementById(
-    "settingMessage"
-  );
-
-const headerWebsiteName =
-  document.getElementById(
-    "headerWebsiteName"
-  );
-
-const settingsEmail =
-  document.getElementById(
-    "settingsEmail"
-  );
-
-
-/* =====================================================
-   ADMIN CHECK
-===================================================== */
-
-function isAdmin(user) {
-
-  if (!user) {
-    return false;
+function setStatus(message, progress = 0) {
+  if (status) {
+    status.textContent = message;
   }
 
-  if (!user.email) {
-    return false;
+  if (progressBar) {
+    progressBar.value = progress;
   }
+}
+
+/* -----------------------------
+   SUPPORTED FORMATS
+----------------------------- */
+
+function isSupportedImage(file) {
+  if (!file) return false;
+
+  const supportedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/bmp",
+    "image/avif"
+  ];
+
+  const supportedExtensions = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".gif",
+    ".bmp",
+    ".avif"
+  ];
+
+  const fileName = file.name.toLowerCase();
 
   return (
-    user.email.trim().toLowerCase() ===
-    ADMIN_EMAIL.trim().toLowerCase()
+    supportedTypes.includes(file.type) ||
+    supportedExtensions.some((extension) =>
+      fileName.endsWith(extension)
+    )
   );
 }
 
-
-/* =====================================================
-   HIDE ALL ADMIN CONTROLS
-===================================================== */
-
-function hideAdminControls() {
-
-  if (menuButton) {
-    menuButton.style.display = "none";
-  }
-
-  if (websiteSettingsMenuButton) {
-    websiteSettingsMenuButton.style.display =
-      "none";
-  }
-
-  if (menuOverlay) {
-    menuOverlay.classList.remove("open");
-  }
-
-  if (settingsOverlay) {
-    settingsOverlay.classList.remove(
-      "open"
-    );
-  }
-}
-
-
-/* =====================================================
-   SHOW ADMIN CONTROLS
-===================================================== */
-
-function showAdminControls() {
-
-  if (menuButton) {
-    menuButton.style.display = "flex";
-  }
-
-  if (websiteSettingsMenuButton) {
-    websiteSettingsMenuButton.style.display =
-      "flex";
-  }
-}
-
-
-/* =====================================================
-   MENU
-===================================================== */
-
-function openMenu() {
-
-  if (!menuOverlay) {
-    return;
-  }
-
-  menuOverlay.classList.add("open");
-}
-
-
-function closeMenuPanel() {
-
-  if (!menuOverlay) {
-    return;
-  }
-
-  menuOverlay.classList.remove("open");
-}
-
-
-menuButton?.addEventListener(
-  "click",
-  openMenu
-);
-
-
-closeMenu?.addEventListener(
-  "click",
-  closeMenuPanel
-);
-
-
-menuOverlay?.addEventListener(
-  "click",
-  (event) => {
-
-    if (
-      event.target === menuOverlay
-    ) {
-      closeMenuPanel();
-    }
-
-  }
-);
-
-
-/* =====================================================
-   SETTINGS MODAL
-===================================================== */
-
-function hideAllSettingsSections() {
-
-  if (profileSection) {
-    profileSection.style.display =
-      "none";
-  }
-
-  if (securitySection) {
-    securitySection.style.display =
-      "none";
-  }
-
-  if (websiteSettingsSection) {
-    websiteSettingsSection.style.display =
-      "none";
-  }
-}
-
-
-function openSettingsSection(
-  section
-) {
-
-  hideAllSettingsSections();
-
-  if (!settingsOverlay) {
-    return;
-  }
-
-
-  settingsOverlay.classList.add(
-    "open"
-  );
-
-
-  if (section === "profile") {
-
-    if (profileSection) {
-      profileSection.style.display =
-        "block";
-    }
-
-    if (settingsModalTitle) {
-      settingsModalTitle.textContent =
-        "Profile";
-    }
-
-    if (settingsModalSubtitle) {
-      settingsModalSubtitle.textContent =
-        "Manage your profile";
-    }
-
-  }
-
-
-  if (section === "settings") {
-
-    if (securitySection) {
-      securitySection.style.display =
-        "block";
-    }
-
-    if (settingsModalTitle) {
-      settingsModalTitle.textContent =
-        "Settings";
-    }
-
-    if (settingsModalSubtitle) {
-      settingsModalSubtitle.textContent =
-        "Account, security & devices";
-    }
-
-  }
-
-
-  if (section === "website") {
-
-    if (websiteSettingsSection) {
-      websiteSettingsSection.style.display =
-        "block";
-    }
-
-    if (settingsModalTitle) {
-      settingsModalTitle.textContent =
-        "Website Settings";
-    }
-
-    if (settingsModalSubtitle) {
-      settingsModalSubtitle.textContent =
-        "Manage Krishna AI Studio";
-    }
-
-  }
-
-}
-
-
-/* =====================================================
-   MENU ITEM ACTIONS
-===================================================== */
-
-profileMenuButton?.addEventListener(
-  "click",
-  () => {
-
-    closeMenuPanel();
-
-    openSettingsSection(
-      "profile"
-    );
-
-  }
-);
-
-
-settingsMenuButton?.addEventListener(
-  "click",
-  () => {
-
-    closeMenuPanel();
-
-    openSettingsSection(
-      "settings"
-    );
-
-  }
-);
-
-
-websiteSettingsMenuButton?.addEventListener(
-  "click",
-  () => {
-
-    closeMenuPanel();
-
-    openSettingsSection(
-      "website"
-    );
-
-  }
-);
-
-
-/* =====================================================
-   CLOSE SETTINGS
-===================================================== */
-
-closeSettings?.addEventListener(
-  "click",
-  () => {
-
-    if (settingsOverlay) {
-
-      settingsOverlay.classList.remove(
-        "open"
-      );
-
-    }
-
-  }
-);
-
-
-settingsOverlay?.addEventListener(
-  "click",
-  (event) => {
-
-    if (
-      event.target === settingsOverlay
-    ) {
-
-      settingsOverlay.classList.remove(
-        "open"
-      );
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   MESSAGE
-===================================================== */
-
-function showMessage(
-  message,
-  success = true
-) {
-
-  if (!settingMessage) {
-    return;
-  }
-
-  settingMessage.textContent =
-    message;
-
-  settingMessage.style.display =
-    "block";
-
-  settingMessage.style.color =
-    success
-      ? "#6ee7b7"
-      : "#ff9ba5";
-
-}
-
-
-/* =====================================================
-   LOAD USER PROFILE
-===================================================== */
-
-function loadUserProfile(user) {
-
-  if (!user) {
-    return;
-  }
-
-
-  const metadata =
-    user.user_metadata || {};
-
-
-  /* EMAIL */
-
-  if (profileEmail) {
-
-    profileEmail.value =
-      user.email || "";
-
-  }
-
-
-  if (settingsEmail) {
-
-    settingsEmail.textContent =
-      user.email || "—";
-
-  }
-
-
-  /* DISPLAY NAME */
-
-  if (displayName) {
-
-    displayName.value =
-      metadata.display_name || "";
-
-  }
-
-
-  /* PHONE */
-
-  if (profilePhone) {
-
-    profilePhone.value =
-      metadata.phone || "";
-
-  }
-
-
-  /* LOCATION */
-
-  if (profileLocation) {
-
-    profileLocation.value =
-      metadata.location || "";
-
-  }
-
-
-  /* ABOUT */
-
-  if (profileAbout) {
-
-    profileAbout.value =
-      metadata.about || "";
-
-  }
-
-
-  /* ACCOUNT CREATED */
-
-  if (accountCreated) {
-
-    if (user.created_at) {
-
-      const date =
-        new Date(user.created_at);
-
-      accountCreated.textContent =
-        date.toLocaleDateString(
-          "en-IN",
-          {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-          }
+/* -----------------------------
+   LOAD IMAGE
+----------------------------- */
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      if (
+        !image.naturalWidth ||
+        !image.naturalHeight
+      ) {
+        reject(
+          new Error(
+            "The image has invalid dimensions."
+          )
         );
+        return;
+      }
 
-    }
-
-  }
-
-
-  /* PROFILE PICTURE */
-
-  const avatar =
-    metadata.profile_picture || "";
-
-  if (avatar) {
-
-    if (profilePicture) {
-
-      profilePicture.src =
-        avatar;
-
-      profilePicture.style.display =
-        "block";
-
-    }
-
-    if (profileAvatarPlaceholder) {
-
-      profileAvatarPlaceholder.style.display =
-        "none";
-
-    }
-
-  } else {
-
-    if (profilePicture) {
-
-      profilePicture.src = "";
-
-      profilePicture.style.display =
-        "none";
-
-    }
-
-    if (profileAvatarPlaceholder) {
-
-      profileAvatarPlaceholder.style.display =
-        "grid";
-
-    }
-
-  }
-
-
-  /* WEBSITE NAME */
-
-  const savedWebsiteName =
-    metadata.website_name ||
-    "Krishna AI Studio";
-
-
-  if (websiteName) {
-
-    websiteName.value =
-      savedWebsiteName;
-
-  }
-
-
-  if (headerWebsiteName) {
-
-    headerWebsiteName.textContent =
-      savedWebsiteName;
-
-  }
-
-
-  document.title =
-    savedWebsiteName;
-
-
-  /* WEBSITE DESCRIPTION */
-
-  if (websiteDescription) {
-
-    websiteDescription.value =
-      metadata.website_description ||
-      "";
-
-  }
-
-
-  /* WEBSITE THEME */
-
-  if (websiteTheme) {
-
-    websiteTheme.value =
-      metadata.website_theme ||
-      "dark";
-
-  }
-
-
-  /* LOGIN LIMIT */
-
-  if (maxLoginCount) {
-
-    const savedLimit =
-      Number(
-        metadata.max_login_count
-      );
-
-    if (
-      savedLimit >= 1 &&
-      savedLimit <= 10
-    ) {
-
-      maxLoginCount.value =
-        String(savedLimit);
-
-    } else {
-
-      maxLoginCount.value =
-        "10";
-
-    }
-
-  }
-
-}
-
-
-/* =====================================================
-   PROFILE PICTURE
-===================================================== */
-
-changeProfilePicture?.addEventListener(
-  "click",
-  () => {
-
-    profilePictureInput?.click();
-
-  }
-);
-
-
-profilePictureInput?.addEventListener(
-  "change",
-  () => {
-
-    const file =
-      profilePictureInput.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-
-      showMessage(
-        "Please select an image.",
-        false
-      );
-
-      return;
-    }
-
-
-    const reader =
-      new FileReader();
-
-
-    reader.onload =
-      () => {
-
-        const imageUrl =
-          reader.result;
-
-        if (profilePicture) {
-
-          profilePicture.src =
-            imageUrl;
-
-          profilePicture.style.display =
-            "block";
-
-        }
-
-        if (
-          profileAvatarPlaceholder
-        ) {
-
-          profileAvatarPlaceholder.style.display =
-            "none";
-
-        }
-
-        /*
-         * Save the image temporarily
-         * in memory.
-         *
-         * A proper Supabase Storage
-         * upload can be connected later.
-         */
-
-        window.pendingProfilePicture =
-          imageUrl;
-
-      };
-
-
-    reader.readAsDataURL(file);
-
-  }
-);
-
-
-/* =====================================================
-   REMOVE PROFILE PICTURE
-===================================================== */
-
-removeProfilePicture?.addEventListener(
-  "click",
-  () => {
-
-    if (profilePicture) {
-
-      profilePicture.src = "";
-
-      profilePicture.style.display =
-        "none";
-
-    }
-
-    if (
-      profileAvatarPlaceholder
-    ) {
-
-      profileAvatarPlaceholder.style.display =
-        "grid";
-
-    }
-
-    window.pendingProfilePicture =
-      null;
-
-  }
-);
-
-
-/* =====================================================
-   SAVE PROFILE
-===================================================== */
-
-saveProfile?.addEventListener(
-  "click",
-  async () => {
-
-    const name =
-      displayName?.value.trim() || "";
-
-    const phone =
-      profilePhone?.value.trim() || "";
-
-    const location =
-      profileLocation?.value.trim() || "";
-
-    const about =
-      profileAbout?.value.trim() || "";
-
-
-    saveProfile.disabled = true;
-
-    showMessage(
-      "Saving profile..."
-    );
-
-
-    const metadata = {
-
-      display_name: name,
-
-      phone: phone,
-
-      location: location,
-
-      about: about,
-
-      profile_picture:
-        window.pendingProfilePicture !==
-        undefined
-          ? window.pendingProfilePicture
-          : undefined
-
+      resolve(image);
     };
 
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
 
-    /*
-     * Remove undefined values.
-     */
-
-    Object.keys(metadata).forEach(
-      (key) => {
-
-        if (
-          metadata[key] ===
-          undefined
-        ) {
-
-          delete metadata[key];
-
-        }
-
-      }
-    );
-
-
-    const {
-      error
-    } =
-      await supabase.auth.updateUser({
-        data: metadata
-      });
-
-
-    saveProfile.disabled = false;
-
-
-    if (error) {
-
-      showMessage(
-        error.message,
-        false
+      reject(
+        new Error(
+          "The image could not be decoded. Please try a JPG or PNG image."
+        )
       );
+    };
 
-      return;
-    }
-
-
-    window.pendingProfilePicture =
-      undefined;
-
-
-    showMessage(
-      "Profile saved successfully."
-    );
-
-  }
-);
-
-
-/* =====================================================
-   CHANGE PASSWORD
-===================================================== */
-
-changePassword?.addEventListener(
-  "click",
-  async () => {
-
-    const password =
-      newPassword?.value || "";
-
-
-    if (password.length < 6) {
-
-      showMessage(
-        "Password must contain at least 6 characters.",
-        false
-      );
-
-      return;
-
-    }
-
-
-    changePassword.disabled =
-      true;
-
-
-    showMessage(
-      "Updating password..."
-    );
-
-
-    const {
-      error
-    } =
-      await supabase.auth.updateUser({
-        password: password
-      });
-
-
-    changePassword.disabled =
-      false;
-
-
-    if (error) {
-
-      showMessage(
-        error.message,
-        false
-      );
-
-      return;
-    }
-
-
-    newPassword.value = "";
-
-
-    showMessage(
-      "Password changed successfully."
-    );
-
-  }
-);
-
-
-/* =====================================================
-   WEBSITE SETTINGS
-===================================================== */
-
-saveWebsiteName?.addEventListener(
-  "click",
-  async () => {
-
-    const name =
-      websiteName?.value.trim() ||
-      "Krishna AI Studio";
-
-    const description =
-      websiteDescription?.value.trim() ||
-      "";
-
-    const theme =
-      websiteTheme?.value ||
-      "dark";
-
-    const loginLimit =
-      Number(
-        maxLoginCount?.value || 10
-      );
-
-
-    if (
-      loginLimit < 1 ||
-      loginLimit > 10
-    ) {
-
-      showMessage(
-        "Maximum login count must be between 1 and 10.",
-        false
-      );
-
-      return;
-
-    }
-
-
-    saveWebsiteName.disabled =
-      true;
-
-
-    showMessage(
-      "Saving website settings..."
-    );
-
-
-    const {
-      error
-    } =
-      await supabase.auth.updateUser({
-
-        data: {
-
-          website_name:
-            name,
-
-          website_description:
-            description,
-
-          website_theme:
-            theme,
-
-          max_login_count:
-            loginLimit
-
-        }
-
-      });
-
-
-    saveWebsiteName.disabled =
-      false;
-
-
-    if (error) {
-
-      showMessage(
-        error.message,
-        false
-      );
-
-      return;
-
-    }
-
-
-    if (headerWebsiteName) {
-
-      headerWebsiteName.textContent =
-        name;
-
-    }
-
-
-    document.title =
-      name;
-
-
-    showMessage(
-      "Website settings saved successfully."
-    );
-
-  }
-);
-
-
-/* =====================================================
-   ADMIN LOGOUT
-===================================================== */
-
-adminLogout?.addEventListener(
-  "click",
-  async () => {
-
-    adminLogout.disabled =
-      true;
-
-
-    showMessage(
-      "Logging out..."
-    );
-
-
-    const {
-      error
-    } =
-      await supabase.auth.signOut();
-
-
-    if (error) {
-
-      adminLogout.disabled =
-        false;
-
-      showMessage(
-        error.message,
-        false
-      );
-
-      return;
-
-    }
-
-
-    window.location.reload();
-
-  }
-);
-
-
-/* =====================================================
-   AUTHENTICATION
-===================================================== */
-
-async function checkAuthentication() {
-
-  /*
-   * Hide everything first.
-   */
-
-  hideAdminControls();
-
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabase.auth.getSession();
-
-
-    if (error) {
-
-      console.error(
-        "Supabase authentication error:",
-        error
-      );
-
-      /*
-       * Don't leave the user
-       * permanently stuck on
-       * "Checking login".
-       */
-
-      document.body.classList.remove(
-        "auth-checking"
-      );
-
-      return;
-
-    }
-
-
-    const session =
-      data?.session;
-
-
-    /*
-     * No session.
-     *
-     * We don't redirect to admin.html
-     * because the current website
-     * itself may be the login page.
-     */
-
-    if (!session) {
-
-      document.body.classList.remove(
-        "auth-checking"
-      );
-
-      return;
-
-    }
-
-
-    const user =
-      session.user;
-
-
-    /*
-     * LOAD PROFILE
-     */
-
-    loadUserProfile(user);
-
-
-    /*
-     * ADMIN ONLY
-     */
-
-    if (isAdmin(user)) {
-
-      showAdminControls();
-
-    } else {
-
-      hideAdminControls();
-
-    }
-
-
-    /*
-     * Authentication completed.
-     */
-
-    document.body.classList.remove(
-      "auth-checking"
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Authentication check failed:",
-      error
-    );
-
-    /*
-     * Prevent permanent loading screen.
-     */
-
-    document.body.classList.remove(
-      "auth-checking"
-    );
-
-  }
-
+    image.src = objectUrl;
+  });
 }
 
+/* -----------------------------
+   CONVERT IMAGE TO PNG
+----------------------------- */
 
-/* =====================================================
-   AUTH STATE CHANGES
-===================================================== */
+async function convertToPNG(file) {
+  setStatus("Preparing image…", 5);
 
-supabase.auth.onAuthStateChange(
-  (event, session) => {
+  const image = await loadImage(file);
 
-    /*
-     * Always hide admin controls
-     * before checking the new session.
-     */
+  let width = image.naturalWidth;
+  let height = image.naturalHeight;
 
-    hideAdminControls();
+  /* Prevent extremely large images
+     from crashing mobile browsers */
 
-
-    if (!session) {
-
-      /*
-       * User logged out.
-       */
-
-      document.body.classList.remove(
-        "auth-checking"
-      );
-
-      return;
-
-    }
-
-
-    const user =
-      session.user;
-
-
-    loadUserProfile(user);
-
-
-    if (isAdmin(user)) {
-
-      showAdminControls();
-
-    }
-
-
-    document.body.classList.remove(
-      "auth-checking"
+  if (
+    width > MAX_IMAGE_SIZE ||
+    height > MAX_IMAGE_SIZE
+  ) {
+    const scale = Math.min(
+      MAX_IMAGE_SIZE / width,
+      MAX_IMAGE_SIZE / height
     );
 
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+  }
+
+  const canvas = document.createElement("canvas");
+
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error(
+      "Your browser does not support image processing."
+    );
+  }
+
+  context.clearRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+  context.drawImage(
+    image,
+    0,
+    0,
+    width,
+    height
+  );
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(
+            new Error(
+              "The image could not be converted."
+            )
+          );
+          return;
+        }
+
+        resolve(blob);
+      },
+      "image/png",
+      1
+    );
+  });
+}
+
+/* -----------------------------
+   SHOW SELECTED IMAGE
+----------------------------- */
+
+function showSelectedImage(file) {
+  if (!preview) return;
+
+  const imageUrl =
+    URL.createObjectURL(file);
+
+  preview.onload = () => {
+    URL.revokeObjectURL(imageUrl);
+
+    previewCard.classList.add("show");
+    dropZone.classList.add("hidden");
+
+    removeButton.disabled = false;
+    downloadButton.disabled = true;
+
+    setStatus(
+      "Image ready. Remove the background.",
+      0
+    );
+  };
+
+  preview.onerror = () => {
+    URL.revokeObjectURL(imageUrl);
+
+    setStatus(
+      "The image could not be displayed. Try JPG or PNG.",
+      0
+    );
+
+    removeButton.disabled = true;
+  };
+
+  preview.src = imageUrl;
+}
+
+/* -----------------------------
+   HANDLE FILE
+----------------------------- */
+
+async function handleFile(file) {
+  if (!file) return;
+
+  if (!isSupportedImage(file)) {
+    setStatus(
+      "Unsupported image format.",
+      0
+    );
+
+    return;
+  }
+
+  selectedFile = file;
+
+  if (resultUrl) {
+    URL.revokeObjectURL(resultUrl);
+    resultUrl = null;
+  }
+
+  downloadButton.disabled = true;
+
+  try {
+    setStatus(
+      "Loading image…",
+      5
+    );
+
+    showSelectedImage(file);
+  } catch (error) {
+    console.error(
+      "Krishna AI Studio:",
+      error
+    );
+
+    setStatus(
+      error.message ||
+        "Unable to load image.",
+      0
+    );
+  }
+}
+
+/* -----------------------------
+   REMOVE BACKGROUND
+----------------------------- */
+
+async function processImage() {
+  if (!selectedFile) {
+    setStatus(
+      "Please select an image first.",
+      0
+    );
+
+    return;
+  }
+
+  try {
+    removeButton.disabled = true;
+    downloadButton.disabled = true;
+
+    setStatus(
+      "Preparing image for AI…",
+      10
+    );
+
+    /* Convert ANY supported browser-readable
+       image into PNG before AI processing */
+
+    const processingBlob =
+      await convertToPNG(selectedFile);
+
+    setStatus(
+      "Starting AI background removal…",
+      15
+    );
+
+    console.log(
+      "Krishna AI Studio: AI processing started"
+    );
+
+    const resultBlob =
+      await removeBackground(
+        processingBlob,
+        {
+          debug: true,
+
+          publicPath:
+            "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/",
+
+          device: "cpu",
+
+          model: "isnet_quint8",
+
+          progress: (
+            key,
+            current,
+            total
+          ) => {
+            let percent = 15;
+
+            if (total) {
+              percent =
+                15 +
+                Math.round(
+                  (current / total) * 80
+                );
+            }
+
+            percent = Math.min(
+              percent,
+              95
+            );
+
+            setStatus(
+              `Removing background… ${percent}%`,
+              percent
+            );
+
+            console.log(
+              "Krishna AI Studio:",
+              key,
+              current,
+              total
+            );
+          }
+        }
+      );
+
+    if (!resultBlob) {
+      throw new Error(
+        "AI processing did not return an image."
+      );
+    }
+
+    /* Remove old result URL */
+
+    if (resultUrl) {
+      URL.revokeObjectURL(resultUrl);
+    }
+
+    /* Create new result */
+
+    resultUrl =
+      URL.createObjectURL(resultBlob);
+
+    /* IMPORTANT:
+       Result replaces original image
+       in the SAME preview section */
+
+    preview.src = resultUrl;
+
+    previewCard.classList.add("show");
+    dropZone.classList.add("hidden");
+
+    downloadButton.disabled = false;
+    removeButton.disabled = false;
+
+    setStatus(
+      "Background removed successfully!",
+      100
+    );
+
+    console.log(
+      "Krishna AI Studio: Processing complete"
+    );
+  } catch (error) {
+    console.error(
+      "Krishna AI Studio processing error:",
+      error
+    );
+
+    removeButton.disabled = false;
+
+    let errorMessage =
+      "Background removal failed.";
+
+    if (error?.message) {
+      errorMessage =
+        error.message;
+    }
+
+    setStatus(
+      `Error: ${errorMessage}`,
+      0
+    );
+  }
+}
+
+/* -----------------------------
+   DOWNLOAD
+----------------------------- */
+
+function downloadResult() {
+  if (!resultUrl) {
+    setStatus(
+      "Remove the background first.",
+      0
+    );
+
+    return;
+  }
+
+  const link =
+    document.createElement("a");
+
+  link.href = resultUrl;
+
+  link.download =
+    "krishna-ai-studio-result.png";
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  link.remove();
+}
+
+/* -----------------------------
+   RESET
+----------------------------- */
+
+function resetApp() {
+  selectedFile = null;
+
+  if (resultUrl) {
+    URL.revokeObjectURL(resultUrl);
+    resultUrl = null;
+  }
+
+  preview.removeAttribute("src");
+
+  previewCard.classList.remove("show");
+
+  dropZone.classList.remove("hidden");
+
+  removeButton.disabled = true;
+  downloadButton.disabled = true;
+
+  fileInput.value = "";
+
+  setStatus(
+    "Select an image to begin.",
+    0
+  );
+}
+
+/* -----------------------------
+   FILE PICKER
+----------------------------- */
+
+dropZone.addEventListener(
+  "click",
+  () => {
+    fileInput.click();
   }
 );
 
+fileInput.addEventListener(
+  "change",
+  (event) => {
+    const file =
+      event.target.files?.[0];
 
-/* =====================================================
-   START
-===================================================== */
+    handleFile(file);
+  }
+);
 
-checkAuthentication();
+/* -----------------------------
+   DRAG & DROP
+----------------------------- */
+
+dropZone.addEventListener(
+  "dragover",
+  (event) => {
+    event.preventDefault();
+
+    dropZone.classList.add(
+      "dragging"
+    );
+  }
+);
+
+dropZone.addEventListener(
+  "dragleave",
+  () => {
+    dropZone.classList.remove(
+      "dragging"
+    );
+  }
+);
+
+dropZone.addEventListener(
+  "drop",
+  (event) => {
+    event.preventDefault();
+
+    dropZone.classList.remove(
+      "dragging"
+    );
+
+    const file =
+      event.dataTransfer.files?.[0];
+
+    handleFile(file);
+  }
+);
+
+/* -----------------------------
+   BUTTONS
+----------------------------- */
+
+removeButton.addEventListener(
+  "click",
+  processImage
+);
+
+downloadButton.addEventListener(
+  "click",
+  downloadResult
+);
+
+resetButton.addEventListener(
+  "click",
+  resetApp
+);
+
+/* -----------------------------
+   INITIAL STATE
+----------------------------- */
+
+removeButton.disabled = true;
+downloadButton.disabled = true;
+
+setStatus(
+  "Select an image to begin.",
+  0
+);
+
+console.log(
+  "Krishna AI Studio loaded."
+);
