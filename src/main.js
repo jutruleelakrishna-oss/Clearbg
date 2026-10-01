@@ -1,1259 +1,381 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-
-const SUPABASE_URL =
-  "https://kqhhjwmifqrkxhygjhap.supabase.co";
-
-const SUPABASE_KEY =
-  "sb_publishable_BXXJIGsGG_6uIeyfGXPSKQ_uwjXdRa1";
-
-const ADMIN_EMAIL =
-  "jutruleelakrishna@gmail.com";
-
-const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-
-window.krishnaSupabase = supabase;
+import { removeBackground } from "@imgly/background-removal";
+import "./style.css";
 
 
 /* =====================================================
    ELEMENTS
 ===================================================== */
 
-const menuButton =
-  document.getElementById("menuButton");
+const dropZone =
+  document.getElementById("dropZone");
 
-const menuOverlay =
-  document.getElementById("menuOverlay");
+const fileInput =
+  document.getElementById("fileInput");
 
-const closeMenu =
-  document.getElementById("closeMenu");
+const previewCard =
+  document.getElementById("previewCard");
 
-const profileMenuButton =
-  document.getElementById("profileMenuButton");
+const preview =
+  document.getElementById("preview");
 
-const settingsMenuButton =
-  document.getElementById("settingsMenuButton");
+const removeButton =
+  document.getElementById("removeButton");
 
-const websiteSettingsMenuButton =
-  document.getElementById("websiteSettingsMenuButton");
+const downloadButton =
+  document.getElementById("downloadButton");
 
-const settingsOverlay =
-  document.getElementById("settingsOverlay");
+const resetButton =
+  document.getElementById("resetButton");
 
-const closeSettings =
-  document.getElementById("closeSettings");
+const status =
+  document.getElementById("status");
 
-const profileSection =
-  document.getElementById("profileSection");
-
-const securitySection =
-  document.getElementById("securitySection");
-
-const websiteSettingsSection =
-  document.getElementById("websiteSettingsSection");
-
-const settingsModalTitle =
-  document.getElementById("settingsModalTitle");
-
-const settingsModalSubtitle =
-  document.getElementById("settingsModalSubtitle");
-
-const displayName =
-  document.getElementById("displayName");
-
-const profileEmail =
-  document.getElementById("profileEmail");
-
-const profilePhone =
-  document.getElementById("profilePhone");
-
-const profileLocation =
-  document.getElementById("profileLocation");
-
-const profileAbout =
-  document.getElementById("profileAbout");
-
-const accountCreated =
-  document.getElementById("accountCreated");
-
-const profilePicture =
-  document.getElementById("profilePicture");
-
-const profileAvatarPlaceholder =
-  document.getElementById(
-    "profileAvatarPlaceholder"
-  );
-
-const profilePictureInput =
-  document.getElementById(
-    "profilePictureInput"
-  );
-
-const changeProfilePicture =
-  document.getElementById(
-    "changeProfilePicture"
-  );
-
-const removeProfilePicture =
-  document.getElementById(
-    "removeProfilePicture"
-  );
-
-const saveProfile =
-  document.getElementById("saveProfile");
-
-const newPassword =
-  document.getElementById("newPassword");
-
-const changePassword =
-  document.getElementById("changePassword");
-
-const adminLogout =
-  document.getElementById("adminLogout");
-
-const websiteName =
-  document.getElementById("websiteName");
-
-const websiteDescription =
-  document.getElementById(
-    "websiteDescription"
-  );
-
-const websiteTheme =
-  document.getElementById("websiteTheme");
-
-const maxLoginCount =
-  document.getElementById("maxLoginCount");
-
-const saveWebsiteName =
-  document.getElementById(
-    "saveWebsiteName"
-  );
-
-const settingMessage =
-  document.getElementById(
-    "settingMessage"
-  );
-
-const headerWebsiteName =
-  document.getElementById(
-    "headerWebsiteName"
-  );
-
-const settingsEmail =
-  document.getElementById(
-    "settingsEmail"
-  );
+const progressBar =
+  document.getElementById("progressBar");
 
 
 /* =====================================================
-   ADMIN CHECK
+   VARIABLES
 ===================================================== */
 
-function isAdmin(user) {
-
-  if (!user) {
-    return false;
-  }
-
-  if (!user.email) {
-    return false;
-  }
-
-  return (
-    user.email.trim().toLowerCase() ===
-    ADMIN_EMAIL.trim().toLowerCase()
-  );
-}
+let selectedFile = null;
+let resultUrl = null;
+let isProcessing = false;
 
 
 /* =====================================================
-   HIDE ALL ADMIN CONTROLS
+   STATUS
 ===================================================== */
 
-function hideAdminControls() {
-
-  if (menuButton) {
-    menuButton.style.display = "none";
-  }
-
-  if (websiteSettingsMenuButton) {
-    websiteSettingsMenuButton.style.display =
-      "none";
-  }
-
-  if (menuOverlay) {
-    menuOverlay.classList.remove("open");
-  }
-
-  if (settingsOverlay) {
-    settingsOverlay.classList.remove(
-      "open"
-    );
-  }
-}
-
-
-/* =====================================================
-   SHOW ADMIN CONTROLS
-===================================================== */
-
-function showAdminControls() {
-
-  if (menuButton) {
-    menuButton.style.display = "flex";
-  }
-
-  if (websiteSettingsMenuButton) {
-    websiteSettingsMenuButton.style.display =
-      "flex";
-  }
-}
-
-
-/* =====================================================
-   MENU
-===================================================== */
-
-function openMenu() {
-
-  if (!menuOverlay) {
-    return;
-  }
-
-  menuOverlay.classList.add("open");
-}
-
-
-function closeMenuPanel() {
-
-  if (!menuOverlay) {
-    return;
-  }
-
-  menuOverlay.classList.remove("open");
-}
-
-
-menuButton?.addEventListener(
-  "click",
-  openMenu
-);
-
-
-closeMenu?.addEventListener(
-  "click",
-  closeMenuPanel
-);
-
-
-menuOverlay?.addEventListener(
-  "click",
-  (event) => {
-
-    if (
-      event.target === menuOverlay
-    ) {
-      closeMenuPanel();
-    }
-
-  }
-);
-
-
-/* =====================================================
-   SETTINGS MODAL
-===================================================== */
-
-function hideAllSettingsSections() {
-
-  if (profileSection) {
-    profileSection.style.display =
-      "none";
-  }
-
-  if (securitySection) {
-    securitySection.style.display =
-      "none";
-  }
-
-  if (websiteSettingsSection) {
-    websiteSettingsSection.style.display =
-      "none";
-  }
-}
-
-
-function openSettingsSection(
-  section
-) {
-
-  hideAllSettingsSections();
-
-  if (!settingsOverlay) {
-    return;
-  }
-
-
-  settingsOverlay.classList.add(
-    "open"
-  );
-
-
-  if (section === "profile") {
-
-    if (profileSection) {
-      profileSection.style.display =
-        "block";
-    }
-
-    if (settingsModalTitle) {
-      settingsModalTitle.textContent =
-        "Profile";
-    }
-
-    if (settingsModalSubtitle) {
-      settingsModalSubtitle.textContent =
-        "Manage your profile";
-    }
-
-  }
-
-
-  if (section === "settings") {
-
-    if (securitySection) {
-      securitySection.style.display =
-        "block";
-    }
-
-    if (settingsModalTitle) {
-      settingsModalTitle.textContent =
-        "Settings";
-    }
-
-    if (settingsModalSubtitle) {
-      settingsModalSubtitle.textContent =
-        "Account, security & devices";
-    }
-
-  }
-
-
-  if (section === "website") {
-
-    if (websiteSettingsSection) {
-      websiteSettingsSection.style.display =
-        "block";
-    }
-
-    if (settingsModalTitle) {
-      settingsModalTitle.textContent =
-        "Website Settings";
-    }
-
-    if (settingsModalSubtitle) {
-      settingsModalSubtitle.textContent =
-        "Manage Krishna AI Studio";
-    }
-
-  }
-
-}
-
-
-/* =====================================================
-   MENU ITEM ACTIONS
-===================================================== */
-
-profileMenuButton?.addEventListener(
-  "click",
-  () => {
-
-    closeMenuPanel();
-
-    openSettingsSection(
-      "profile"
-    );
-
-  }
-);
-
-
-settingsMenuButton?.addEventListener(
-  "click",
-  () => {
-
-    closeMenuPanel();
-
-    openSettingsSection(
-      "settings"
-    );
-
-  }
-);
-
-
-websiteSettingsMenuButton?.addEventListener(
-  "click",
-  () => {
-
-    closeMenuPanel();
-
-    openSettingsSection(
-      "website"
-    );
-
-  }
-);
-
-
-/* =====================================================
-   CLOSE SETTINGS
-===================================================== */
-
-closeSettings?.addEventListener(
-  "click",
-  () => {
-
-    if (settingsOverlay) {
-
-      settingsOverlay.classList.remove(
-        "open"
-      );
-
-    }
-
-  }
-);
-
-
-settingsOverlay?.addEventListener(
-  "click",
-  (event) => {
-
-    if (
-      event.target === settingsOverlay
-    ) {
-
-      settingsOverlay.classList.remove(
-        "open"
-      );
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   MESSAGE
-===================================================== */
-
-function showMessage(
+function setStatus(
   message,
-  success = true
+  percent = null
 ) {
 
-  if (!settingMessage) {
-    return;
+  if (status) {
+    status.textContent = message;
   }
 
-  settingMessage.textContent =
-    message;
+  if (
+    progressBar &&
+    percent !== null
+  ) {
 
-  settingMessage.style.display =
-    "block";
+    const safePercent =
+      Math.max(
+        0,
+        Math.min(100, percent)
+      );
 
-  settingMessage.style.color =
-    success
-      ? "#6ee7b7"
-      : "#ff9ba5";
+    progressBar.style.width =
+      `${safePercent}%`;
+
+  }
 
 }
 
 
 /* =====================================================
-   LOAD USER PROFILE
+   SHOW PREVIEW
 ===================================================== */
 
-function loadUserProfile(user) {
+function showPreview(
+  imageUrl
+) {
 
-  if (!user) {
+  if (!previewCard) {
     return;
   }
 
+  previewCard.classList.add(
+    "visible"
+  );
 
-  const metadata =
-    user.user_metadata || {};
+  if (preview) {
+
+    preview.src =
+      imageUrl;
+
+    preview.style.display =
+      "block";
+
+  }
+
+}
 
 
-  /* EMAIL */
+/* =====================================================
+   LOAD IMAGE
+===================================================== */
 
-  if (profileEmail) {
+function loadImage(
+  file
+) {
 
-    profileEmail.value =
-      user.email || "";
+  return new Promise(
+    (resolve, reject) => {
+
+      const image =
+        new Image();
+
+      const url =
+        URL.createObjectURL(file);
+
+
+      image.onload =
+        () => {
+
+          URL.revokeObjectURL(
+            url
+          );
+
+          resolve(image);
+
+        };
+
+
+      image.onerror =
+        () => {
+
+          URL.revokeObjectURL(
+            url
+          );
+
+          reject(
+            new Error(
+              "The image could not be decoded."
+            )
+          );
+
+        };
+
+
+      image.src =
+        url;
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   CONVERT IMAGE TO PNG
+===================================================== */
+
+async function createProcessingBlob(
+  file
+) {
+
+  const image =
+    await loadImage(file);
+
+
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
+
+
+  canvas.width =
+    image.naturalWidth ||
+    image.width;
+
+  canvas.height =
+    image.naturalHeight ||
+    image.height;
+
+
+  const context =
+    canvas.getContext(
+      "2d"
+    );
+
+
+  if (!context) {
+
+    throw new Error(
+      "Could not create image canvas."
+    );
 
   }
 
 
-  if (settingsEmail) {
-
-    settingsEmail.textContent =
-      user.email || "—";
-
-  }
-
-
-  /* DISPLAY NAME */
-
-  if (displayName) {
-
-    displayName.value =
-      metadata.display_name || "";
-
-  }
+  context.drawImage(
+    image,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
 
 
-  /* PHONE */
+  return new Promise(
+    (resolve, reject) => {
 
-  if (profilePhone) {
+      canvas.toBlob(
+        (blob) => {
 
-    profilePhone.value =
-      metadata.phone || "";
+          if (!blob) {
 
-  }
+            reject(
+              new Error(
+                "Could not prepare the image."
+              )
+            );
 
+            return;
 
-  /* LOCATION */
-
-  if (profileLocation) {
-
-    profileLocation.value =
-      metadata.location || "";
-
-  }
-
-
-  /* ABOUT */
-
-  if (profileAbout) {
-
-    profileAbout.value =
-      metadata.about || "";
-
-  }
-
-
-  /* ACCOUNT CREATED */
-
-  if (accountCreated) {
-
-    if (user.created_at) {
-
-      const date =
-        new Date(user.created_at);
-
-      accountCreated.textContent =
-        date.toLocaleDateString(
-          "en-IN",
-          {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
           }
-        );
 
-    }
+          resolve(blob);
 
-  }
-
-
-  /* PROFILE PICTURE */
-
-  const avatar =
-    metadata.profile_picture || "";
-
-  if (avatar) {
-
-    if (profilePicture) {
-
-      profilePicture.src =
-        avatar;
-
-      profilePicture.style.display =
-        "block";
-
-    }
-
-    if (profileAvatarPlaceholder) {
-
-      profileAvatarPlaceholder.style.display =
-        "none";
-
-    }
-
-  } else {
-
-    if (profilePicture) {
-
-      profilePicture.src = "";
-
-      profilePicture.style.display =
-        "none";
-
-    }
-
-    if (profileAvatarPlaceholder) {
-
-      profileAvatarPlaceholder.style.display =
-        "grid";
-
-    }
-
-  }
-
-
-  /* WEBSITE NAME */
-
-  const savedWebsiteName =
-    metadata.website_name ||
-    "Krishna AI Studio";
-
-
-  if (websiteName) {
-
-    websiteName.value =
-      savedWebsiteName;
-
-  }
-
-
-  if (headerWebsiteName) {
-
-    headerWebsiteName.textContent =
-      savedWebsiteName;
-
-  }
-
-
-  document.title =
-    savedWebsiteName;
-
-
-  /* WEBSITE DESCRIPTION */
-
-  if (websiteDescription) {
-
-    websiteDescription.value =
-      metadata.website_description ||
-      "";
-
-  }
-
-
-  /* WEBSITE THEME */
-
-  if (websiteTheme) {
-
-    websiteTheme.value =
-      metadata.website_theme ||
-      "dark";
-
-  }
-
-
-  /* LOGIN LIMIT */
-
-  if (maxLoginCount) {
-
-    const savedLimit =
-      Number(
-        metadata.max_login_count
+        },
+        "image/png"
       );
 
-    if (
-      savedLimit >= 1 &&
-      savedLimit <= 10
-    ) {
-
-      maxLoginCount.value =
-        String(savedLimit);
-
-    } else {
-
-      maxLoginCount.value =
-        "10";
-
     }
-
-  }
+  );
 
 }
 
 
 /* =====================================================
-   PROFILE PICTURE
+   FILE VALIDATION
 ===================================================== */
 
-changeProfilePicture?.addEventListener(
-  "click",
-  () => {
+function isSupportedImage(
+  file
+) {
 
-    profilePictureInput?.click();
+  if (!file) {
+    return false;
+  }
+
+
+  if (
+    file.type &&
+    file.type.startsWith(
+      "image/"
+    )
+  ) {
+
+    return true;
 
   }
-);
 
 
-profilePictureInput?.addEventListener(
-  "change",
-  () => {
-
-    const file =
-      profilePictureInput.files?.[0];
-
-    if (!file) {
-      return;
-    }
+  const extension =
+    file.name
+      .split(".")
+      .pop()
+      .toLowerCase();
 
 
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-
-      showMessage(
-        "Please select an image.",
-        false
-      );
-
-      return;
-    }
+  const supportedExtensions = [
+    "jpg",
+    "jpeg",
+    "png",
+    "webp",
+    "gif",
+    "bmp",
+    "avif"
+  ];
 
 
-    const reader =
-      new FileReader();
+  return supportedExtensions.includes(
+    extension
+  );
 
-
-    reader.onload =
-      () => {
-
-        const imageUrl =
-          reader.result;
-
-        if (profilePicture) {
-
-          profilePicture.src =
-            imageUrl;
-
-          profilePicture.style.display =
-            "block";
-
-        }
-
-        if (
-          profileAvatarPlaceholder
-        ) {
-
-          profileAvatarPlaceholder.style.display =
-            "none";
-
-        }
-
-        /*
-         * Save the image temporarily
-         * in memory.
-         *
-         * A proper Supabase Storage
-         * upload can be connected later.
-         */
-
-        window.pendingProfilePicture =
-          imageUrl;
-
-      };
-
-
-    reader.readAsDataURL(file);
-
-  }
-);
+}
 
 
 /* =====================================================
-   REMOVE PROFILE PICTURE
+   SELECT FILE
 ===================================================== */
 
-removeProfilePicture?.addEventListener(
-  "click",
-  () => {
+async function handleFile(
+  file
+) {
 
-    if (profilePicture) {
+  if (!file) {
+    return;
+  }
 
-      profilePicture.src = "";
 
-      profilePicture.style.display =
-        "none";
+  if (!isSupportedImage(file)) {
 
-    }
+    setStatus(
+      "Please select a supported image file."
+    );
 
-    if (
-      profileAvatarPlaceholder
-    ) {
+    return;
 
-      profileAvatarPlaceholder.style.display =
-        "grid";
+  }
 
-    }
 
-    window.pendingProfilePicture =
+  selectedFile =
+    file;
+
+
+  /*
+   * Clear previous result.
+   */
+
+  if (resultUrl) {
+
+    URL.revokeObjectURL(
+      resultUrl
+    );
+
+    resultUrl =
       null;
 
   }
-);
 
 
-/* =====================================================
-   SAVE PROFILE
-===================================================== */
+  if (downloadButton) {
 
-saveProfile?.addEventListener(
-  "click",
-  async () => {
-
-    const name =
-      displayName?.value.trim() || "";
-
-    const phone =
-      profilePhone?.value.trim() || "";
-
-    const location =
-      profileLocation?.value.trim() || "";
-
-    const about =
-      profileAbout?.value.trim() || "";
-
-
-    saveProfile.disabled = true;
-
-    showMessage(
-      "Saving profile..."
-    );
-
-
-    const metadata = {
-
-      display_name: name,
-
-      phone: phone,
-
-      location: location,
-
-      about: about,
-
-      profile_picture:
-        window.pendingProfilePicture !==
-        undefined
-          ? window.pendingProfilePicture
-          : undefined
-
-    };
-
-
-    /*
-     * Remove undefined values.
-     */
-
-    Object.keys(metadata).forEach(
-      (key) => {
-
-        if (
-          metadata[key] ===
-          undefined
-        ) {
-
-          delete metadata[key];
-
-        }
-
-      }
-    );
-
-
-    const {
-      error
-    } =
-      await supabase.auth.updateUser({
-        data: metadata
-      });
-
-
-    saveProfile.disabled = false;
-
-
-    if (error) {
-
-      showMessage(
-        error.message,
-        false
-      );
-
-      return;
-    }
-
-
-    window.pendingProfilePicture =
-      undefined;
-
-
-    showMessage(
-      "Profile saved successfully."
-    );
+    downloadButton.style.display =
+      "none";
 
   }
-);
 
-
-/* =====================================================
-   CHANGE PASSWORD
-===================================================== */
-
-changePassword?.addEventListener(
-  "click",
-  async () => {
-
-    const password =
-      newPassword?.value || "";
-
-
-    if (password.length < 6) {
-
-      showMessage(
-        "Password must contain at least 6 characters.",
-        false
-      );
-
-      return;
-
-    }
-
-
-    changePassword.disabled =
-      true;
-
-
-    showMessage(
-      "Updating password..."
-    );
-
-
-    const {
-      error
-    } =
-      await supabase.auth.updateUser({
-        password: password
-      });
-
-
-    changePassword.disabled =
-      false;
-
-
-    if (error) {
-
-      showMessage(
-        error.message,
-        false
-      );
-
-      return;
-    }
-
-
-    newPassword.value = "";
-
-
-    showMessage(
-      "Password changed successfully."
-    );
-
-  }
-);
-
-
-/* =====================================================
-   WEBSITE SETTINGS
-===================================================== */
-
-saveWebsiteName?.addEventListener(
-  "click",
-  async () => {
-
-    const name =
-      websiteName?.value.trim() ||
-      "Krishna AI Studio";
-
-    const description =
-      websiteDescription?.value.trim() ||
-      "";
-
-    const theme =
-      websiteTheme?.value ||
-      "dark";
-
-    const loginLimit =
-      Number(
-        maxLoginCount?.value || 10
-      );
-
-
-    if (
-      loginLimit < 1 ||
-      loginLimit > 10
-    ) {
-
-      showMessage(
-        "Maximum login count must be between 1 and 10.",
-        false
-      );
-
-      return;
-
-    }
-
-
-    saveWebsiteName.disabled =
-      true;
-
-
-    showMessage(
-      "Saving website settings..."
-    );
-
-
-    const {
-      error
-    } =
-      await supabase.auth.updateUser({
-
-        data: {
-
-          website_name:
-            name,
-
-          website_description:
-            description,
-
-          website_theme:
-            theme,
-
-          max_login_count:
-            loginLimit
-
-        }
-
-      });
-
-
-    saveWebsiteName.disabled =
-      false;
-
-
-    if (error) {
-
-      showMessage(
-        error.message,
-        false
-      );
-
-      return;
-
-    }
-
-
-    if (headerWebsiteName) {
-
-      headerWebsiteName.textContent =
-        name;
-
-    }
-
-
-    document.title =
-      name;
-
-
-    showMessage(
-      "Website settings saved successfully."
-    );
-
-  }
-);
-
-
-/* =====================================================
-   ADMIN LOGOUT
-===================================================== */
-
-adminLogout?.addEventListener(
-  "click",
-  async () => {
-
-    adminLogout.disabled =
-      true;
-
-
-    showMessage(
-      "Logging out..."
-    );
-
-
-    const {
-      error
-    } =
-      await supabase.auth.signOut();
-
-
-    if (error) {
-
-      adminLogout.disabled =
-        false;
-
-      showMessage(
-        error.message,
-        false
-      );
-
-      return;
-
-    }
-
-
-    window.location.reload();
-
-  }
-);
-
-
-/* =====================================================
-   AUTHENTICATION
-===================================================== */
-
-async function checkAuthentication() {
 
   /*
-   * Hide everything first.
+   * Show original image.
    */
-
-  hideAdminControls();
-
 
   try {
 
-    const {
-      data,
-      error
-    } =
-      await supabase.auth.getSession();
-
-
-    if (error) {
-
-      console.error(
-        "Supabase authentication error:",
-        error
+    const previewUrl =
+      URL.createObjectURL(
+        file
       );
 
-      /*
-       * Don't leave the user
-       * permanently stuck on
-       * "Checking login".
-       */
 
-      document.body.classList.remove(
-        "auth-checking"
-      );
-
-      return;
-
-    }
-
-
-    const session =
-      data?.session;
+    showPreview(
+      previewUrl
+    );
 
 
     /*
-     * No session.
-     *
-     * We don't redirect to admin.html
-     * because the current website
-     * itself may be the login page.
+     * The preview URL can stay active
+     * while the image is displayed.
      */
 
-    if (!session) {
-
-      document.body.classList.remove(
-        "auth-checking"
-      );
-
-      return;
-
-    }
-
-
-    const user =
-      session.user;
-
-
-    /*
-     * LOAD PROFILE
-     */
-
-    loadUserProfile(user);
-
-
-    /*
-     * ADMIN ONLY
-     */
-
-    if (isAdmin(user)) {
-
-      showAdminControls();
-
-    } else {
-
-      hideAdminControls();
-
-    }
-
-
-    /*
-     * Authentication completed.
-     */
-
-    document.body.classList.remove(
-      "auth-checking"
+    setStatus(
+      `${file.name} selected.`
     );
 
   } catch (error) {
 
     console.error(
-      "Authentication check failed:",
       error
     );
 
-    /*
-     * Prevent permanent loading screen.
-     */
-
-    document.body.classList.remove(
-      "auth-checking"
+    setStatus(
+      "Could not display this image."
     );
 
   }
@@ -1262,51 +384,18 @@ async function checkAuthentication() {
 
 
 /* =====================================================
-   AUTH STATE CHANGES
+   FILE INPUT
 ===================================================== */
 
-supabase.auth.onAuthStateChange(
-  (event, session) => {
+fileInput?.addEventListener(
+  "change",
+  async () => {
 
-    /*
-     * Always hide admin controls
-     * before checking the new session.
-     */
+    const file =
+      fileInput.files?.[0];
 
-    hideAdminControls();
-
-
-    if (!session) {
-
-      /*
-       * User logged out.
-       */
-
-      document.body.classList.remove(
-        "auth-checking"
-      );
-
-      return;
-
-    }
-
-
-    const user =
-      session.user;
-
-
-    loadUserProfile(user);
-
-
-    if (isAdmin(user)) {
-
-      showAdminControls();
-
-    }
-
-
-    document.body.classList.remove(
-      "auth-checking"
+    await handleFile(
+      file
     );
 
   }
@@ -1314,7 +403,442 @@ supabase.auth.onAuthStateChange(
 
 
 /* =====================================================
-   START
+   DROP ZONE CLICK
 ===================================================== */
 
-checkAuthentication();
+dropZone?.addEventListener(
+  "click",
+  () => {
+
+    if (isProcessing) {
+      return;
+    }
+
+    fileInput?.click();
+
+  }
+);
+
+
+/* =====================================================
+   DRAG & DROP
+===================================================== */
+
+dropZone?.addEventListener(
+  "dragover",
+  (event) => {
+
+    event.preventDefault();
+
+    if (isProcessing) {
+      return;
+    }
+
+    dropZone.classList.add(
+      "dragover"
+    );
+
+  }
+);
+
+
+dropZone?.addEventListener(
+  "dragleave",
+  () => {
+
+    dropZone.classList.remove(
+      "dragover"
+    );
+
+  }
+);
+
+
+dropZone?.addEventListener(
+  "drop",
+  async (event) => {
+
+    event.preventDefault();
+
+    dropZone.classList.remove(
+      "dragover"
+    );
+
+
+    if (isProcessing) {
+      return;
+    }
+
+
+    const file =
+      event.dataTransfer?.files?.[0];
+
+
+    await handleFile(
+      file
+    );
+
+  }
+);
+
+
+/* =====================================================
+   REMOVE BACKGROUND
+===================================================== */
+
+removeButton?.addEventListener(
+  "click",
+  async () => {
+
+    if (
+      !selectedFile ||
+      isProcessing
+    ) {
+
+      return;
+
+    }
+
+
+    isProcessing =
+      true;
+
+
+    removeButton.disabled =
+      true;
+
+
+    if (downloadButton) {
+
+      downloadButton.style.display =
+        "none";
+
+    }
+
+
+    setStatus(
+      "Preparing image...",
+      0
+    );
+
+
+    try {
+
+      /*
+       * Convert JPG/WEBP/etc.
+       * into PNG before processing.
+       *
+       * This avoids image decoding
+       * problems with some files.
+       */
+
+      const processingBlob =
+        await createProcessingBlob(
+          selectedFile
+        );
+
+
+      setStatus(
+        "Loading AI model...",
+        5
+      );
+
+
+      const resultBlob =
+        await removeBackground(
+          processingBlob,
+          {
+
+            debug: true,
+
+            publicPath:
+              "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/",
+
+            device:
+              "cpu",
+
+            model:
+              "isnet_quint8",
+
+            progress:
+              (
+                key,
+                current,
+                total
+              ) => {
+
+                const percent =
+                  total
+                    ? Math.round(
+                        (current / total) *
+                        100
+                      )
+                    : 0;
+
+
+                setStatus(
+                  `Processing… ${percent}%`,
+                  percent
+                );
+
+
+                console.log(
+                  "Krishna AI Studio:",
+                  key,
+                  current,
+                  total
+                );
+
+              }
+
+          }
+        );
+
+
+      /*
+       * Create result URL.
+       */
+
+      resultUrl =
+        URL.createObjectURL(
+          resultBlob
+        );
+
+
+      /*
+       * IMPORTANT:
+       *
+       * The processed image replaces
+       * the original image in the SAME
+       * preview section.
+       */
+
+      showPreview(
+        resultUrl
+      );
+
+
+      /*
+       * Show download button.
+       */
+
+      if (downloadButton) {
+
+        downloadButton.style.display =
+          "inline-flex";
+
+      }
+
+
+      setStatus(
+        "Background removed successfully.",
+        100
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Background removal error:",
+        error
+      );
+
+
+      let message =
+        "AI processing failed.";
+
+
+      if (
+        error?.message
+      ) {
+
+        message =
+          error.message;
+
+      }
+
+
+      setStatus(
+        message
+      );
+
+    } finally {
+
+      isProcessing =
+        false;
+
+      removeButton.disabled =
+        false;
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   DOWNLOAD
+===================================================== */
+
+downloadButton?.addEventListener(
+  "click",
+  () => {
+
+    if (!resultUrl) {
+      return;
+    }
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      resultUrl;
+
+
+    link.download =
+      "krishna-ai-studio-result.png";
+
+
+    document.body.appendChild(
+      link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+  }
+);
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+resetButton?.addEventListener(
+  "click",
+  () => {
+
+    /*
+     * Revoke generated result.
+     */
+
+    if (resultUrl) {
+
+      URL.revokeObjectURL(
+        resultUrl
+      );
+
+      resultUrl =
+        null;
+
+    }
+
+
+    /*
+     * Reset variables.
+     */
+
+    selectedFile =
+      null;
+
+    isProcessing =
+      false;
+
+
+    /*
+     * Reset file input.
+     */
+
+    if (fileInput) {
+
+      fileInput.value =
+        "";
+
+    }
+
+
+    /*
+     * Hide preview.
+     */
+
+    if (previewCard) {
+
+      previewCard.classList.remove(
+        "visible"
+      );
+
+    }
+
+
+    if (preview) {
+
+      preview.removeAttribute(
+        "src"
+      );
+
+    }
+
+
+    /*
+     * Hide download.
+     */
+
+    if (downloadButton) {
+
+      downloadButton.style.display =
+        "none";
+
+    }
+
+
+    /*
+     * Reset progress.
+     */
+
+    if (progressBar) {
+
+      progressBar.style.width =
+        "0%";
+
+    }
+
+
+    setStatus(
+      "Select an image to get started."
+    );
+
+  }
+);
+
+
+/* =====================================================
+   INITIAL STATE
+===================================================== */
+
+if (downloadButton) {
+
+  downloadButton.style.display =
+    "none";
+
+}
+
+
+if (previewCard) {
+
+  previewCard.classList.remove(
+    "visible"
+  );
+
+}
+
+
+setStatus(
+  "Select an image to get started."
+);
