@@ -1398,4 +1398,5 @@ function resetApp() {
 
 
   console.log(
-    "Krishna AI Studio 
+  "Krishna AI Studio loaded successfully."
+);
