@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClearBG Admin</title>
+  <title>ClearBG Admin Login</title>
 
   <style>
     * {
@@ -85,25 +85,6 @@
       font-size: 14px;
     }
 
-    #dashboard {
-      display: none;
-    }
-
-    .success {
-      margin-top: 24px;
-      padding: 16px;
-      border-radius: 12px;
-      background: #10261e;
-      border: 1px solid #245b45;
-      color: #8ff0bf;
-    }
-
-    .logout {
-      background: transparent;
-      color: white;
-      border: 1px solid #30394f;
-    }
-
     .back {
       display: block;
       margin-top: 20px;
@@ -116,13 +97,12 @@
 
 <body>
 
-  <!-- LOGIN -->
-  <div class="card" id="loginCard">
+  <div class="card">
 
     <h1>ClearBG Admin</h1>
 
     <p>
-      Sign in to access the ClearBG administration panel.
+      Sign in to access ClearBG.
     </p>
 
     <form id="loginForm">
@@ -162,30 +142,6 @@
   </div>
 
 
-  <!-- DASHBOARD -->
-  <div class="card" id="dashboard">
-
-    <h1>ClearBG Dashboard</h1>
-
-    <p id="userEmail"></p>
-
-    <div class="success">
-      ✓ Admin login successful.
-      <br><br>
-      You are now signed in securely.
-    </div>
-
-    <button class="logout" id="logoutButton">
-      Sign Out
-    </button>
-
-    <a class="back" href="/">
-      ← Open ClearBG
-    </a>
-
-  </div>
-
-
   <script type="module">
 
     import { createClient }
@@ -206,12 +162,6 @@
       );
 
 
-    const loginCard =
-      document.getElementById("loginCard");
-
-    const dashboard =
-      document.getElementById("dashboard");
-
     const loginForm =
       document.getElementById("loginForm");
 
@@ -220,31 +170,6 @@
 
     const message =
       document.getElementById("message");
-
-    const userEmail =
-      document.getElementById("userEmail");
-
-    const logoutButton =
-      document.getElementById("logoutButton");
-
-
-    function showDashboard(user) {
-
-      loginCard.style.display = "none";
-
-      dashboard.style.display = "block";
-
-      userEmail.textContent =
-        "Signed in as: " + user.email;
-    }
-
-
-    function showLogin() {
-
-      loginCard.style.display = "block";
-
-      dashboard.style.display = "none";
-    }
 
 
     loginForm.addEventListener(
@@ -296,49 +221,24 @@
         }
 
 
-        showDashboard(data.user);
+        if (data.session) {
 
-        loginButton.disabled = false;
+          message.style.color = "#8ff0bf";
 
-        loginButton.textContent =
-          "Sign In";
-      }
-    );
+          message.textContent =
+            "Successfully signed in. Redirecting...";
 
 
-    logoutButton.addEventListener(
-      "click",
-      async () => {
+          setTimeout(() => {
 
-        await supabase.auth.signOut();
+            window.location.href = "/";
 
-        showLogin();
+          }, 500);
+
+        }
 
       }
     );
-
-
-    async function checkLogin() {
-
-      const {
-        data
-      } =
-        await supabase.auth
-          .getSession();
-
-
-      if (data.session) {
-
-        showDashboard(
-          data.session.user
-        );
-
-      }
-
-    }
-
-
-    checkLogin();
 
   </script>
 
