@@ -1,491 +1,1320 @@
-import { removeBackground } from "@imgly/background-removal";
-import { decode as decodePNG } from "fast-png";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-const dropZone = document.getElementById("dropZone");
-const fileInput = document.getElementById("fileInput");
-const previewCard = document.getElementById("previewCard");
-const preview = document.getElementById("preview");
-const removeButton = document.getElementById("removeButton");
-const downloadButton = document.getElementById("downloadButton");
-const resetButton = document.getElementById("resetButton");
+const SUPABASE_URL =
+  "https://kqhhjwmifqrkxhygjhap.supabase.co";
 
-let selectedFile = null;
-let resultBlob = null;
-let originalPreviewUrl = null;
-let resultUrl = null;
+const SUPABASE_KEY =
+  "sb_publishable_BXXJIGsGG_6uIeyfGXPSKQ_uwjXdRa1";
 
-const IMG_LY_PATH =
-  "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/";
+const ADMIN_EMAIL =
+  "jutruleelakrishna@gmail.com";
 
-function setStatus(message) {
-  const element = document.getElementById("status");
+const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
-  if (element) {
-    element.textContent = message;
-  } else {
-    console.log(message);
+window.krishnaSupabase = supabase;
+
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const menuButton =
+  document.getElementById("menuButton");
+
+const menuOverlay =
+  document.getElementById("menuOverlay");
+
+const closeMenu =
+  document.getElementById("closeMenu");
+
+const profileMenuButton =
+  document.getElementById("profileMenuButton");
+
+const settingsMenuButton =
+  document.getElementById("settingsMenuButton");
+
+const websiteSettingsMenuButton =
+  document.getElementById("websiteSettingsMenuButton");
+
+const settingsOverlay =
+  document.getElementById("settingsOverlay");
+
+const closeSettings =
+  document.getElementById("closeSettings");
+
+const profileSection =
+  document.getElementById("profileSection");
+
+const securitySection =
+  document.getElementById("securitySection");
+
+const websiteSettingsSection =
+  document.getElementById("websiteSettingsSection");
+
+const settingsModalTitle =
+  document.getElementById("settingsModalTitle");
+
+const settingsModalSubtitle =
+  document.getElementById("settingsModalSubtitle");
+
+const displayName =
+  document.getElementById("displayName");
+
+const profileEmail =
+  document.getElementById("profileEmail");
+
+const profilePhone =
+  document.getElementById("profilePhone");
+
+const profileLocation =
+  document.getElementById("profileLocation");
+
+const profileAbout =
+  document.getElementById("profileAbout");
+
+const accountCreated =
+  document.getElementById("accountCreated");
+
+const profilePicture =
+  document.getElementById("profilePicture");
+
+const profileAvatarPlaceholder =
+  document.getElementById(
+    "profileAvatarPlaceholder"
+  );
+
+const profilePictureInput =
+  document.getElementById(
+    "profilePictureInput"
+  );
+
+const changeProfilePicture =
+  document.getElementById(
+    "changeProfilePicture"
+  );
+
+const removeProfilePicture =
+  document.getElementById(
+    "removeProfilePicture"
+  );
+
+const saveProfile =
+  document.getElementById("saveProfile");
+
+const newPassword =
+  document.getElementById("newPassword");
+
+const changePassword =
+  document.getElementById("changePassword");
+
+const adminLogout =
+  document.getElementById("adminLogout");
+
+const websiteName =
+  document.getElementById("websiteName");
+
+const websiteDescription =
+  document.getElementById(
+    "websiteDescription"
+  );
+
+const websiteTheme =
+  document.getElementById("websiteTheme");
+
+const maxLoginCount =
+  document.getElementById("maxLoginCount");
+
+const saveWebsiteName =
+  document.getElementById(
+    "saveWebsiteName"
+  );
+
+const settingMessage =
+  document.getElementById(
+    "settingMessage"
+  );
+
+const headerWebsiteName =
+  document.getElementById(
+    "headerWebsiteName"
+  );
+
+const settingsEmail =
+  document.getElementById(
+    "settingsEmail"
+  );
+
+
+/* =====================================================
+   ADMIN CHECK
+===================================================== */
+
+function isAdmin(user) {
+
+  if (!user) {
+    return false;
   }
-}
 
-function showError(message) {
-  console.error(message);
-  setStatus("Error: " + message);
-  alert("Error: " + message);
-}
-
-function isPNG(file) {
-  const name = file.name.toLowerCase();
+  if (!user.email) {
+    return false;
+  }
 
   return (
-    file.type === "image/png" ||
-    name.endsWith(".png")
+    user.email.trim().toLowerCase() ===
+    ADMIN_EMAIL.trim().toLowerCase()
   );
 }
 
-async function decodePNGToFile(file) {
-  const buffer = await file.arrayBuffer();
 
-  let decoded;
+/* =====================================================
+   HIDE ALL ADMIN CONTROLS
+===================================================== */
 
-  try {
-    decoded = decodePNG(new Uint8Array(buffer));
-  } catch (error) {
-    throw new Error(
-      "This PNG file is damaged or uses a PNG format that could not be decoded."
+function hideAdminControls() {
+
+  if (menuButton) {
+    menuButton.style.display = "none";
+  }
+
+  if (websiteSettingsMenuButton) {
+    websiteSettingsMenuButton.style.display =
+      "none";
+  }
+
+  if (menuOverlay) {
+    menuOverlay.classList.remove("open");
+  }
+
+  if (settingsOverlay) {
+    settingsOverlay.classList.remove(
+      "open"
     );
   }
+}
 
-  if (
-    !decoded ||
-    !decoded.width ||
-    !decoded.height ||
-    !decoded.data
-  ) {
-    throw new Error("The PNG could not be decoded.");
+
+/* =====================================================
+   SHOW ADMIN CONTROLS
+===================================================== */
+
+function showAdminControls() {
+
+  if (menuButton) {
+    menuButton.style.display = "flex";
   }
 
-  const canvas = document.createElement("canvas");
+  if (websiteSettingsMenuButton) {
+    websiteSettingsMenuButton.style.display =
+      "flex";
+  }
+}
 
-  canvas.width = decoded.width;
-  canvas.height = decoded.height;
 
-  const context = canvas.getContext("2d");
+/* =====================================================
+   MENU
+===================================================== */
 
-  if (!context) {
-    throw new Error("Your browser could not create the image canvas.");
+function openMenu() {
+
+  if (!menuOverlay) {
+    return;
   }
 
-  const pixels = new Uint8ClampedArray(decoded.data);
+  menuOverlay.classList.add("open");
+}
 
-  const imageData = new ImageData(
-    pixels,
-    decoded.width,
-    decoded.height
-  );
 
-  context.putImageData(imageData, 0, 0);
+function closeMenuPanel() {
 
-  const blob = await new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (value) => {
-        if (value) {
-          resolve(value);
-        } else {
-          reject(
-            new Error("The PNG could not be converted.")
-          );
-        }
-      },
-      "image/png"
-    );
-  });
+  if (!menuOverlay) {
+    return;
+  }
 
-  return new File(
-    [blob],
-    "krishna-ai-studio-input.png",
-    {
-      type: "image/png",
-      lastModified: Date.now()
+  menuOverlay.classList.remove("open");
+}
+
+
+menuButton?.addEventListener(
+  "click",
+  openMenu
+);
+
+
+closeMenu?.addEventListener(
+  "click",
+  closeMenuPanel
+);
+
+
+menuOverlay?.addEventListener(
+  "click",
+  (event) => {
+
+    if (
+      event.target === menuOverlay
+    ) {
+      closeMenuPanel();
     }
-  );
+
+  }
+);
+
+
+/* =====================================================
+   SETTINGS MODAL
+===================================================== */
+
+function hideAllSettingsSections() {
+
+  if (profileSection) {
+    profileSection.style.display =
+      "none";
+  }
+
+  if (securitySection) {
+    securitySection.style.display =
+      "none";
+  }
+
+  if (websiteSettingsSection) {
+    websiteSettingsSection.style.display =
+      "none";
+  }
 }
 
-function loadNormalImage(file) {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const image = new Image();
 
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(image);
-    };
+function openSettingsSection(
+  section
+) {
 
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(
-        new Error(
-          "This image format could not be decoded by your browser."
-        )
+  hideAllSettingsSections();
+
+  if (!settingsOverlay) {
+    return;
+  }
+
+
+  settingsOverlay.classList.add(
+    "open"
+  );
+
+
+  if (section === "profile") {
+
+    if (profileSection) {
+      profileSection.style.display =
+        "block";
+    }
+
+    if (settingsModalTitle) {
+      settingsModalTitle.textContent =
+        "Profile";
+    }
+
+    if (settingsModalSubtitle) {
+      settingsModalSubtitle.textContent =
+        "Manage your profile";
+    }
+
+  }
+
+
+  if (section === "settings") {
+
+    if (securitySection) {
+      securitySection.style.display =
+        "block";
+    }
+
+    if (settingsModalTitle) {
+      settingsModalTitle.textContent =
+        "Settings";
+    }
+
+    if (settingsModalSubtitle) {
+      settingsModalSubtitle.textContent =
+        "Account, security & devices";
+    }
+
+  }
+
+
+  if (section === "website") {
+
+    if (websiteSettingsSection) {
+      websiteSettingsSection.style.display =
+        "block";
+    }
+
+    if (settingsModalTitle) {
+      settingsModalTitle.textContent =
+        "Website Settings";
+    }
+
+    if (settingsModalSubtitle) {
+      settingsModalSubtitle.textContent =
+        "Manage Krishna AI Studio";
+    }
+
+  }
+
+}
+
+
+/* =====================================================
+   MENU ITEM ACTIONS
+===================================================== */
+
+profileMenuButton?.addEventListener(
+  "click",
+  () => {
+
+    closeMenuPanel();
+
+    openSettingsSection(
+      "profile"
+    );
+
+  }
+);
+
+
+settingsMenuButton?.addEventListener(
+  "click",
+  () => {
+
+    closeMenuPanel();
+
+    openSettingsSection(
+      "settings"
+    );
+
+  }
+);
+
+
+websiteSettingsMenuButton?.addEventListener(
+  "click",
+  () => {
+
+    closeMenuPanel();
+
+    openSettingsSection(
+      "website"
+    );
+
+  }
+);
+
+
+/* =====================================================
+   CLOSE SETTINGS
+===================================================== */
+
+closeSettings?.addEventListener(
+  "click",
+  () => {
+
+    if (settingsOverlay) {
+
+      settingsOverlay.classList.remove(
+        "open"
       );
-    };
 
-    image.src = url;
-  });
-}
-
-async function convertNormalImageToPNG(file) {
-  const image = await loadNormalImage(file);
-
-  if (!image.naturalWidth || !image.naturalHeight) {
-    throw new Error("The selected image has invalid dimensions.");
-  }
-
-  const canvas = document.createElement("canvas");
-
-  canvas.width = image.naturalWidth;
-  canvas.height = image.naturalHeight;
-
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Your browser could not create the image canvas.");
-  }
-
-  context.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-  context.drawImage(image, 0, 0);
-
-  const blob = await new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (value) => {
-        if (value) {
-          resolve(value);
-        } else {
-          reject(
-            new Error("The image could not be converted to PNG.")
-          );
-        }
-      },
-      "image/png"
-    );
-  });
-
-  return new File(
-    [blob],
-    "krishna-ai-studio-input.png",
-    {
-      type: "image/png",
-      lastModified: Date.now()
     }
-  );
-}
 
-async function convertToPNG(file) {
-  if (!file) {
-    throw new Error("No image was selected.");
   }
+);
 
-  if (isPNG(file)) {
-    setStatus("Reading PNG...");
-    return await decodePNGToFile(file);
+
+settingsOverlay?.addEventListener(
+  "click",
+  (event) => {
+
+    if (
+      event.target === settingsOverlay
+    ) {
+
+      settingsOverlay.classList.remove(
+        "open"
+      );
+
+    }
+
   }
+);
 
-  if (!file.type.startsWith("image/")) {
-    throw new Error("Please select a valid image.");
-  }
 
-  setStatus("Preparing image...");
+/* =====================================================
+   MESSAGE
+===================================================== */
 
-  return await convertNormalImageToPNG(file);
-}
+function showMessage(
+  message,
+  success = true
+) {
 
-function displayPreview(file) {
-  if (originalPreviewUrl) {
-    URL.revokeObjectURL(originalPreviewUrl);
-  }
-
-  originalPreviewUrl = URL.createObjectURL(file);
-
-  preview.src = originalPreviewUrl;
-  preview.alt = "Selected image";
-
-  previewCard.classList.add("visible");
-
-  downloadButton.style.display = "none";
-  downloadButton.disabled = true;
-
-  resultBlob = null;
-
-  setStatus("Image selected.");
-}
-
-async function handleFile(file) {
-  if (!file) {
+  if (!settingMessage) {
     return;
   }
 
-  if (
-    !file.type.startsWith("image/") &&
-    !file.name.toLowerCase().match(
-      /\.(png|jpg|jpeg|webp|gif|bmp|avif|svg)$/i
-    )
-  ) {
-    showError("Please select a valid image.");
-    return;
-  }
+  settingMessage.textContent =
+    message;
 
-  selectedFile = file;
+  settingMessage.style.display =
+    "block";
 
-  displayPreview(file);
+  settingMessage.style.color =
+    success
+      ? "#6ee7b7"
+      : "#ff9ba5";
 
-  removeButton.disabled = false;
 }
 
-async function processImage() {
-  if (!selectedFile) {
-    showError("Please select an image first.");
+
+/* =====================================================
+   LOAD USER PROFILE
+===================================================== */
+
+function loadUserProfile(user) {
+
+  if (!user) {
     return;
   }
 
-  try {
-    removeButton.disabled = true;
 
-    downloadButton.style.display = "none";
-    downloadButton.disabled = true;
+  const metadata =
+    user.user_metadata || {};
 
-    setStatus("Preparing image...");
 
-    const inputFile =
-      await convertToPNG(selectedFile);
+  /* EMAIL */
 
-    setStatus("Starting AI background removal...");
+  if (profileEmail) {
 
-    const outputBlob =
-      await removeBackground(inputFile, {
-        debug: false,
+    profileEmail.value =
+      user.email || "";
 
-        model: "isnet_quint8",
+  }
 
-        device: "cpu",
 
-        publicPath: IMG_LY_PATH,
+  if (settingsEmail) {
 
-        progress: (key, current, total) => {
-          if (total > 0) {
-            const percent = Math.round(
-              (current / total) * 100
-            );
+    settingsEmail.textContent =
+      user.email || "—";
 
-            setStatus(
-              "Removing background... " +
-              percent +
-              "%"
-            );
-          } else {
-            setStatus(
-              "Removing background..."
-            );
+  }
+
+
+  /* DISPLAY NAME */
+
+  if (displayName) {
+
+    displayName.value =
+      metadata.display_name || "";
+
+  }
+
+
+  /* PHONE */
+
+  if (profilePhone) {
+
+    profilePhone.value =
+      metadata.phone || "";
+
+  }
+
+
+  /* LOCATION */
+
+  if (profileLocation) {
+
+    profileLocation.value =
+      metadata.location || "";
+
+  }
+
+
+  /* ABOUT */
+
+  if (profileAbout) {
+
+    profileAbout.value =
+      metadata.about || "";
+
+  }
+
+
+  /* ACCOUNT CREATED */
+
+  if (accountCreated) {
+
+    if (user.created_at) {
+
+      const date =
+        new Date(user.created_at);
+
+      accountCreated.textContent =
+        date.toLocaleDateString(
+          "en-IN",
+          {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
           }
-        }
-      });
+        );
 
-    if (!outputBlob) {
-      throw new Error(
-        "Background removal returned no image."
+    }
+
+  }
+
+
+  /* PROFILE PICTURE */
+
+  const avatar =
+    metadata.profile_picture || "";
+
+  if (avatar) {
+
+    if (profilePicture) {
+
+      profilePicture.src =
+        avatar;
+
+      profilePicture.style.display =
+        "block";
+
+    }
+
+    if (profileAvatarPlaceholder) {
+
+      profileAvatarPlaceholder.style.display =
+        "none";
+
+    }
+
+  } else {
+
+    if (profilePicture) {
+
+      profilePicture.src = "";
+
+      profilePicture.style.display =
+        "none";
+
+    }
+
+    if (profileAvatarPlaceholder) {
+
+      profileAvatarPlaceholder.style.display =
+        "grid";
+
+    }
+
+  }
+
+
+  /* WEBSITE NAME */
+
+  const savedWebsiteName =
+    metadata.website_name ||
+    "Krishna AI Studio";
+
+
+  if (websiteName) {
+
+    websiteName.value =
+      savedWebsiteName;
+
+  }
+
+
+  if (headerWebsiteName) {
+
+    headerWebsiteName.textContent =
+      savedWebsiteName;
+
+  }
+
+
+  document.title =
+    savedWebsiteName;
+
+
+  /* WEBSITE DESCRIPTION */
+
+  if (websiteDescription) {
+
+    websiteDescription.value =
+      metadata.website_description ||
+      "";
+
+  }
+
+
+  /* WEBSITE THEME */
+
+  if (websiteTheme) {
+
+    websiteTheme.value =
+      metadata.website_theme ||
+      "dark";
+
+  }
+
+
+  /* LOGIN LIMIT */
+
+  if (maxLoginCount) {
+
+    const savedLimit =
+      Number(
+        metadata.max_login_count
       );
+
+    if (
+      savedLimit >= 1 &&
+      savedLimit <= 10
+    ) {
+
+      maxLoginCount.value =
+        String(savedLimit);
+
+    } else {
+
+      maxLoginCount.value =
+        "10";
+
     }
 
-    resultBlob = outputBlob;
-
-    if (resultUrl) {
-      URL.revokeObjectURL(resultUrl);
-    }
-
-    resultUrl =
-      URL.createObjectURL(resultBlob);
-
-    preview.src = resultUrl;
-    preview.alt =
-      "Background removed image";
-
-    downloadButton.style.display = "block";
-    downloadButton.disabled = false;
-
-    setStatus(
-      "Background removed successfully."
-    );
-  } catch (error) {
-    console.error(error);
-
-    showError(
-      error?.message ||
-      "The image could not be processed."
-    );
-  } finally {
-    removeButton.disabled = false;
   }
+
 }
 
-function downloadResult() {
-  if (!resultBlob) {
-    showError(
-      "Please remove the background first."
-    );
-    return;
+
+/* =====================================================
+   PROFILE PICTURE
+===================================================== */
+
+changeProfilePicture?.addEventListener(
+  "click",
+  () => {
+
+    profilePictureInput?.click();
+
   }
+);
 
-  const url =
-    URL.createObjectURL(resultBlob);
 
-  const link =
-    document.createElement("a");
-
-  link.href = url;
-  link.download =
-    "krishna-ai-studio-result.png";
-
-  document.body.appendChild(link);
-
-  link.click();
-
-  link.remove();
-
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 1000);
-}
-
-function resetApp() {
-  selectedFile = null;
-  resultBlob = null;
-
-  if (originalPreviewUrl) {
-    URL.revokeObjectURL(
-      originalPreviewUrl
-    );
-
-    originalPreviewUrl = null;
-  }
-
-  if (resultUrl) {
-    URL.revokeObjectURL(resultUrl);
-
-    resultUrl = null;
-  }
-
-  preview.removeAttribute("src");
-
-  preview.alt = "";
-
-  previewCard.classList.remove(
-    "visible"
-  );
-
-  previewCard.classList.remove(
-    "show"
-  );
-
-  downloadButton.style.display = "none";
-
-  downloadButton.disabled = true;
-
-  removeButton.disabled = false;
-
-  fileInput.value = "";
-
-  setStatus("Ready.");
-}
-
-fileInput.addEventListener(
+profilePictureInput?.addEventListener(
   "change",
   () => {
-    const file =
-      fileInput.files?.[0];
-
-    if (file) {
-      handleFile(file);
-    }
-  }
-);
-
-dropZone.addEventListener(
-  "click",
-  () => {
-    fileInput.click();
-  }
-);
-
-dropZone.addEventListener(
-  "dragover",
-  (event) => {
-    event.preventDefault();
-
-    dropZone.classList.add(
-      "dragover"
-    );
-  }
-);
-
-dropZone.addEventListener(
-  "dragleave",
-  () => {
-    dropZone.classList.remove(
-      "dragover"
-    );
-  }
-);
-
-dropZone.addEventListener(
-  "drop",
-  (event) => {
-    event.preventDefault();
-
-    dropZone.classList.remove(
-      "dragover"
-    );
 
     const file =
-      event.dataTransfer?.files?.[0];
+      profilePictureInput.files?.[0];
 
-    if (file) {
-      handleFile(file);
+    if (!file) {
+      return;
     }
-  }
-);
 
-removeButton.addEventListener(
-  "click",
-  processImage
-);
 
-downloadButton.addEventListener(
-  "click",
-  downloadResult
-);
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
 
-resetButton.addEventListener(
-  "click",
-  resetApp
-);
-
-window.addEventListener(
-  "beforeunload",
-  () => {
-    if (originalPreviewUrl) {
-      URL.revokeObjectURL(
-        originalPreviewUrl
+      showMessage(
+        "Please select an image.",
+        false
       );
+
+      return;
     }
 
-    if (resultUrl) {
-      URL.revokeObjectURL(resultUrl);
-    }
+
+    const reader =
+      new FileReader();
+
+
+    reader.onload =
+      () => {
+
+        const imageUrl =
+          reader.result;
+
+        if (profilePicture) {
+
+          profilePicture.src =
+            imageUrl;
+
+          profilePicture.style.display =
+            "block";
+
+        }
+
+        if (
+          profileAvatarPlaceholder
+        ) {
+
+          profileAvatarPlaceholder.style.display =
+            "none";
+
+        }
+
+        /*
+         * Save the image temporarily
+         * in memory.
+         *
+         * A proper Supabase Storage
+         * upload can be connected later.
+         */
+
+        window.pendingProfilePicture =
+          imageUrl;
+
+      };
+
+
+    reader.readAsDataURL(file);
+
   }
 );
 
-setStatus("Ready.");
+
+/* =====================================================
+   REMOVE PROFILE PICTURE
+===================================================== */
+
+removeProfilePicture?.addEventListener(
+  "click",
+  () => {
+
+    if (profilePicture) {
+
+      profilePicture.src = "";
+
+      profilePicture.style.display =
+        "none";
+
+    }
+
+    if (
+      profileAvatarPlaceholder
+    ) {
+
+      profileAvatarPlaceholder.style.display =
+        "grid";
+
+    }
+
+    window.pendingProfilePicture =
+      null;
+
+  }
+);
+
+
+/* =====================================================
+   SAVE PROFILE
+===================================================== */
+
+saveProfile?.addEventListener(
+  "click",
+  async () => {
+
+    const name =
+      displayName?.value.trim() || "";
+
+    const phone =
+      profilePhone?.value.trim() || "";
+
+    const location =
+      profileLocation?.value.trim() || "";
+
+    const about =
+      profileAbout?.value.trim() || "";
+
+
+    saveProfile.disabled = true;
+
+    showMessage(
+      "Saving profile..."
+    );
+
+
+    const metadata = {
+
+      display_name: name,
+
+      phone: phone,
+
+      location: location,
+
+      about: about,
+
+      profile_picture:
+        window.pendingProfilePicture !==
+        undefined
+          ? window.pendingProfilePicture
+          : undefined
+
+    };
+
+
+    /*
+     * Remove undefined values.
+     */
+
+    Object.keys(metadata).forEach(
+      (key) => {
+
+        if (
+          metadata[key] ===
+          undefined
+        ) {
+
+          delete metadata[key];
+
+        }
+
+      }
+    );
+
+
+    const {
+      error
+    } =
+      await supabase.auth.updateUser({
+        data: metadata
+      });
+
+
+    saveProfile.disabled = false;
+
+
+    if (error) {
+
+      showMessage(
+        error.message,
+        false
+      );
+
+      return;
+    }
+
+
+    window.pendingProfilePicture =
+      undefined;
+
+
+    showMessage(
+      "Profile saved successfully."
+    );
+
+  }
+);
+
+
+/* =====================================================
+   CHANGE PASSWORD
+===================================================== */
+
+changePassword?.addEventListener(
+  "click",
+  async () => {
+
+    const password =
+      newPassword?.value || "";
+
+
+    if (password.length < 6) {
+
+      showMessage(
+        "Password must contain at least 6 characters.",
+        false
+      );
+
+      return;
+
+    }
+
+
+    changePassword.disabled =
+      true;
+
+
+    showMessage(
+      "Updating password..."
+    );
+
+
+    const {
+      error
+    } =
+      await supabase.auth.updateUser({
+        password: password
+      });
+
+
+    changePassword.disabled =
+      false;
+
+
+    if (error) {
+
+      showMessage(
+        error.message,
+        false
+      );
+
+      return;
+    }
+
+
+    newPassword.value = "";
+
+
+    showMessage(
+      "Password changed successfully."
+    );
+
+  }
+);
+
+
+/* =====================================================
+   WEBSITE SETTINGS
+===================================================== */
+
+saveWebsiteName?.addEventListener(
+  "click",
+  async () => {
+
+    const name =
+      websiteName?.value.trim() ||
+      "Krishna AI Studio";
+
+    const description =
+      websiteDescription?.value.trim() ||
+      "";
+
+    const theme =
+      websiteTheme?.value ||
+      "dark";
+
+    const loginLimit =
+      Number(
+        maxLoginCount?.value || 10
+      );
+
+
+    if (
+      loginLimit < 1 ||
+      loginLimit > 10
+    ) {
+
+      showMessage(
+        "Maximum login count must be between 1 and 10.",
+        false
+      );
+
+      return;
+
+    }
+
+
+    saveWebsiteName.disabled =
+      true;
+
+
+    showMessage(
+      "Saving website settings..."
+    );
+
+
+    const {
+      error
+    } =
+      await supabase.auth.updateUser({
+
+        data: {
+
+          website_name:
+            name,
+
+          website_description:
+            description,
+
+          website_theme:
+            theme,
+
+          max_login_count:
+            loginLimit
+
+        }
+
+      });
+
+
+    saveWebsiteName.disabled =
+      false;
+
+
+    if (error) {
+
+      showMessage(
+        error.message,
+        false
+      );
+
+      return;
+
+    }
+
+
+    if (headerWebsiteName) {
+
+      headerWebsiteName.textContent =
+        name;
+
+    }
+
+
+    document.title =
+      name;
+
+
+    showMessage(
+      "Website settings saved successfully."
+    );
+
+  }
+);
+
+
+/* =====================================================
+   ADMIN LOGOUT
+===================================================== */
+
+adminLogout?.addEventListener(
+  "click",
+  async () => {
+
+    adminLogout.disabled =
+      true;
+
+
+    showMessage(
+      "Logging out..."
+    );
+
+
+    const {
+      error
+    } =
+      await supabase.auth.signOut();
+
+
+    if (error) {
+
+      adminLogout.disabled =
+        false;
+
+      showMessage(
+        error.message,
+        false
+      );
+
+      return;
+
+    }
+
+
+    window.location.reload();
+
+  }
+);
+
+
+/* =====================================================
+   AUTHENTICATION
+===================================================== */
+
+async function checkAuthentication() {
+
+  /*
+   * Hide everything first.
+   */
+
+  hideAdminControls();
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabase.auth.getSession();
+
+
+    if (error) {
+
+      console.error(
+        "Supabase authentication error:",
+        error
+      );
+
+      /*
+       * Don't leave the user
+       * permanently stuck on
+       * "Checking login".
+       */
+
+      document.body.classList.remove(
+        "auth-checking"
+      );
+
+      return;
+
+    }
+
+
+    const session =
+      data?.session;
+
+
+    /*
+     * No session.
+     *
+     * We don't redirect to admin.html
+     * because the current website
+     * itself may be the login page.
+     */
+
+    if (!session) {
+
+      document.body.classList.remove(
+        "auth-checking"
+      );
+
+      return;
+
+    }
+
+
+    const user =
+      session.user;
+
+
+    /*
+     * LOAD PROFILE
+     */
+
+    loadUserProfile(user);
+
+
+    /*
+     * ADMIN ONLY
+     */
+
+    if (isAdmin(user)) {
+
+      showAdminControls();
+
+    } else {
+
+      hideAdminControls();
+
+    }
+
+
+    /*
+     * Authentication completed.
+     */
+
+    document.body.classList.remove(
+      "auth-checking"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Authentication check failed:",
+      error
+    );
+
+    /*
+     * Prevent permanent loading screen.
+     */
+
+    document.body.classList.remove(
+      "auth-checking"
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   AUTH STATE CHANGES
+===================================================== */
+
+supabase.auth.onAuthStateChange(
+  (event, session) => {
+
+    /*
+     * Always hide admin controls
+     * before checking the new session.
+     */
+
+    hideAdminControls();
+
+
+    if (!session) {
+
+      /*
+       * User logged out.
+       */
+
+      document.body.classList.remove(
+        "auth-checking"
+      );
+
+      return;
+
+    }
+
+
+    const user =
+      session.user;
+
+
+    loadUserProfile(user);
+
+
+    if (isAdmin(user)) {
+
+      showAdminControls();
+
+    }
+
+
+    document.body.classList.remove(
+      "auth-checking"
+    );
+
+  }
+);
+
+
+/* =====================================================
+   START
+===================================================== */
+
+checkAuthentication();
