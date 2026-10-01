@@ -1,11 +1,6 @@
 import { createClient } from
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-
-/* ==========================================
-   SUPABASE
-========================================== */
-
 const SUPABASE_URL =
   "https://kqhhjwmifqrkxhygjhap.supabase.co";
 
@@ -14,7 +9,6 @@ const SUPABASE_KEY =
 
 const ADMIN_EMAIL =
   "jutruleelakrishna@gmail.com";
-
 
 const supabase = createClient(
   SUPABASE_URL,
@@ -47,7 +41,6 @@ const loginButton =
 const loginMessage =
   document.getElementById("loginMessage");
 
-
 const menuButton =
   document.getElementById("menuButton");
 
@@ -56,7 +49,6 @@ const menuOverlay =
 
 const closeMenu =
   document.getElementById("closeMenu");
-
 
 const profileMenuButton =
   document.getElementById("profileMenuButton");
@@ -74,7 +66,6 @@ const logoutMenuButton =
     "logoutMenuButton"
   );
 
-
 const settingsOverlay =
   document.getElementById(
     "settingsOverlay"
@@ -84,7 +75,6 @@ const closeSettings =
   document.getElementById(
     "closeSettings"
   );
-
 
 const profileSection =
   document.getElementById(
@@ -101,7 +91,6 @@ const websiteSettingsSection =
     "websiteSettingsSection"
   );
 
-
 const settingsEmail =
   document.getElementById(
     "settingsEmail"
@@ -117,7 +106,6 @@ const accountCreated =
     "accountCreated"
   );
 
-
 const newPassword =
   document.getElementById(
     "newPassword"
@@ -128,12 +116,10 @@ const changePassword =
     "changePassword"
   );
 
-
 const adminLogout =
   document.getElementById(
     "adminLogout"
   );
-
 
 const settingMessage =
   document.getElementById(
@@ -146,7 +132,6 @@ const settingMessage =
 ========================================== */
 
 function isAdmin(user) {
-
   if (!user?.email) {
     return false;
   }
@@ -155,13 +140,16 @@ function isAdmin(user) {
     user.email.toLowerCase() ===
     ADMIN_EMAIL.toLowerCase()
   );
-
 }
 
 
-function showMessage(message, error = false) {
-
-  if (!loginMessage) return;
+function showMessage(
+  message,
+  error = false
+) {
+  if (!loginMessage) {
+    return;
+  }
 
   loginMessage.textContent =
     message;
@@ -170,7 +158,6 @@ function showMessage(message, error = false) {
     error
       ? "#ff6b6b"
       : "#8df0b5";
-
 }
 
 
@@ -178,8 +165,9 @@ function showSettingMessage(
   message,
   error = false
 ) {
-
-  if (!settingMessage) return;
+  if (!settingMessage) {
+    return;
+  }
 
   settingMessage.textContent =
     message;
@@ -188,12 +176,10 @@ function showSettingMessage(
     error
       ? "#ff6b6b"
       : "#8df0b5";
-
 }
 
 
 function showApp() {
-
   if (loginScreen) {
     loginScreen.style.display =
       "none";
@@ -207,12 +193,10 @@ function showApp() {
     app.style.display =
       "block";
   }
-
 }
 
 
 function showLogin() {
-
   if (app) {
     app.classList.add(
       "app-hidden"
@@ -226,22 +210,18 @@ function showLogin() {
     loginScreen.style.display =
       "flex";
   }
-
 }
 
 
 function showAdminMenu() {
-
   if (menuButton) {
     menuButton.style.display =
       "flex";
   }
-
 }
 
 
 function hideAdminMenu() {
-
   if (menuButton) {
     menuButton.style.display =
       "none";
@@ -252,12 +232,10 @@ function hideAdminMenu() {
       "open"
     );
   }
-
 }
 
 
 function hideSettingsSections() {
-
   if (profileSection) {
     profileSection.style.display =
       "none";
@@ -272,29 +250,24 @@ function hideSettingsSections() {
     websiteSettingsSection.style.display =
       "none";
   }
-
 }
 
 
 function openSettings() {
-
   if (settingsOverlay) {
     settingsOverlay.classList.add(
       "open"
     );
   }
-
 }
 
 
 function closeSettingsModal() {
-
   if (settingsOverlay) {
     settingsOverlay.classList.remove(
       "open"
     );
   }
-
 }
 
 
@@ -308,41 +281,39 @@ loginForm?.addEventListener(
 
     event.preventDefault();
 
-
     const email =
       loginEmail?.value.trim();
 
     const password =
       loginPassword?.value;
 
-
     if (!email || !password) {
-
       showMessage(
         "Please enter your email and password.",
         true
       );
-
       return;
-
     }
-
 
     if (loginButton) {
-
-      loginButton.disabled =
-        true;
-
+      loginButton.disabled = true;
       loginButton.textContent =
         "Signing in...";
-
     }
-
 
     showMessage("");
 
-
     try {
+
+      console.log(
+        "Krishna AI Studio login:",
+        email
+      );
+
+      console.log(
+        "Supabase URL:",
+        SUPABASE_URL
+      );
 
       const {
         data,
@@ -353,87 +324,97 @@ loginForm?.addEventListener(
           password
         });
 
+      console.log(
+        "Supabase login response:",
+        data
+      );
+
+      console.log(
+        "Supabase login error:",
+        error
+      );
 
       if (error) {
-        throw error;
-      }
 
+        console.error(
+          "FULL SUPABASE ERROR:",
+          error
+        );
+
+        /*
+          SHOW THE REAL ERROR
+        */
+
+        const realError =
+          error.message ||
+          error.error_description ||
+          error.code ||
+          "Unknown Supabase authentication error.";
+
+        showMessage(
+          `Supabase: ${realError}`,
+          true
+        );
+
+        return;
+      }
 
       if (!data?.session) {
 
-        throw new Error(
-          "Login session was not created."
+        showMessage(
+          "Supabase login succeeded, but no session was created.",
+          true
         );
 
+        return;
       }
 
+      console.log(
+        "LOGIN SUCCESS:",
+        data.session.user
+      );
 
       showApp();
-
 
       if (
         isAdmin(
           data.session.user
         )
       ) {
-
         showAdminMenu();
-
       } else {
-
         hideAdminMenu();
-
       }
-
 
       if (loginPassword) {
         loginPassword.value = "";
       }
 
-
     } catch (error) {
 
       console.error(
-        "Login error:",
+        "Unexpected login error:",
         error
       );
 
-
-      let message =
-        "Login failed. Please check your email and password.";
-
-
-      if (
-        error?.message?.toLowerCase()
-          .includes("invalid login")
-      ) {
-
-        message =
-          "Incorrect email or password.";
-
-      }
-
-
       showMessage(
-        message,
+        `Login error: ${
+          error?.message ||
+          "Unknown error"
+        }`,
         true
       );
-
 
     } finally {
 
       if (loginButton) {
-
         loginButton.disabled =
           false;
 
         loginButton.textContent =
           "Login";
-
       }
-
     }
-
   }
 );
 
@@ -445,11 +426,9 @@ loginForm?.addEventListener(
 menuButton?.addEventListener(
   "click",
   () => {
-
     menuOverlay?.classList.add(
       "open"
     );
-
   }
 );
 
@@ -457,11 +436,9 @@ menuButton?.addEventListener(
 closeMenu?.addEventListener(
   "click",
   () => {
-
     menuOverlay?.classList.remove(
       "open"
     );
-
   }
 );
 
@@ -474,11 +451,9 @@ menuOverlay?.addEventListener(
       event.target ===
       menuOverlay
     ) {
-
       menuOverlay.classList.remove(
         "open"
       );
-
     }
 
   }
@@ -582,9 +557,7 @@ settingsOverlay?.addEventListener(
       event.target ===
       settingsOverlay
     ) {
-
       closeSettingsModal();
-
     }
 
   }
@@ -605,46 +578,38 @@ async function loadUserProfile() {
     } =
       await supabase.auth.getUser();
 
-
     if (error) {
       throw error;
     }
 
-
     const user =
       data?.user;
 
-
-    if (!user) return;
-
+    if (!user) {
+      return;
+    }
 
     if (profileEmail) {
       profileEmail.value =
         user.email || "";
     }
 
-
     if (settingsEmail) {
       settingsEmail.value =
         user.email || "";
     }
 
-
     if (accountCreated) {
-
       accountCreated.value =
         user.created_at
           ? new Date(
               user.created_at
             ).toLocaleString()
           : "";
-
     }
-
 
     const metadata =
       user.user_metadata || {};
-
 
     const displayName =
       document.getElementById(
@@ -666,43 +631,30 @@ async function loadUserProfile() {
         "profileAbout"
       );
 
-
     if (displayName) {
-
       displayName.value =
         metadata.display_name ||
         metadata.full_name ||
         "";
-
     }
 
-
     if (phone) {
-
       phone.value =
         metadata.phone ||
         "";
-
     }
 
-
     if (location) {
-
       location.value =
         metadata.location ||
         "";
-
     }
 
-
     if (about) {
-
       about.value =
         metadata.about ||
         "";
-
     }
-
 
   } catch (error) {
 
@@ -712,7 +664,6 @@ async function loadUserProfile() {
     );
 
   }
-
 }
 
 
@@ -730,26 +681,21 @@ async function loadSecurityInfo() {
     } =
       await supabase.auth.getUser();
 
-
     if (error) {
       throw error;
     }
 
-
     const user =
       data?.user;
 
-
-    if (!user) return;
-
-
-    if (settingsEmail) {
-
-      settingsEmail.value =
-        user.email || "";
-
+    if (!user) {
+      return;
     }
 
+    if (settingsEmail) {
+      settingsEmail.value =
+        user.email || "";
+    }
 
   } catch (error) {
 
@@ -759,7 +705,6 @@ async function loadSecurityInfo() {
     );
 
   }
-
 }
 
 
@@ -774,37 +719,27 @@ changePassword?.addEventListener(
     const password =
       newPassword?.value.trim();
 
-
     if (!password) {
-
       showSettingMessage(
         "Enter a new password.",
         true
       );
-
       return;
-
     }
 
-
     if (password.length < 6) {
-
       showSettingMessage(
         "Password must be at least 6 characters.",
         true
       );
-
       return;
-
     }
-
 
     changePassword.disabled =
       true;
 
     changePassword.textContent =
       "Updating...";
-
 
     try {
 
@@ -815,21 +750,17 @@ changePassword?.addEventListener(
           password
         });
 
-
       if (error) {
         throw error;
       }
-
 
       if (newPassword) {
         newPassword.value = "";
       }
 
-
       showSettingMessage(
         "Password changed successfully."
       );
-
 
     } catch (error) {
 
@@ -838,13 +769,11 @@ changePassword?.addEventListener(
         error
       );
 
-
       showSettingMessage(
         error?.message ||
         "Could not change password.",
         true
       );
-
 
     } finally {
 
@@ -853,9 +782,7 @@ changePassword?.addEventListener(
 
       changePassword.textContent =
         "Change Password";
-
     }
-
   }
 );
 
@@ -879,13 +806,11 @@ async function logout() {
 
   }
 
-
   closeSettingsModal();
 
   hideAdminMenu();
 
   showLogin();
-
 }
 
 
@@ -911,23 +836,24 @@ supabase.auth.onAuthStateChange(
     session
   ) => {
 
+    console.log(
+      "Auth state:",
+      event,
+      session
+    );
+
     if (session?.user) {
 
       showApp();
-
 
       if (
         isAdmin(
           session.user
         )
       ) {
-
         showAdminMenu();
-
       } else {
-
         hideAdminMenu();
-
       }
 
     } else {
@@ -943,7 +869,7 @@ supabase.auth.onAuthStateChange(
 
 
 /* ==========================================
-   INITIAL SESSION CHECK
+   INITIAL SESSION
 ========================================== */
 
 async function initializeAuth() {
@@ -956,33 +882,25 @@ async function initializeAuth() {
     } =
       await supabase.auth.getSession();
 
-
     if (error) {
       throw error;
     }
 
-
     const session =
       data?.session;
-
 
     if (session?.user) {
 
       showApp();
-
 
       if (
         isAdmin(
           session.user
         )
       ) {
-
         showAdminMenu();
-
       } else {
-
         hideAdminMenu();
-
       }
 
     } else {
@@ -993,7 +911,6 @@ async function initializeAuth() {
 
     }
 
-
   } catch (error) {
 
     console.error(
@@ -1001,13 +918,11 @@ async function initializeAuth() {
       error
     );
 
-
     hideAdminMenu();
 
     showLogin();
 
   }
-
 }
 
 
