@@ -37,7 +37,6 @@ const MAX_IMAGE_SIZE = 4096;
 ========================================== */
 
 function setStatus(message, progress = 0) {
-
   if (status) {
     status.textContent = message;
   }
@@ -53,71 +52,45 @@ function setStatus(message, progress = 0) {
 ========================================== */
 
 function isSupportedImage(file) {
-
   if (!file) {
     return false;
   }
 
   const supportedTypes = [
-
     "image/jpeg",
     "image/jpg",
-
     "image/png",
-
     "image/webp",
-
     "image/gif",
-
     "image/bmp",
     "image/x-ms-bmp",
-
     "image/avif",
-
     "image/x-icon",
     "image/vnd.microsoft.icon",
-
     "image/svg+xml",
-
     "image/tiff",
-
     "image/heic",
     "image/heif"
-
   ];
-
 
   const supportedExtensions = [
-
     ".jpg",
     ".jpeg",
-
     ".png",
-
     ".webp",
-
     ".gif",
-
     ".bmp",
-
     ".avif",
-
     ".ico",
-
     ".svg",
-
     ".tif",
     ".tiff",
-
     ".heic",
     ".heif"
-
   ];
-
 
   const fileName =
     (file.name || "").toLowerCase();
-
 
   return (
     supportedTypes.includes(file.type) ||
@@ -134,10 +107,8 @@ function isSupportedImage(file) {
 ========================================== */
 
 function getFormatName(file) {
-
   const name =
     (file.name || "").toLowerCase();
-
 
   if (name.endsWith(".jpg")) return "JPG";
   if (name.endsWith(".jpeg")) return "JPEG";
@@ -158,11 +129,10 @@ function getFormatName(file) {
 
 
 /* ==========================================
-   FILE NAME CHECK
+   FILE EXTENSION
 ========================================== */
 
 function getFileExtension(file) {
-
   const name =
     (file.name || "").toLowerCase();
 
@@ -183,39 +153,27 @@ function getFileExtension(file) {
 
 async function decodeNormalImage(file) {
 
-  /*
-     METHOD 1
-     createImageBitmap
-  */
+  /* ----------------------------------------
+     METHOD 1: createImageBitmap
+  ---------------------------------------- */
 
   if ("createImageBitmap" in window) {
-
     try {
-
       const bitmap =
         await createImageBitmap(file);
-
 
       if (
         bitmap.width > 0 &&
         bitmap.height > 0
       ) {
-
         return {
-
           image: bitmap,
-
           width: bitmap.width,
-
           height: bitmap.height,
-
           isBitmap: true
-
         };
       }
-
     } catch (error) {
-
       console.warn(
         "createImageBitmap failed:",
         error
@@ -224,10 +182,9 @@ async function decodeNormalImage(file) {
   }
 
 
-  /*
-     METHOD 2
-     FileReader + Image
-  */
+  /* ----------------------------------------
+     METHOD 2: FileReader + Image
+  ---------------------------------------- */
 
   const dataUrl =
     await new Promise(
@@ -236,29 +193,19 @@ async function decodeNormalImage(file) {
         const reader =
           new FileReader();
 
+        reader.onload = () => {
+          resolve(reader.result);
+        };
 
-        reader.onload =
-          () => {
-
-            resolve(
-              reader.result
-            );
-          };
-
-
-        reader.onerror =
-          () => {
-
-            reject(
-              new Error(
-                "The selected file could not be read."
-              )
-            );
-          };
-
+        reader.onerror = () => {
+          reject(
+            new Error(
+              "The selected file could not be read."
+            )
+          );
+        };
 
         reader.readAsDataURL(file);
-
       }
     );
 
@@ -270,77 +217,56 @@ async function decodeNormalImage(file) {
         const img =
           new Image();
 
+        img.onload = () => {
 
-        img.onload =
-          () => {
-
-            if (
-              img.naturalWidth > 0 &&
-              img.naturalHeight > 0
-            ) {
-
-              resolve(img);
-
-            } else {
-
-              reject(
-                new Error(
-                  "The image has invalid dimensions."
-                )
-              );
-            }
-          };
-
-
-        img.onerror =
-          () => {
-
+          if (
+            img.naturalWidth > 0 &&
+            img.naturalHeight > 0
+          ) {
+            resolve(img);
+          } else {
             reject(
               new Error(
-                `The ${getFormatName(file)} image could not be decoded by this browser.`
+                "The image has invalid dimensions."
               )
             );
-          };
+          }
+        };
 
+        img.onerror = () => {
+          reject(
+            new Error(
+              `The ${getFormatName(file)} image could not be decoded by this browser.`
+            )
+          );
+        };
 
-        img.src =
-          dataUrl;
-
+        img.src = dataUrl;
       }
     );
 
 
   return {
-
     image,
-
-    width:
-      image.naturalWidth,
-
-    height:
-      image.naturalHeight,
-
+    width: image.naturalWidth,
+    height: image.naturalHeight,
     isBitmap: false
-
   };
 }
 
 
 /* ==========================================
-   BLOB FROM CANVAS
+   CANVAS → PNG
 ========================================== */
 
 function canvasToPNG(canvas) {
-
   return new Promise(
     (resolve, reject) => {
 
       canvas.toBlob(
-
         (blob) => {
 
           if (!blob) {
-
             reject(
               new Error(
                 "The image could not be converted to PNG."
@@ -351,22 +277,17 @@ function canvasToPNG(canvas) {
           }
 
           resolve(blob);
-
         },
-
         "image/png",
-
         1
-
       );
-
     }
   );
 }
 
 
 /* ==========================================
-   IMAGE TO PNG
+   IMAGE → PNG
 ========================================== */
 
 async function imageToPNG(
@@ -382,9 +303,9 @@ async function imageToPNG(
     sourceHeight;
 
 
-  /*
+  /* ----------------------------------------
      Limit huge images
-  */
+  ---------------------------------------- */
 
   if (
     width > MAX_IMAGE_SIZE ||
@@ -397,12 +318,10 @@ async function imageToPNG(
         MAX_IMAGE_SIZE / height
       );
 
-
     width =
       Math.round(
         width * scale
       );
-
 
     height =
       Math.round(
@@ -415,7 +334,6 @@ async function imageToPNG(
     document.createElement(
       "canvas"
     );
-
 
   canvas.width =
     width;
@@ -434,7 +352,6 @@ async function imageToPNG(
 
 
   if (!context) {
-
     throw new Error(
       "Your browser does not support image processing."
     );
@@ -478,16 +395,12 @@ async function convertHEICToPNG(file) {
 
   const png =
     await heicTo({
-
       blob: file,
-
       type: "image/png"
-
     });
 
 
   if (!png) {
-
     throw new Error(
       "HEIC/HEIF conversion failed."
     );
@@ -522,16 +435,13 @@ async function convertTIFFToPNG(file) {
     !ifds ||
     !ifds.length
   ) {
-
     throw new Error(
       "Could not decode the TIFF image."
     );
   }
 
 
-  /*
-     Decode first TIFF image
-  */
+  /* Decode first TIFF image */
 
   UTIF.decodeImage(
     buffer,
@@ -556,16 +466,15 @@ async function convertTIFFToPNG(file) {
     !width ||
     !height
   ) {
-
     throw new Error(
       "The TIFF image has invalid dimensions."
     );
   }
 
 
-  /*
+  /* ----------------------------------------
      Limit huge TIFF images
-  */
+  ---------------------------------------- */
 
   let outputWidth =
     width;
@@ -585,12 +494,10 @@ async function convertTIFFToPNG(file) {
         MAX_IMAGE_SIZE / outputHeight
       );
 
-
     outputWidth =
       Math.round(
         outputWidth * scale
       );
-
 
     outputHeight =
       Math.round(
@@ -599,11 +506,14 @@ async function convertTIFFToPNG(file) {
   }
 
 
+  /* ----------------------------------------
+     Output canvas
+  ---------------------------------------- */
+
   const canvas =
     document.createElement(
       "canvas"
     );
-
 
   canvas.width =
     outputWidth;
@@ -622,22 +532,20 @@ async function convertTIFFToPNG(file) {
 
 
   if (!context) {
-
     throw new Error(
       "Your browser does not support TIFF processing."
     );
   }
 
 
-  /*
-     Create source canvas
-  */
+  /* ----------------------------------------
+     Source canvas
+  ---------------------------------------- */
 
   const sourceCanvas =
     document.createElement(
       "canvas"
     );
-
 
   sourceCanvas.width =
     width;
@@ -653,7 +561,6 @@ async function convertTIFFToPNG(file) {
 
 
   if (!sourceContext) {
-
     throw new Error(
       "Could not create TIFF canvas."
     );
@@ -679,9 +586,9 @@ async function convertTIFFToPNG(file) {
   );
 
 
-  /*
+  /* ----------------------------------------
      Resize if necessary
-  */
+  ---------------------------------------- */
 
   context.drawImage(
     sourceCanvas,
@@ -738,42 +645,31 @@ async function convertSVGToPNG(file) {
           const img =
             new Image();
 
+          img.onload = () => {
 
-          img.onload =
-            () => {
-
-              if (
-                img.naturalWidth > 0 &&
-                img.naturalHeight > 0
-              ) {
-
-                resolve(img);
-
-              } else {
-
-                reject(
-                  new Error(
-                    "SVG has invalid dimensions."
-                  )
-                );
-              }
-            };
-
-
-          img.onerror =
-            () => {
-
+            if (
+              img.naturalWidth > 0 &&
+              img.naturalHeight > 0
+            ) {
+              resolve(img);
+            } else {
               reject(
                 new Error(
-                  "The SVG image could not be decoded."
+                  "SVG has invalid dimensions."
                 )
               );
-            };
+            }
+          };
 
+          img.onerror = () => {
+            reject(
+              new Error(
+                "The SVG image could not be decoded."
+              )
+            );
+          };
 
-          img.src =
-            url;
-
+          img.src = url;
         }
       );
 
@@ -803,51 +699,48 @@ async function convertToPNG(file) {
     getFileExtension(file);
 
 
-  /*
+  /* ----------------------------------------
      HEIC / HEIF
-  */
+  ---------------------------------------- */
 
   if (
     extension === ".heic" ||
     extension === ".heif"
   ) {
-
     return await convertHEICToPNG(
       file
     );
   }
 
 
-  /*
+  /* ----------------------------------------
      TIFF / TIF
-  */
+  ---------------------------------------- */
 
   if (
     extension === ".tif" ||
     extension === ".tiff"
   ) {
-
     return await convertTIFFToPNG(
       file
     );
   }
 
 
-  /*
+  /* ----------------------------------------
      SVG
-  */
+  ---------------------------------------- */
 
   if (
     extension === ".svg"
   ) {
-
     return await convertSVGToPNG(
       file
     );
   }
 
 
-  /*
+  /* ----------------------------------------
      Normal browser images
 
      JPG
@@ -858,7 +751,7 @@ async function convertToPNG(file) {
      BMP
      AVIF
      ICO
-  */
+  ---------------------------------------- */
 
   setStatus(
     "Reading image…",
@@ -880,15 +773,12 @@ async function convertToPNG(file) {
     );
 
 
-  /*
-     Close bitmap
-  */
+  /* Close bitmap */
 
   if (
     decoded.isBitmap &&
     decoded.image.close
   ) {
-
     decoded.image.close();
   }
 
@@ -901,17 +791,13 @@ async function convertToPNG(file) {
    PREVIEW SUPPORTED FILE
 ========================================== */
 
-async function createPreviewURL(
-  file
-) {
+async function createPreviewURL(file) {
 
   const extension =
     getFileExtension(file);
 
 
-  /*
-     HEIC / HEIF
-  */
+  /* HEIC / HEIF */
 
   if (
     extension === ".heic" ||
@@ -923,16 +809,13 @@ async function createPreviewURL(
         file
       );
 
-
     return URL.createObjectURL(
       png
     );
   }
 
 
-  /*
-     TIFF / TIF
-  */
+  /* TIFF / TIF */
 
   if (
     extension === ".tif" ||
@@ -944,16 +827,13 @@ async function createPreviewURL(
         file
       );
 
-
     return URL.createObjectURL(
       png
     );
   }
 
 
-  /*
-     SVG
-  */
+  /* SVG */
 
   if (
     extension === ".svg"
@@ -964,18 +844,13 @@ async function createPreviewURL(
         file
       );
 
-
     return URL.createObjectURL(
       png
     );
   }
 
 
-  /*
-     Normal image
-
-     Use object URL.
-  */
+  /* Normal image */
 
   return URL.createObjectURL(
     file
@@ -989,9 +864,7 @@ async function createPreviewURL(
 
 async function showImage(file) {
 
-  /*
-     Remove previous preview
-  */
+  /* Remove previous preview */
 
   if (previewUrl) {
 
@@ -1010,10 +883,7 @@ async function showImage(file) {
   );
 
 
-  /*
-     Convert special formats
-     before displaying.
-  */
+  /* Convert special formats */
 
   previewUrl =
     await createPreviewURL(
@@ -1092,9 +962,7 @@ async function handleFile(file) {
   );
 
 
-  /*
-     Empty file
-  */
+  /* Empty file */
 
   if (
     file.size === 0
@@ -1109,9 +977,7 @@ async function handleFile(file) {
   }
 
 
-  /*
-     Format validation
-  */
+  /* Format validation */
 
   if (
     !isSupportedImage(file)
@@ -1126,17 +992,13 @@ async function handleFile(file) {
   }
 
 
-  /*
-     Save file
-  */
+  /* Save file */
 
   selectedFile =
     file;
 
 
-  /*
-     Remove old result
-  */
+  /* Remove old result */
 
   if (resultUrl) {
 
@@ -1220,9 +1082,7 @@ async function processImage() {
       "none";
 
 
-    /*
-       Step 1
-    */
+    /* Step 1 */
 
     setStatus(
       "Preparing image…",
@@ -1230,10 +1090,7 @@ async function processImage() {
     );
 
 
-    /*
-       Convert selected format
-       into PNG.
-    */
+    /* Convert selected format to PNG */
 
     const processingBlob =
       await convertToPNG(
@@ -1241,9 +1098,7 @@ async function processImage() {
       );
 
 
-    /*
-       Step 2
-    */
+    /* Step 2 */
 
     setStatus(
       "Starting AI background removal…",
@@ -1256,18 +1111,12 @@ async function processImage() {
     );
 
 
-    /*
-       Step 3
-       IMG.LY
-    */
+    /* Step 3: IMG.LY */
 
     const resultBlob =
       await removeBackground(
-
         processingBlob,
-
         {
-
           debug: true,
 
           publicPath:
@@ -1323,15 +1172,11 @@ async function processImage() {
                 total
               );
             }
-
         }
-
       );
 
 
-    /*
-       Verify result
-    */
+    /* Verify result */
 
     if (!resultBlob) {
 
@@ -1341,9 +1186,7 @@ async function processImage() {
     }
 
 
-    /*
-       Remove old result
-    */
+    /* Remove old result */
 
     if (resultUrl) {
 
@@ -1353,9 +1196,7 @@ async function processImage() {
     }
 
 
-    /*
-       Create result URL
-    */
+    /* Create result URL */
 
     resultUrl =
       URL.createObjectURL(
@@ -1363,9 +1204,7 @@ async function processImage() {
       );
 
 
-    /*
-       SAME preview section
-    */
+    /* SAME preview section */
 
     preview.src =
       resultUrl;
@@ -1380,10 +1219,7 @@ async function processImage() {
       "none";
 
 
-    /*
-       IMPORTANT:
-       SHOW DOWNLOAD BUTTON
-    */
+    /* SHOW DOWNLOAD BUTTON */
 
     downloadButton.style.display =
       "block";
@@ -1491,9 +1327,7 @@ function resetApp() {
     null;
 
 
-  /*
-     Remove result URL
-  */
+  /* Remove result URL */
 
   if (resultUrl) {
 
@@ -1506,37 +1340,4 @@ function resetApp() {
   }
 
 
-  /*
-     Remove preview URL
-  */
-
-  if (previewUrl) {
-
-    URL.revokeObjectURL(
-      previewUrl
-    );
-
-    previewUrl =
-      null;
-  }
-
-
-  preview.removeAttribute(
-    "src"
-  );
-
-
-  previewCard.classList.remove(
-    "visible"
-  );
-
-
-  dropZone.style.display =
-    "";
-
-
-  removeButton.disabled =
-    true;
-
-
-  downloadButton.disab
+  /* Remove preview 
