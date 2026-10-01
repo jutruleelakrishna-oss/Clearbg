@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@imgly/background-removal": "1.7.0",
-    "onnxruntime-web": "1.21.0"
+    "onnxruntime-web": "1.21.0",
+    "heic-to": "1.5.2",
+    "utif2": "4.1.0"
   },
   "devDependencies": {
     "vite": "^6.0.0"
