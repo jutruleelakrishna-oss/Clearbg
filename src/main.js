@@ -1,4 +1,5 @@
 import { removeBackground } from "@imgly/background-removal";
+import "./style.css";
 
 const fileInput = document.getElementById("fileInput");
 const dropZone = document.getElementById("dropZone");
@@ -21,30 +22,22 @@ const MODEL_PATH =
   "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/";
 
 
-/* ---------------------------------------
-   STATUS
---------------------------------------- */
-
 function setStatus(message, progress = 0) {
   if (status) {
     status.textContent = message;
   }
 
   if (progressBar) {
-    const value = Math.max(0, Math.min(100, progress));
-    progressBar.style.width = `${value}%`;
+    progressBar.style.width =
+      `${Math.max(0, Math.min(100, progress))}%`;
   }
 }
 
 
-/* ---------------------------------------
-   IMAGE VALIDATION
---------------------------------------- */
-
 function isImage(file) {
   if (!file) return false;
 
-  if (file.type && file.type.startsWith("image/")) {
+  if (file.type?.startsWith("image/")) {
     return true;
   }
 
@@ -62,181 +55,205 @@ function isImage(file) {
 }
 
 
-/* ---------------------------------------
-   HANDLE FILE
---------------------------------------- */
+/*
+ * Read the file into a fresh File object.
+ *
+ * This avoids browser permission/reference problems
+ * that can happen with files selected on mobile.
+ */
+async function prepareFile(file) {
 
-function handleFile(file) {
-  if (!file) return;
+  const buffer = await file.arrayBuffer();
 
-  console.log("Selected file:", file.name);
-  console.log("File type:", file.type);
-  console.log("File size:", file.size);
+  return new File(
+    [buffer],
+    file.name || "image.png",
+    {
+      type: file.type || "image/png",
+      lastModified: Date.now()
+    }
+  );
+}
 
-  if (!isImage(file)) {
-    setStatus(
-      "Please select a valid JPG, PNG or WEBP image.",
-      0
-    );
-    return;
-  }
 
-  selectedFile = file;
-  resultBlob = null;
-
-  if (resultUrl) {
-    URL.revokeObjectURL(resultUrl);
-    resultUrl = null;
-  }
+function displayImage(file) {
 
   if (originalUrl) {
     URL.revokeObjectURL(originalUrl);
-    originalUrl = null;
   }
 
-  try {
-    /*
-     * Only create a preview here.
-     * We DO NOT decode/convert the image.
-     */
+  originalUrl =
+    URL.createObjectURL(file);
 
-    originalUrl = URL.createObjectURL(file);
+  preview.src = originalUrl;
+  preview.alt = "Selected image";
 
-    preview.src = originalUrl;
-    preview.alt = "Selected image";
+  previewCard.classList.add("show");
+  dropZone.classList.add("hidden");
 
-    previewCard.classList.add("show");
-    dropZone.classList.add("hidden");
+  removeButton.disabled = false;
 
-    removeButton.disabled = false;
+  downloadButton.style.display = "none";
+  downloadButton.disabled = true;
 
-    downloadButton.style.display = "none";
-    downloadButton.disabled = true;
+  setStatus(
+    "Image ready. Remove the background.",
+    0
+  );
+}
+
+
+async function handleFile(file) {
+
+  if (!file) return;
+
+  if (!isImage(file)) {
 
     setStatus(
-      "Image ready. Remove the background.",
+      "Please select a JPG, PNG or WEBP image.",
       0
     );
 
+    return;
+  }
+
+  try {
+
+    console.log("Selected file:", {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
+    /*
+     * Make an independent copy of the selected file.
+     */
+    selectedFile =
+      await prepareFile(file);
+
+    resultBlob = null;
+
+    if (resultUrl) {
+      URL.revokeObjectURL(resultUrl);
+      resultUrl = null;
+    }
+
+    displayImage(selectedFile);
+
   } catch (error) {
-    console.error("Preview error:", error);
+
+    console.error(
+      "File preparation error:",
+      error
+    );
 
     selectedFile = null;
 
     setStatus(
-      "The selected image could not be previewed.",
+      "The selected image could not be read.",
       0
     );
   }
 }
 
 
-/* ---------------------------------------
-   BACKGROUND REMOVAL
---------------------------------------- */
-
 async function processImage() {
+
   if (!selectedFile) {
+
     setStatus(
       "Please select an image first.",
       0
     );
+
     return;
   }
 
   try {
+
     removeButton.disabled = true;
     downloadButton.disabled = true;
     downloadButton.style.display = "none";
 
     setStatus(
-      "Starting AI background removal...",
+      "Loading AI model...",
       5
     );
 
-    console.log("=================================");
-    console.log("Krishna AI Studio");
-    console.log("Starting background removal");
-    console.log("File:", selectedFile.name);
-    console.log("Type:", selectedFile.type);
-    console.log("Size:", selectedFile.size);
-    console.log("=================================");
+    console.log(
+      "Starting IMG.LY background removal..."
+    );
+
+    console.log(
+      "Input:",
+      selectedFile.name,
+      selectedFile.type,
+      selectedFile.size
+    );
 
 
-    /*
-     * IMPORTANT:
-     *
-     * Send the ORIGINAL FILE directly
-     * to IMG.LY.
-     *
-     * No Image()
-     * No createImageBitmap()
-     * No canvas
-     * No PNG conversion
-     */
+    const output =
+      await removeBackground(
+        selectedFile,
+        {
+          debug: true,
 
-    const output = await removeBackground(
-      selectedFile,
-      {
-        debug: true,
+          model: "isnet_quint8",
 
-        model: "isnet_quint8",
+          device: "cpu",
 
-        device: "cpu",
+          publicPath: MODEL_PATH,
 
-        publicPath: MODEL_PATH,
-
-        progress: (
-          key,
-          current,
-          total
-        ) => {
-
-          console.log(
-            "AI progress:",
+          progress: (
             key,
             current,
             total
-          );
+          ) => {
 
-          let percent = 10;
+            console.log(
+              "Progress:",
+              key,
+              current,
+              total
+            );
 
-          if (
-            Number.isFinite(total) &&
-            total > 0
-          ) {
+            let percent = 10;
+
+            if (
+              Number.isFinite(total) &&
+              total > 0
+            ) {
+
+              percent =
+                10 +
+                Math.round(
+                  (current / total) * 85
+                );
+            }
+
             percent =
-              10 +
-              Math.round(
-                (current / total) * 85
+              Math.min(
+                95,
+                Math.max(
+                  10,
+                  percent
+                )
               );
+
+            setStatus(
+              `Removing background... ${percent}%`,
+              percent
+            );
           }
-
-          percent = Math.max(
-            10,
-            Math.min(95, percent)
-          );
-
-          setStatus(
-            `Removing background... ${percent}%`,
-            percent
-          );
         }
-      }
-    );
+      );
 
 
     if (!output) {
       throw new Error(
-        "AI processing did not return an image."
+        "IMG.LY did not return a result."
       );
     }
-
-
-    console.log(
-      "Background removal completed.",
-      output
-    );
 
 
     resultBlob = output;
@@ -248,27 +265,26 @@ async function processImage() {
 
 
     resultUrl =
-      URL.createObjectURL(resultBlob);
+      URL.createObjectURL(
+        resultBlob
+      );
 
 
-    /*
-     * Show transparent result.
-     */
-
-    preview.src = resultUrl;
+    preview.src =
+      resultUrl;
 
     preview.alt =
       "Background removed image";
 
 
-    previewCard.classList.add("show");
-    dropZone.classList.add("hidden");
+    downloadButton.style.display =
+      "block";
 
+    downloadButton.disabled =
+      false;
 
-    downloadButton.style.display = "block";
-    downloadButton.disabled = false;
-
-    removeButton.disabled = false;
+    removeButton.disabled =
+      false;
 
 
     setStatus(
@@ -277,42 +293,23 @@ async function processImage() {
     );
 
 
+    console.log(
+      "Background removal completed successfully."
+    );
+
   } catch (error) {
 
     console.error(
-      "================================="
+      "IMG.LY ERROR:",
+      error
     );
 
-    console.error(
-      "BACKGROUND REMOVAL ERROR"
-    );
+    removeButton.disabled =
+      false;
 
-    console.error(error);
-
-    console.error(
-      "================================="
-    );
-
-
-    removeButton.disabled = false;
-
-
-    let message =
+    const message =
       error?.message ||
       "Background removal failed.";
-
-
-    /*
-     * Make the error easier to understand.
-     */
-
-    if (
-      message.toLowerCase().includes("decode")
-    ) {
-      message =
-        "The AI model could not decode this image. Please try another PNG or JPG.";
-    }
-
 
     setStatus(
       `Error: ${message}`,
@@ -322,23 +319,23 @@ async function processImage() {
 }
 
 
-/* ---------------------------------------
-   DOWNLOAD
---------------------------------------- */
-
 function downloadResult() {
+
   if (!resultBlob || !resultUrl) {
+
     setStatus(
       "Remove the background first.",
       0
     );
+
     return;
   }
 
   const link =
     document.createElement("a");
 
-  link.href = resultUrl;
+  link.href =
+    resultUrl;
 
   link.download =
     "krishna-ai-studio-result.png";
@@ -351,46 +348,33 @@ function downloadResult() {
 }
 
 
-/* ---------------------------------------
-   RESET
---------------------------------------- */
-
 function resetApp() {
 
   selectedFile = null;
   resultBlob = null;
-
 
   if (originalUrl) {
     URL.revokeObjectURL(originalUrl);
     originalUrl = null;
   }
 
-
   if (resultUrl) {
     URL.revokeObjectURL(resultUrl);
     resultUrl = null;
   }
 
-
   preview.removeAttribute("src");
   preview.alt = "";
 
-
   previewCard.classList.remove("show");
-
   dropZone.classList.remove("hidden");
-
 
   removeButton.disabled = true;
 
   downloadButton.disabled = true;
-
   downloadButton.style.display = "none";
 
-
   fileInput.value = "";
-
 
   setStatus(
     "Select an image to get started.",
@@ -399,15 +383,11 @@ function resetApp() {
 }
 
 
-/* ---------------------------------------
-   FILE PICKER
---------------------------------------- */
+/* File picker */
 
 dropZone.addEventListener(
   "click",
-  () => {
-    fileInput.click();
-  }
+  () => fileInput.click()
 );
 
 
@@ -423,9 +403,7 @@ fileInput.addEventListener(
 );
 
 
-/* ---------------------------------------
-   DRAG & DROP
---------------------------------------- */
+/* Drag and drop */
 
 dropZone.addEventListener(
   "dragover",
@@ -463,9 +441,7 @@ dropZone.addEventListener(
 );
 
 
-/* ---------------------------------------
-   BUTTONS
---------------------------------------- */
+/* Buttons */
 
 removeButton.addEventListener(
   "click",
@@ -485,9 +461,7 @@ resetButton.addEventListener(
 );
 
 
-/* ---------------------------------------
-   CLEANUP
---------------------------------------- */
+/* Cleanup */
 
 window.addEventListener(
   "beforeunload",
@@ -504,12 +478,9 @@ window.addEventListener(
 );
 
 
-/* ---------------------------------------
-   INITIAL STATE
---------------------------------------- */
+/* Initial state */
 
 removeButton.disabled = true;
-
 downloadButton.disabled = true;
 
 setStatus(
@@ -518,5 +489,5 @@ setStatus(
 );
 
 console.log(
-  "Krishna AI Studio loaded successfully."
+  "Krishna AI Studio loaded."
 );
