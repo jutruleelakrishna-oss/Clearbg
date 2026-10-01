@@ -10,584 +10,17 @@
     content="Krishna AI Studio - AI powered background remover"
   />
 
-  <style>
-    :root {
-      --bg: #08090d;
-      --panel: #11131a;
-      --panel-2: #171a23;
-      --border: rgba(255,255,255,.09);
-      --text: #f5f7fb;
-      --muted: #9299aa;
-      --accent: #7c5cff;
-      --accent-2: #a78bfa;
-      --danger: #ff5c72;
-      --success: #36d399;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 50% -10%, rgba(124,92,255,.18), transparent 35%),
-        var(--bg);
-      color: var(--text);
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    body.auth-checking {
-      overflow: hidden;
-    }
-
-    button,
-    input {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    /* AUTH LOADING */
-
-    #authLoading {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-    }
-
-    body:not(.auth-checking) #authLoading {
-      display: none;
-    }
-
-    .loader {
-      width: 42px;
-      height: 42px;
-      border: 3px solid rgba(255,255,255,.12);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* HEADER */
-
-    .topbar {
-      width: min(1180px, calc(100% - 32px));
-      margin: auto;
-      min-height: 76px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -.5px;
-    }
-
-    .brand-mark {
-      width: 34px;
-      height: 34px;
-      display: grid;
-      place-items: center;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent), #4f46e5);
-      box-shadow: 0 8px 30px rgba(124,92,255,.3);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .privacy {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    #settingsButton {
-      display: none;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      padding: 9px 13px;
-      border-radius: 10px;
-    }
-
-    #settingsButton:hover {
-      background: rgba(255,255,255,.08);
-    }
-
-    /* HERO */
-
-    .hero {
-      width: min(900px, calc(100% - 32px));
-      margin: 60px auto 38px;
-      text-align: center;
-    }
-
-    .eyebrow {
-      color: var(--accent-2);
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      font-size: clamp(40px, 7vw, 72px);
-      line-height: .98;
-      letter-spacing: -3px;
-    }
-
-    h1 span {
-      color: var(--accent-2);
-    }
-
-    .subtitle {
-      max-width: 600px;
-      margin: 22px auto 0;
-      color: var(--muted);
-      font-size: 17px;
-      line-height: 1.6;
-    }
-
-    /* WORKSPACE */
-
-    .workspace {
-      width: min(1000px, calc(100% - 32px));
-      margin: 0 auto 70px;
-    }
-
-    .panel {
-      background: rgba(17,19,26,.88);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 22px;
-      box-shadow: 0 25px 80px rgba(0,0,0,.3);
-    }
-
-    /* UPLOAD */
-
-    .drop-zone {
-      min-height: 190px;
-      border: 1.5px dashed rgba(167,139,250,.35);
-      border-radius: 18px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 30px 20px;
-      background: rgba(124,92,255,.035);
-      transition: .2s ease;
-      outline: none;
-    }
-
-    .drop-zone:hover,
-    .drop-zone:focus,
-    .drop-zone.dragging {
-      border-color: var(--accent);
-      background: rgba(124,92,255,.08);
-    }
-
-    .upload-icon {
-      width: 56px;
-      height: 56px;
-      display: grid;
-      place-items: center;
-      border-radius: 16px;
-      background: rgba(124,92,255,.13);
-      font-size: 25px;
-      margin-bottom: 15px;
-    }
-
-    .drop-zone strong {
-      font-size: 17px;
-    }
-
-    .drop-zone p {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .drop-zone small {
-      margin-top: 10px;
-      color: #72798a;
-      font-size: 12px;
-    }
-
-    /* PREVIEW */
-
-    .preview-grid {
-      margin-top: 20px;
-      display: grid;
-      grid-template-columns: 1fr;
-    }
-
-    .preview-card {
-      overflow: hidden;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: var(--panel-2);
-    }
-
-    .preview-header {
-      padding: 13px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .preview-label {
-      color: var(--text);
-      font-weight: 700;
-    }
-
-    .image-wrap {
-      min-height: 300px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: #0c0e13;
-    }
-
-    .image-wrap img {
-      display: none;
-      max-width: 100%;
-      max-height: 560px;
-      object-fit: contain;
-      border-radius: 12px;
-    }
-
-    /* ACTIONS */
-
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-top: 18px;
-    }
-
-    .action-button {
-      min-height: 50px;
-      border: 0;
-      border-radius: 12px;
-      font-weight: 750;
-      transition: .2s ease;
-    }
-
-    #removeButton {
-      color: white;
-      background: linear-gradient(135deg, var(--accent), #5b4be7);
-      box-shadow: 0 10px 30px rgba(124,92,255,.2);
-    }
-
-    #downloadButton {
-      color: white;
-      background: #242936;
-      border: 1px solid var(--border);
-      display: none;
-    }
-
-    #resetButton {
-      color: #cbd0db;
-      background: transparent;
-      border: 1px solid var(--border);
-    }
-
-    .action-button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.08);
-    }
-
-    .action-button:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* STATUS */
-
-    .status-area {
-      margin-top: 18px;
-      display: none;
-    }
-
-    #status {
-      color: var(--muted);
-      font-size: 13px;
-      text-align: center;
-      margin-bottom: 9px;
-    }
-
-    .progress-track {
-      width: 100%;
-      height: 5px;
-      border-radius: 99px;
-      background: #222632;
-      overflow: hidden;
-    }
-
-    #progressBar {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      transition: width .2s ease;
-    }
-
-    /* INFO */
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 18px;
-    }
-
-    .info-card {
-      padding: 18px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.025);
-    }
-
-    .info-card strong {
-      display: block;
-      margin-bottom: 7px;
-      font-size: 14px;
-    }
-
-    .info-card p {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    footer {
-      text-align: center;
-      padding: 0 20px 35px;
-      color: #626979;
-      font-size: 12px;
-    }
-
-    /* SETTINGS MODAL */
-
-    .settings-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 5000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      background: rgba(0,0,0,.75);
-      backdrop-filter: blur(10px);
-    }
-
-    .settings-overlay.open {
-      display: flex;
-    }
-
-    .settings-modal {
-      width: min(620px, 100%);
-      max-height: 90vh;
-      overflow-y: auto;
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      background: #11131a;
-      box-shadow: 0 30px 100px rgba(0,0,0,.55);
-      padding: 24px;
-    }
-
-    .settings-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 22px;
-    }
-
-    .settings-title h2 {
-      font-size: 22px;
-    }
-
-    .close-settings {
-      width: 36px;
-      height: 36px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: transparent;
-      color: var(--muted);
-      font-size: 20px;
-    }
-
-    .settings-section {
-      padding: 20px 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .settings-section:first-of-type {
-      border-top: 0;
-      padding-top: 0;
-    }
-
-    .settings-section h3 {
-      font-size: 15px;
-      margin-bottom: 14px;
-    }
-
-    .field {
-      margin-bottom: 14px;
-    }
-
-    .field label {
-      display: block;
-      margin-bottom: 7px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .field input {
-      width: 100%;
-      height: 46px;
-      padding: 0 13px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      outline: none;
-      background: #0b0d12;
-      color: var(--text);
-    }
-
-    .field input:focus {
-      border-color: var(--accent);
-    }
-
-    .settings-save {
-      width: 100%;
-      height: 45px;
-      border: 0;
-      border-radius: 10px;
-      color: white;
-      font-weight: 700;
-      background: var(--accent);
-    }
-
-    .admin-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 8px 11px;
-      border-radius: 10px;
-      background: rgba(54,211,153,.08);
-      border: 1px solid rgba(54,211,153,.18);
-      color: var(--success);
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 12px;
-    }
-
-    .device-note {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
-      padding: 12px;
-      border-radius: 10px;
-      background: rgba(255,255,255,.03);
-    }
-
-    .logout-button {
-      width: 100%;
-      height: 45px;
-      margin-top: 14px;
-      border: 1px solid rgba(255,92,114,.25);
-      border-radius: 10px;
-      color: var(--danger);
-      background: rgba(255,92,114,.06);
-      font-weight: 700;
-    }
-
-    .setting-message {
-      margin-top: 9px;
-      color: var(--success);
-      font-size: 12px;
-      min-height: 16px;
-    }
-
-    @media (max-width: 700px) {
-      .topbar {
-        width: min(100% - 24px, 1180px);
-      }
-
-      .privacy {
-        display: none;
-      }
-
-      .hero {
-        margin-top: 38px;
-      }
-
-      h1 {
-        letter-spacing: -2px;
-      }
-
-      .workspace {
-        width: min(100% - 24px, 1000px);
-      }
-
-      .panel {
-        padding: 14px;
-        border-radius: 18px;
-      }
-
-      .actions {
-        grid-template-columns: 1fr;
-      }
-
-      .info-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .image-wrap {
-        min-height: 240px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="/src/style.css" />
 </head>
 
 <body class="auth-checking">
 
-  <!-- AUTH LOADING -->
   <div id="authLoading">
     <div class="loader"></div>
   </div>
 
-  <!-- HEADER -->
   <header class="topbar">
+
     <div class="brand">
       <span class="brand-mark">✦</span>
       <span id="brandName">Krishna AI Studio</span>
@@ -595,14 +28,22 @@
 
     <div class="header-actions">
       <span class="privacy">Private by design</span>
-      <button id="settingsButton" type="button">⚙ Settings</button>
+
+      <button id="settingsButton" type="button">
+        ⚙ Settings
+      </button>
     </div>
+
   </header>
 
-  <!-- HERO -->
+
   <main>
+
     <section class="hero">
-      <p class="eyebrow">AI BACKGROUND REMOVER</p>
+
+      <p class="eyebrow">
+        AI BACKGROUND REMOVER
+      </p>
 
       <h1>
         Remove backgrounds.<br />
@@ -612,13 +53,14 @@
       <p class="subtitle">
         Turn your photos into clean, transparent PNGs in seconds.
       </p>
+
     </section>
 
-    <!-- WORKSPACE -->
+
     <section class="workspace">
+
       <div class="panel">
 
-        <!-- UPLOAD -->
         <div
           id="dropZone"
           class="drop-zone"
@@ -626,6 +68,7 @@
           role="button"
           aria-label="Choose an image"
         >
+
           <input
             id="fileInput"
             type="file"
@@ -633,37 +76,57 @@
             hidden
           />
 
-          <div class="upload-icon">↑</div>
+          <div class="upload-icon">
+            ↑
+          </div>
 
-          <strong>Drop your image here</strong>
+          <strong>
+            Drop your image here
+          </strong>
 
-          <p>or tap to choose an image</p>
+          <p>
+            or tap to choose an image
+          </p>
 
           <small>
             JPG, JPEG, PNG, WEBP, GIF, BMP, AVIF and other common image formats
           </small>
+
         </div>
 
-        <!-- SAME IMAGE SECTION -->
+
         <div class="preview-grid">
+
           <div class="preview-card">
 
             <div class="preview-header">
-              <span id="previewLabel" class="preview-label">
+
+              <span
+                id="previewLabel"
+                class="preview-label"
+              >
                 Your image
               </span>
 
               <span id="fileName"></span>
+
             </div>
 
+
             <div class="image-wrap">
-              <img id="preview" alt="Selected image" />
+
+              <img
+                id="preview"
+                alt="Selected image"
+              />
+
             </div>
 
           </div>
+
         </div>
 
-        <!-- ACTIONS -->
+
         <div class="actions">
 
           <button
@@ -675,6 +138,7 @@
             Remove Background
           </button>
 
+
           <button
             id="downloadButton"
             class="action-button"
@@ -682,6 +146,7 @@
           >
             Download PNG
           </button>
+
 
           <button
             id="resetButton"
@@ -693,55 +158,79 @@
 
         </div>
 
-        <!-- STATUS -->
-        <div id="statusArea" class="status-area">
+
+        <div
+          id="statusArea"
+          class="status-area"
+        >
 
           <div id="status">
             Ready
           </div>
 
           <div class="progress-track">
+
             <div id="progressBar"></div>
+
           </div>
 
         </div>
 
-        <!-- INFO -->
+
         <div class="info-grid">
 
           <div class="info-card">
-            <strong>⚡ Fast AI Processing</strong>
+
+            <strong>
+              ⚡ Fast AI Processing
+            </strong>
+
             <p>
               Background removal is processed directly in your browser.
             </p>
+
           </div>
 
+
           <div class="info-card">
-            <strong>🔒 Private</strong>
+
+            <strong>
+              🔒 Private
+            </strong>
+
             <p>
               Your image stays on your device during processing.
             </p>
+
           </div>
 
+
           <div class="info-card">
-            <strong>✨ Clean PNG</strong>
+
+            <strong>
+              ✨ Clean PNG
+            </strong>
+
             <p>
               Download your finished image with the background removed.
             </p>
+
           </div>
 
         </div>
 
       </div>
+
     </section>
+
   </main>
+
 
   <footer>
     © 2026 Krishna AI Studio
   </footer>
 
 
-  <!-- SETTINGS MODAL -->
   <div
     id="settingsOverlay"
     class="settings-overlay"
@@ -751,7 +240,10 @@
     <div class="settings-modal">
 
       <div class="settings-title">
-        <h2>Settings</h2>
+
+        <h2>
+          Settings
+        </h2>
 
         <button
           id="closeSettings"
@@ -760,15 +252,18 @@
         >
           ×
         </button>
+
       </div>
 
 
-      <!-- WEBSITE SETTINGS -->
       <section class="settings-section">
 
-        <h3>Website Settings</h3>
+        <h3>
+          Website Settings
+        </h3>
 
         <div class="field">
+
           <label for="websiteName">
             Website Name
           </label>
@@ -779,6 +274,7 @@
             value="Krishna AI Studio"
             maxlength="60"
           />
+
         </div>
 
         <button
@@ -797,12 +293,14 @@
       </section>
 
 
-      <!-- PROFILE SETTINGS -->
       <section class="settings-section">
 
-        <h3>Profile Settings</h3>
+        <h3>
+          Profile Settings
+        </h3>
 
         <div class="field">
+
           <label for="displayName">
             Display Name
           </label>
@@ -813,9 +311,12 @@
             placeholder="Your display name"
             maxlength="60"
           />
+
         </div>
 
+
         <div class="field">
+
           <label for="profileEmail">
             Email
           </label>
@@ -825,7 +326,9 @@
             type="email"
             readonly
           />
+
         </div>
+
 
         <button
           id="saveProfile"
@@ -843,12 +346,14 @@
       </section>
 
 
-      <!-- PASSWORD -->
       <section class="settings-section">
 
-        <h3>Change Password</h3>
+        <h3>
+          Change Password
+        </h3>
 
         <div class="field">
+
           <label for="newPassword">
             New Password
           </label>
@@ -859,7 +364,9 @@
             placeholder="Enter new password"
             minlength="6"
           />
+
         </div>
+
 
         <button
           id="changePassword"
@@ -877,18 +384,20 @@
       </section>
 
 
-      <!-- LOGIN & DEVICES -->
       <section class="settings-section">
 
-        <h3>Login & Devices</h3>
+        <h3>
+          Login & Devices
+        </h3>
 
         <div class="admin-badge">
           👑 ADMIN / CURRENT DEVICE
         </div>
 
         <div class="device-note">
-          Device management and the maximum simultaneous-login limit
-          will be connected to the secure Supabase device system.
+          Device management and maximum simultaneous-login
+          controls will be connected to the secure Supabase
+          device system.
         </div>
 
         <button
@@ -902,106 +411,11 @@
       </section>
 
     </div>
+
   </div>
 
 
-  <!-- SUPABASE -->
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  <script type="module" src="/src/auth.js"></script>
 
-    import "/src/main.js";
-
-
-    const SUPABASE_URL =
-      "https://kqhhjwmifqrkxhygjhap.supabase.co";
-
-    const SUPABASE_KEY =
-      "sb_publishable_BXXJIGsGG_6uIeyfGXPSKQ_uwjXdRa1";
-
-
-    const supabase = createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
-
-
-    // Make Supabase available to main.js and other page code.
-    window.krishnaSupabase = supabase;
-
-
-    const ADMIN_EMAIL =
-      "jutruleelakrishna@gmail.com";
-
-
-    const settingsButton =
-      document.getElementById("settingsButton");
-
-    const settingsOverlay =
-      document.getElementById("settingsOverlay");
-
-    const closeSettings =
-      document.getElementById("closeSettings");
-
-    const brandName =
-      document.getElementById("brandName");
-
-    const websiteName =
-      document.getElementById("websiteName");
-
-    const saveWebsiteName =
-      document.getElementById("saveWebsiteName");
-
-    const websiteMessage =
-      document.getElementById("websiteMessage");
-
-    const displayName =
-      document.getElementById("displayName");
-
-    const profileEmail =
-      document.getElementById("profileEmail");
-
-    const saveProfile =
-      document.getElementById("saveProfile");
-
-    const profileMessage =
-      document.getElementById("profileMessage");
-
-    const newPassword =
-      document.getElementById("newPassword");
-
-    const changePassword =
-      document.getElementById("changePassword");
-
-    const passwordMessage =
-      document.getElementById("passwordMessage");
-
-    const adminLogout =
-      document.getElementById("adminLogout");
-
-
-    function openSettings() {
-      settingsOverlay.classList.add("open");
-      settingsOverlay.setAttribute("aria-hidden", "false");
-    }
-
-
-    function closeSettingsModal() {
-      settingsOverlay.classList.remove("open");
-      settingsOverlay.setAttribute("aria-hidden", "true");
-    }
-
-
-    settingsButton.addEventListener(
-      "click",
-      openSettings
-    );
-
-
-    closeSettings.addEventListener(
-      "click",
-      closeSettingsModal
-    );
-
-
-    settingsOverlay.addEventListener(
-   
+</body>
+</html>
