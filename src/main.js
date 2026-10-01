@@ -2,9 +2,9 @@ import { removeBackground } from "@imgly/background-removal";
 import "./style.css";
 
 
-/* =====================================================
+/* ==========================================
    ELEMENTS
-===================================================== */
+========================================== */
 
 const dropZone =
   document.getElementById("dropZone");
@@ -34,18 +34,22 @@ const progressBar =
   document.getElementById("progressBar");
 
 
-/* =====================================================
-   VARIABLES
-===================================================== */
+/* ==========================================
+   STATE
+========================================== */
 
 let selectedFile = null;
+
 let resultUrl = null;
+
+let selectedPreviewUrl = null;
+
 let isProcessing = false;
 
 
-/* =====================================================
+/* ==========================================
    STATUS
-===================================================== */
+========================================== */
 
 function setStatus(
   message,
@@ -56,6 +60,7 @@ function setStatus(
     status.textContent = message;
   }
 
+
   if (
     progressBar &&
     percent !== null
@@ -64,8 +69,12 @@ function setStatus(
     const safePercent =
       Math.max(
         0,
-        Math.min(100, percent)
+        Math.min(
+          100,
+          percent
+        )
       );
+
 
     progressBar.style.width =
       `${safePercent}%`;
@@ -75,9 +84,9 @@ function setStatus(
 }
 
 
-/* =====================================================
-   SHOW PREVIEW
-===================================================== */
+/* ==========================================
+   PREVIEW
+========================================== */
 
 function showPreview(
   imageUrl
@@ -87,9 +96,11 @@ function showPreview(
     return;
   }
 
+
   previewCard.classList.add(
     "visible"
   );
+
 
   if (preview) {
 
@@ -104,9 +115,9 @@ function showPreview(
 }
 
 
-/* =====================================================
-   LOAD IMAGE
-===================================================== */
+/* ==========================================
+   IMAGE LOADING
+========================================== */
 
 function loadImage(
   file
@@ -119,35 +130,35 @@ function loadImage(
         new Image();
 
       const url =
-        URL.createObjectURL(file);
+        URL.createObjectURL(
+          file
+        );
 
 
-      image.onload =
-        () => {
+      image.onload = () => {
 
-          URL.revokeObjectURL(
-            url
-          );
+        URL.revokeObjectURL(
+          url
+        );
 
-          resolve(image);
+        resolve(image);
 
-        };
+      };
 
 
-      image.onerror =
-        () => {
+      image.onerror = () => {
 
-          URL.revokeObjectURL(
-            url
-          );
+        URL.revokeObjectURL(
+          url
+        );
 
-          reject(
-            new Error(
-              "The image could not be decoded."
-            )
-          );
+        reject(
+          new Error(
+            "The image could not be decoded."
+          )
+        );
 
-        };
+      };
 
 
       image.src =
@@ -159,16 +170,18 @@ function loadImage(
 }
 
 
-/* =====================================================
-   CONVERT IMAGE TO PNG
-===================================================== */
+/* ==========================================
+   PREPARE IMAGE
+========================================== */
 
 async function createProcessingBlob(
   file
 ) {
 
   const image =
-    await loadImage(file);
+    await loadImage(
+      file
+    );
 
 
   const canvas =
@@ -177,13 +190,30 @@ async function createProcessingBlob(
     );
 
 
-  canvas.width =
+  const width =
     image.naturalWidth ||
     image.width;
 
-  canvas.height =
+
+  const height =
     image.naturalHeight ||
     image.height;
+
+
+  if (!width || !height) {
+
+    throw new Error(
+      "Invalid image dimensions."
+    );
+
+  }
+
+
+  canvas.width =
+    width;
+
+  canvas.height =
+    height;
 
 
   const context =
@@ -205,8 +235,8 @@ async function createProcessingBlob(
     image,
     0,
     0,
-    canvas.width,
-    canvas.height
+    width,
+    height
   );
 
 
@@ -228,6 +258,7 @@ async function createProcessingBlob(
 
           }
 
+
           resolve(blob);
 
         },
@@ -240,9 +271,9 @@ async function createProcessingBlob(
 }
 
 
-/* =====================================================
-   FILE VALIDATION
-===================================================== */
+/* ==========================================
+   SUPPORTED FILE
+========================================== */
 
 function isSupportedImage(
   file
@@ -290,9 +321,9 @@ function isSupportedImage(
 }
 
 
-/* =====================================================
-   SELECT FILE
-===================================================== */
+/* ==========================================
+   HANDLE FILE
+========================================== */
 
 async function handleFile(
   file
@@ -318,10 +349,6 @@ async function handleFile(
     file;
 
 
-  /*
-   * Clear previous result.
-   */
-
   if (resultUrl) {
 
     URL.revokeObjectURL(
@@ -329,6 +356,18 @@ async function handleFile(
     );
 
     resultUrl =
+      null;
+
+  }
+
+
+  if (selectedPreviewUrl) {
+
+    URL.revokeObjectURL(
+      selectedPreviewUrl
+    );
+
+    selectedPreviewUrl =
       null;
 
   }
@@ -342,37 +381,30 @@ async function handleFile(
   }
 
 
-  /*
-   * Show original image.
-   */
-
   try {
 
-    const previewUrl =
+    selectedPreviewUrl =
       URL.createObjectURL(
         file
       );
 
 
     showPreview(
-      previewUrl
+      selectedPreviewUrl
     );
 
-
-    /*
-     * The preview URL can stay active
-     * while the image is displayed.
-     */
 
     setStatus(
       `${file.name} selected.`
     );
+
 
   } catch (error) {
 
     console.error(
       error
     );
+
 
     setStatus(
       "Could not display this image."
@@ -383,9 +415,9 @@ async function handleFile(
 }
 
 
-/* =====================================================
+/* ==========================================
    FILE INPUT
-===================================================== */
+========================================== */
 
 fileInput?.addEventListener(
   "change",
@@ -393,6 +425,7 @@ fileInput?.addEventListener(
 
     const file =
       fileInput.files?.[0];
+
 
     await handleFile(
       file
@@ -402,9 +435,9 @@ fileInput?.addEventListener(
 );
 
 
-/* =====================================================
+/* ==========================================
    DROP ZONE CLICK
-===================================================== */
+========================================== */
 
 dropZone?.addEventListener(
   "click",
@@ -414,15 +447,16 @@ dropZone?.addEventListener(
       return;
     }
 
+
     fileInput?.click();
 
   }
 );
 
 
-/* =====================================================
-   DRAG & DROP
-===================================================== */
+/* ==========================================
+   DRAG OVER
+========================================== */
 
 dropZone?.addEventListener(
   "dragover",
@@ -430,9 +464,11 @@ dropZone?.addEventListener(
 
     event.preventDefault();
 
+
     if (isProcessing) {
       return;
     }
+
 
     dropZone.classList.add(
       "dragover"
@@ -441,6 +477,10 @@ dropZone?.addEventListener(
   }
 );
 
+
+/* ==========================================
+   DRAG LEAVE
+========================================== */
 
 dropZone?.addEventListener(
   "dragleave",
@@ -454,11 +494,16 @@ dropZone?.addEventListener(
 );
 
 
+/* ==========================================
+   DROP
+========================================== */
+
 dropZone?.addEventListener(
   "drop",
   async (event) => {
 
     event.preventDefault();
+
 
     dropZone.classList.remove(
       "dragover"
@@ -471,7 +516,8 @@ dropZone?.addEventListener(
 
 
     const file =
-      event.dataTransfer?.files?.[0];
+      event.dataTransfer
+        ?.files?.[0];
 
 
     await handleFile(
@@ -482,9 +528,9 @@ dropZone?.addEventListener(
 );
 
 
-/* =====================================================
+/* ==========================================
    REMOVE BACKGROUND
-===================================================== */
+========================================== */
 
 removeButton?.addEventListener(
   "click",
@@ -524,13 +570,9 @@ removeButton?.addEventListener(
 
     try {
 
-      /*
-       * Convert JPG/WEBP/etc.
-       * into PNG before processing.
-       *
-       * This avoids image decoding
-       * problems with some files.
-       */
+      /* -------------------------------
+         Convert image to PNG first
+      -------------------------------- */
 
       const processingBlob =
         await createProcessingBlob(
@@ -543,6 +585,10 @@ removeButton?.addEventListener(
         5
       );
 
+
+      /* -------------------------------
+         AI BACKGROUND REMOVAL
+      -------------------------------- */
 
       const resultBlob =
         await removeBackground(
@@ -560,44 +606,45 @@ removeButton?.addEventListener(
             model:
               "isnet_quint8",
 
-            progress:
-              (
+            progress: (
+              key,
+              current,
+              total
+            ) => {
+
+              const percent =
+                total
+                  ? Math.round(
+                      (
+                        current /
+                        total
+                      ) * 100
+                    )
+                  : 0;
+
+
+              setStatus(
+                `Processing… ${percent}%`,
+                percent
+              );
+
+
+              console.log(
+                "Krishna AI Studio:",
                 key,
                 current,
                 total
-              ) => {
+              );
 
-                const percent =
-                  total
-                    ? Math.round(
-                        (current / total) *
-                        100
-                      )
-                    : 0;
-
-
-                setStatus(
-                  `Processing… ${percent}%`,
-                  percent
-                );
-
-
-                console.log(
-                  "Krishna AI Studio:",
-                  key,
-                  current,
-                  total
-                );
-
-              }
+            }
 
           }
         );
 
 
-      /*
-       * Create result URL.
-       */
+      /* -------------------------------
+         SHOW RESULT IN SAME SECTION
+      -------------------------------- */
 
       resultUrl =
         URL.createObjectURL(
@@ -605,22 +652,14 @@ removeButton?.addEventListener(
         );
 
 
-      /*
-       * IMPORTANT:
-       *
-       * The processed image replaces
-       * the original image in the SAME
-       * preview section.
-       */
-
       showPreview(
         resultUrl
       );
 
 
-      /*
-       * Show download button.
-       */
+      /* -------------------------------
+         DOWNLOAD
+      -------------------------------- */
 
       if (downloadButton) {
 
@@ -648,9 +687,7 @@ removeButton?.addEventListener(
         "AI processing failed.";
 
 
-      if (
-        error?.message
-      ) {
+      if (error?.message) {
 
         message =
           error.message;
@@ -662,10 +699,12 @@ removeButton?.addEventListener(
         message
       );
 
+
     } finally {
 
       isProcessing =
         false;
+
 
       removeButton.disabled =
         false;
@@ -676,9 +715,9 @@ removeButton?.addEventListener(
 );
 
 
-/* =====================================================
+/* ==========================================
    DOWNLOAD
-===================================================== */
+========================================== */
 
 downloadButton?.addEventListener(
   "click",
@@ -717,17 +756,13 @@ downloadButton?.addEventListener(
 );
 
 
-/* =====================================================
+/* ==========================================
    RESET
-===================================================== */
+========================================== */
 
 resetButton?.addEventListener(
   "click",
   () => {
-
-    /*
-     * Revoke generated result.
-     */
 
     if (resultUrl) {
 
@@ -741,20 +776,25 @@ resetButton?.addEventListener(
     }
 
 
-    /*
-     * Reset variables.
-     */
+    if (selectedPreviewUrl) {
+
+      URL.revokeObjectURL(
+        selectedPreviewUrl
+      );
+
+      selectedPreviewUrl =
+        null;
+
+    }
+
 
     selectedFile =
       null;
 
+
     isProcessing =
       false;
 
-
-    /*
-     * Reset file input.
-     */
 
     if (fileInput) {
 
@@ -763,10 +803,6 @@ resetButton?.addEventListener(
 
     }
 
-
-    /*
-     * Hide preview.
-     */
 
     if (previewCard) {
 
@@ -783,12 +819,11 @@ resetButton?.addEventListener(
         "src"
       );
 
+      preview.style.display =
+        "none";
+
     }
 
-
-    /*
-     * Hide download.
-     */
 
     if (downloadButton) {
 
@@ -798,14 +833,18 @@ resetButton?.addEventListener(
     }
 
 
-    /*
-     * Reset progress.
-     */
-
     if (progressBar) {
 
       progressBar.style.width =
         "0%";
+
+    }
+
+
+    if (removeButton) {
+
+      removeButton.disabled =
+        false;
 
     }
 
@@ -818,9 +857,9 @@ resetButton?.addEventListener(
 );
 
 
-/* =====================================================
+/* ==========================================
    INITIAL STATE
-===================================================== */
+========================================== */
 
 if (downloadButton) {
 
@@ -835,6 +874,14 @@ if (previewCard) {
   previewCard.classList.remove(
     "visible"
   );
+
+}
+
+
+if (preview) {
+
+  preview.style.display =
+    "none";
 
 }
 
