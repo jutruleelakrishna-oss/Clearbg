@@ -1,51 +1,97 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Krishna AI Studio</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <meta
     name="description"
     content="Krishna AI Studio - AI powered background remover"
   />
+
+  <meta
+    name="theme-color"
+    content="#07080d"
+  />
+
+  <title>Krishna AI Studio</title>
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  />
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
 </head>
+
 
 <body class="auth-checking">
 
-  <!-- AUTH LOADING -->
-  <div id="authLoading" class="auth-loading">
-    <div class="loading-spinner"></div>
-    <p>Checking login...</p>
+
+  <!-- =========================================
+       AUTH LOADING
+  ========================================== -->
+
+  <div id="authLoading">
+
+    <div class="auth-spinner"></div>
+
+    <div>
+      Checking login...
+    </div>
+
   </div>
 
 
-  <!-- HEADER -->
-  <header class="topbar">
+  <!-- =========================================
+       HEADER
+  ========================================== -->
+
+  <header class="site-header">
 
     <div class="brand">
-      <span class="brand-icon">✦</span>
-      <span id="headerWebsiteName">Krishna AI Studio</span>
+
+      <div class="brand-icon">
+        ✦
+      </div>
+
+      <div class="brand-text">
+        Krishna AI Studio
+      </div>
+
     </div>
+
 
     <div class="header-actions">
 
-      <span class="privacy">
-        🔒 Private & Secure
-      </span>
+      <div class="privacy-indicator">
+        🔒 Private
+      </div>
+
 
       <!-- ADMIN MENU -->
+
       <button
         id="menuButton"
         class="menu-button"
         type="button"
-        aria-label="Open admin menu"
-        style="display:none;"
+        aria-label="Open menu"
       >
-        <span></span>
-        <span></span>
-        <span></span>
+        ☰
       </button>
 
     </div>
@@ -53,9 +99,9 @@
   </header>
 
 
-  <!-- =========================
+  <!-- =========================================
        ADMIN MENU
-  ========================== -->
+  ========================================== -->
 
   <div
     id="menuOverlay"
@@ -66,15 +112,14 @@
 
       <div class="menu-header">
 
-        <div>
-          <h2>Admin Menu</h2>
-          <p>Manage your account</p>
-        </div>
+        <h3>
+          Admin Menu
+        </h3>
 
         <button
           id="closeMenu"
-          class="close-menu"
           type="button"
+          class="close-button"
         >
           ×
         </button>
@@ -82,100 +127,48 @@
       </div>
 
 
-      <!-- PROFILE -->
       <button
         id="profileMenuButton"
         class="menu-item"
         type="button"
       >
-
-        <span class="menu-item-icon">
-          👤
-        </span>
-
-        <span class="menu-item-content">
-          <strong>Profile</strong>
-          <small>
-            Personal information & contact details
-          </small>
-        </span>
-
-        <span class="menu-arrow">
-          ›
-        </span>
-
+        <span>👤</span>
+        <span>Profile</span>
       </button>
 
 
-      <!-- SETTINGS -->
       <button
         id="settingsMenuButton"
         class="menu-item"
         type="button"
       >
-
-        <span class="menu-item-icon">
-          ⚙️
-        </span>
-
-        <span class="menu-item-content">
-          <strong>Settings</strong>
-          <small>
-            Security, password & devices
-          </small>
-        </span>
-
-        <span class="menu-arrow">
-          ›
-        </span>
-
+        <span>⚙️</span>
+        <span>Settings</span>
       </button>
 
 
-      <!-- WEBSITE SETTINGS -->
       <button
         id="websiteSettingsMenuButton"
-        class="menu-item admin-menu-item"
+        class="menu-item"
         type="button"
-        style="display:none;"
       >
-
-        <span class="menu-item-icon">
-          🌐
-        </span>
-
-        <span class="menu-item-content">
-          <strong>Website Settings</strong>
-          <small>
-            Website & user management
-          </small>
-        </span>
-
-        <span class="menu-arrow">
-          ›
-        </span>
-
+        <span>🌐</span>
+        <span>Website Settings</span>
       </button>
-
-
-      <div class="menu-admin-label">
-        👑 ADMINISTRATOR
-      </div>
-
-      <div class="menu-footer">
-        Krishna AI Studio
-      </div>
 
     </div>
 
   </div>
 
 
-  <!-- =========================
+  <!-- =========================================
        MAIN
-  ========================== -->
+  ========================================== -->
 
-  <main>
+  <main class="main-content">
+
+
+    <!-- HERO -->
 
     <section class="hero">
 
@@ -189,201 +182,220 @@
       </h1>
 
       <p>
-        Upload an image and let Krishna AI Studio
+        Upload your image and let Krishna AI Studio
         automatically remove the background.
       </p>
 
     </section>
 
 
-    <!-- WORKSPACE -->
+    <!-- =======================================
+         IMAGE WORKSPACE
+    ======================================== -->
+
     <section class="workspace">
 
-      <div class="panel">
+
+      <!-- DROP ZONE -->
+
+      <div
+        id="dropZone"
+        class="drop-zone"
+      >
+
+        <div class="upload-icon">
+          ↑
+        </div>
+
+        <h2>
+          Drop your image here
+        </h2>
+
+        <p>
+          or click to browse
+        </p>
+
+        <small>
+          JPG, JPEG, PNG, WEBP, GIF, BMP, AVIF
+        </small>
 
 
-        <!-- UPLOAD -->
-        <div
-          id="dropZone"
-          class="drop-zone"
-        >
+        <input
+          id="fileInput"
+          type="file"
+          accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif"
+          hidden
+        />
 
-          <input
-            id="fileInput"
-            type="file"
-            accept="image/*"
-            hidden
-          />
+      </div>
 
-          <div class="upload-icon">
-            ↑
-          </div>
 
-          <h3>
-            Drop your image here
-          </h3>
+      <!-- =====================================
+           PREVIEW
+      ====================================== -->
 
-          <p>
-            or click to browse
-          </p>
+      <div
+        id="previewCard"
+        class="preview-card"
+      >
 
-          <span class="supported">
-            JPG · PNG · WEBP · GIF · BMP · AVIF
+        <div class="preview-header">
+
+          <span>
+            Your Image
           </span>
 
         </div>
 
 
-        <!-- PREVIEW -->
-        <div
-          id="previewCard"
-          class="preview-card"
-          style="display:none;"
-        >
+        <div class="preview-image-container">
 
-          <div class="preview-header">
-
-            <div>
-
-              <strong id="previewLabel">
-                Your Image
-              </strong>
-
-              <div id="fileName">
-                image
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div class="image-wrap">
-
-            <img
-              id="preview"
-              alt="Image preview"
-            />
-
-          </div>
+          <img
+            id="preview"
+            alt="Image preview"
+          />
 
         </div>
 
 
-        <!-- ACTION BUTTONS -->
-        <div class="action-buttons">
+        <!-- =================================
+             CONTROLS
+        ================================== -->
+
+        <div class="controls">
 
           <button
             id="removeButton"
             class="primary-button"
             type="button"
-            disabled
           >
             ✨ Remove Background
           </button>
+
 
           <button
             id="downloadButton"
             class="secondary-button"
             type="button"
-            style="display:none;"
           >
             ↓ Download PNG
           </button>
 
+
           <button
             id="resetButton"
-            class="secondary-button"
+            class="reset-button"
             type="button"
           >
-            ↻ Reset
+            Reset
           </button>
 
         </div>
 
 
         <!-- STATUS -->
-        <div
-          id="status"
-          class="status"
-        >
-          Ready
-        </div>
+
+        <div class="processing-status">
+
+          <div id="status">
+            Select an image to get started.
+          </div>
 
 
-        <div class="progress-container">
+          <div class="progress-container">
 
-          <div
-            id="progressBar"
-            class="progress-bar"
-          ></div>
+            <div
+              id="progressBar"
+              class="progress-bar"
+            ></div>
 
-        </div>
+          </div>
 
-      </div>
-
-    </section>
-
-
-    <!-- INFO -->
-    <section class="info-section">
-
-      <div class="info-card">
-
-        <span>⚡</span>
-
-        <div>
-          <strong>Fast Processing</strong>
-          <p>
-            AI removes backgrounds automatically.
-          </p>
-        </div>
-
-      </div>
-
-
-      <div class="info-card">
-
-        <span>🔒</span>
-
-        <div>
-          <strong>Private</strong>
-          <p>
-            Your images stay on your device.
-          </p>
-        </div>
-
-      </div>
-
-
-      <div class="info-card">
-
-        <span>✨</span>
-
-        <div>
-          <strong>High Quality</strong>
-          <p>
-            Clean edges with AI processing.
-          </p>
         </div>
 
       </div>
 
     </section>
+
+
+    <!-- =======================================
+         FEATURES
+    ======================================== -->
+
+    <section class="features">
+
+      <div class="feature-card">
+
+        <div class="feature-icon">
+          ⚡
+        </div>
+
+        <h3>
+          Fast
+        </h3>
+
+        <p>
+          AI-powered background removal.
+        </p>
+
+      </div>
+
+
+      <div class="feature-card">
+
+        <div class="feature-icon">
+          🎯
+        </div>
+
+        <h3>
+          Precise
+        </h3>
+
+        <p>
+          Clean and accurate subject detection.
+        </p>
+
+      </div>
+
+
+      <div class="feature-card">
+
+        <div class="feature-icon">
+          🔒
+        </div>
+
+        <h3>
+          Private
+        </h3>
+
+        <p>
+          Your images stay under your control.
+        </p>
+
+      </div>
+
+    </section>
+
 
   </main>
 
 
-  <!-- FOOTER -->
-  <footer>
-    © 2026 Krishna AI Studio
+  <!-- =========================================
+       FOOTER
+  ========================================== -->
+
+  <footer class="site-footer">
+
+    <p>
+      © 2026 Krishna AI Studio
+    </p>
+
   </footer>
 
 
-
-  <!-- ==================================
-       ADMIN SETTINGS MODAL
-  =================================== -->
+  <!-- =========================================
+       SETTINGS MODAL
+  ========================================== -->
 
   <div
     id="settingsOverlay"
@@ -394,25 +406,17 @@
 
 
       <!-- SETTINGS HEADER -->
-      <div class="settings-title">
 
-        <div>
+      <div class="settings-header">
 
-          <h2 id="settingsModalTitle">
-            Profile
-          </h2>
-
-          <p id="settingsModalSubtitle">
-            Manage your profile
-          </p>
-
-        </div>
-
+        <h2>
+          Settings
+        </h2>
 
         <button
           id="closeSettings"
-          class="close-settings"
           type="button"
+          class="close-button"
         >
           ×
         </button>
@@ -420,30 +424,32 @@
       </div>
 
 
-
-      <!-- ==================================
+      <!-- =====================================
            PROFILE
-      =================================== -->
+      ====================================== -->
 
       <section
         id="profileSection"
         class="settings-section"
-        style="display:none;"
       >
 
-        <div class="profile-header">
+        <h3>
+          👤 Profile
+        </h3>
+
+
+        <div class="profile-picture-area">
 
           <div class="profile-avatar">
 
             <img
               id="profilePicture"
-              src=""
               alt="Profile picture"
             />
 
             <div
               id="profileAvatarPlaceholder"
-              class="profile-avatar-placeholder"
+              class="profile-placeholder"
             >
               👤
             </div>
@@ -451,71 +457,52 @@
           </div>
 
 
-          <div class="profile-photo-actions">
-
-            <h3>
-              Profile Picture
-            </h3>
-
-            <p>
-              Add a profile photo
-            </p>
-
-            <input
-              id="profilePictureInput"
-              type="file"
-              accept="image/*"
-              hidden
-            />
+          <div class="profile-picture-actions">
 
             <button
               id="changeProfilePicture"
-              class="small-button"
               type="button"
+              class="secondary-button"
             >
-              Change Photo
+              Change Picture
             </button>
+
 
             <button
               id="removeProfilePicture"
-              class="small-button danger-small"
               type="button"
+              class="reset-button"
             >
               Remove
             </button>
 
           </div>
 
+
+          <input
+            id="profilePictureInput"
+            type="file"
+            accept="image/*"
+            hidden
+          />
+
         </div>
 
 
-        <div class="admin-profile-badge">
-          👑 ADMINISTRATOR
-        </div>
-
-
-        <!-- DISPLAY NAME -->
-        <label class="field">
-
-          <span>
-            Display Name
-          </span>
+        <label>
+          Display Name
 
           <input
             id="displayName"
             type="text"
-            placeholder="Your name"
+            placeholder="Display name"
           />
 
         </label>
 
 
-        <!-- EMAIL -->
-        <label class="field">
-
-          <span>
-            Email Address
-          </span>
+        <label>
+          Email
 
           <input
             id="profileEmail"
@@ -526,72 +513,58 @@
         </label>
 
 
-        <!-- PHONE -->
-        <label class="field">
-
-          <span>
-            Phone Number
-          </span>
+        <label>
+          Phone
 
           <input
             id="profilePhone"
             type="tel"
-            placeholder="+91 XXXXX XXXXX"
+            placeholder="Phone number"
           />
 
         </label>
 
 
-        <!-- LOCATION -->
-        <label class="field">
-
-          <span>
-            Location
-          </span>
+        <label>
+          Location
 
           <input
             id="profileLocation"
             type="text"
-            placeholder="City, Country"
+            placeholder="Location"
           />
 
         </label>
 
 
-        <!-- ABOUT -->
-        <label class="field">
-
-          <span>
-            About
-          </span>
+        <label>
+          About
 
           <textarea
             id="profileAbout"
             rows="4"
-            placeholder="Tell something about yourself..."
+            placeholder="About"
           ></textarea>
 
         </label>
 
 
-        <!-- ACCOUNT CREATED -->
-        <div class="profile-info-row">
+        <label>
+          Account Created
 
-          <span>
-            Account Created
-          </span>
+          <input
+            id="accountCreated"
+            type="text"
+            readonly
+          />
 
-          <strong id="accountCreated">
-            —
-          </strong>
-
-        </div>
+        </label>
 
 
         <button
           id="saveProfile"
-          class="settings-save"
           type="button"
+          class="primary-button"
         >
           Save Profile
         </button>
@@ -599,133 +572,86 @@
       </section>
 
 
-
-      <!-- ==================================
-           SETTINGS
-      =================================== -->
+      <!-- =====================================
+           SECURITY
+      ====================================== -->
 
       <section
         id="securitySection"
         class="settings-section"
-        style="display:none;"
       >
 
         <h3>
-          🔐 Account & Security
+          ⚙️ Settings & Security
         </h3>
 
 
-        <!-- EMAIL -->
-        <div class="settings-info-box">
-
-          <span>
-            📧
-          </span>
-
-          <div>
-
-            <strong>
-              Email Address
-            </strong>
-
-            <p id="settingsEmail">
-              —
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <!-- PASSWORD -->
-        <label class="field">
-
-          <span>
-            New Password
-          </span>
+        <label>
+          Email
 
           <input
-            id="newPassword"
-            type="password"
-            placeholder="Enter new password"
+            id="settingsEmail"
+            type="email"
+            readonly
           />
 
         </label>
 
 
-        <button
-          id="changePassword"
-          class="settings-save"
-          type="button"
-        >
-          Change Password
-        </button>
+        <div class="setting-block">
 
+          <h4>
+            Change Password
+          </h4>
 
-        <!-- SECURITY -->
-        <div class="settings-option">
+          <input
+            id="newPassword"
+            type="password"
+            placeholder="New password"
+          />
 
-          <div>
-
-            <strong>
-              🛡️ Login Security
-            </strong>
-
-            <p>
-              Manage how your account is protected.
-            </p>
-
-          </div>
-
-          <span class="coming-soon">
-            Available soon
-          </span>
-
-        </div>
-
-
-        <!-- DEVICES -->
-        <div class="settings-option">
-
-          <div>
-
-            <strong>
-              💻 Login & Devices
-            </strong>
-
-            <p>
-              View and manage logged-in devices.
-            </p>
-
-          </div>
-
-          <span class="coming-soon">
-            Available soon
-          </span>
-
-        </div>
-
-
-        <!-- LOGIN LIMIT -->
-        <div class="settings-option">
-
-          <div>
-
-            <strong>
-              👥 Maximum Simultaneous Logins
-            </strong>
-
-            <p>
-              Maximum number of active devices.
-            </p>
-
-          </div>
-
-
-          <select
-            id="maxLoginCount"
-            class="settings-select"
+          <button
+            id="changePassword"
+            type="button"
+            class="primary-button"
           >
+            Change Password
+          </button>
+
+        </div>
+
+
+        <div class="setting-block">
+
+          <h4>
+            Login Security
+          </h4>
+
+          <p>
+            Your account is protected by Supabase
+            authentication.
+          </p>
+
+        </div>
+
+
+        <div class="setting-block">
+
+          <h4>
+            Login & Devices
+          </h4>
+
+          <p>
+            Device management settings.
+          </p>
+
+        </div>
+
+
+        <label>
+          Maximum Simultaneous Logins
+
+          <select id="maxLoginCount">
 
             <option value="1">
               1
@@ -769,51 +695,27 @@
 
           </select>
 
-        </div>
-
-
-        <!-- ADMIN DEVICE -->
-        <div class="current-device">
-
-          <div class="current-device-icon">
-            👑
-          </div>
-
-          <div>
-
-            <strong>
-              ADMIN · CURRENT DEVICE
-            </strong>
-
-            <p>
-              This is your current login.
-            </p>
-
-          </div>
-
-        </div>
+        </label>
 
 
         <button
           id="adminLogout"
-          class="logout-button"
           type="button"
+          class="logout-button"
         >
-          Log Out This Device
+          Log Out Current Device
         </button>
 
       </section>
 
 
-
-      <!-- ==================================
+      <!-- =====================================
            WEBSITE SETTINGS
-      =================================== -->
+      ====================================== -->
 
       <section
         id="websiteSettingsSection"
         class="settings-section"
-        style="display:none;"
       >
 
         <h3>
@@ -821,29 +723,20 @@
         </h3>
 
 
-        <!-- WEBSITE NAME -->
-        <label class="field">
-
-          <span>
-            Website Name
-          </span>
+        <label>
+          Website Name
 
           <input
             id="websiteName"
             type="text"
             value="Krishna AI Studio"
-            placeholder="Website name"
           />
 
         </label>
 
 
-        <!-- WEBSITE DESCRIPTION -->
-        <label class="field">
-
-          <span>
-            Website Description
-          </span>
+        <label>
+          Website Description
 
           <textarea
             id="websiteDescription"
@@ -854,25 +747,10 @@
         </label>
 
 
-        <!-- APPEARANCE -->
-        <div class="settings-option">
+        <label>
+          Appearance
 
-          <div>
-
-            <strong>
-              🎨 Appearance
-            </strong>
-
-            <p>
-              Manage website appearance.
-            </p>
-
-          </div>
-
-          <select
-            id="websiteTheme"
-            class="settings-select"
-          >
+          <select id="websiteTheme">
 
             <option value="dark">
               Dark
@@ -884,37 +762,27 @@
 
           </select>
 
-        </div>
+        </label>
 
 
-        <!-- IMAGE SETTINGS -->
-        <div class="settings-option">
+        <div class="setting-block">
 
-          <div>
+          <h4>
+            Image Settings
+          </h4>
 
-            <strong>
-              🖼️ Image Processing
-            </strong>
-
-            <p>
-              Configure image processing options.
-            </p>
-
-          </div>
-
-          <span class="enabled-badge">
-            Enabled
-          </span>
+          <p>
+            AI background removal with PNG output.
+          </p>
 
         </div>
 
 
-        <!-- SUPPORTED FORMATS -->
-        <div class="formats-box">
+        <div class="setting-block">
 
-          <strong>
-            📁 Supported Formats
-          </strong>
+          <h4>
+            Supported Formats
+          </h4>
 
           <div class="format-tags">
 
@@ -931,32 +799,24 @@
         </div>
 
 
-        <!-- USER MANAGEMENT -->
-        <div class="settings-option">
+        <div class="setting-block">
 
-          <div>
+          <h4>
+            User Management
+          </h4>
 
-            <strong>
-              👥 User Management
-            </strong>
-
-            <p>
-              Manage normal website users.
-            </p>
-
-          </div>
-
-          <span class="coming-soon">
-            Available soon
-          </span>
+          <p>
+            User management controls are available
+            to the administrator.
+          </p>
 
         </div>
 
 
         <button
           id="saveWebsiteName"
-          class="settings-save"
           type="button"
+          class="primary-button"
         >
           Save Website Settings
         </button>
@@ -965,17 +825,22 @@
 
 
       <!-- MESSAGE -->
+
       <div
         id="settingMessage"
         class="setting-message"
       ></div>
+
 
     </div>
 
   </div>
 
 
-  <!-- SCRIPTS -->
+  <!-- =========================================
+       SCRIPTS
+  ========================================== -->
+
   <script
     type="module"
     src="/src/main.js"
@@ -986,5 +851,36 @@
     src="/src/auth.js"
   ></script>
 
+
+  <!-- AUTH FAILSAFE -->
+
+  <script>
+
+    setTimeout(() => {
+
+      document.body.classList.remove(
+        "auth-checking"
+      );
+
+
+      const loading =
+        document.getElementById(
+          "authLoading"
+        );
+
+
+      if (loading) {
+
+        loading.style.display =
+          "none";
+
+      }
+
+    }, 3000);
+
+  </script>
+
+
 </body>
-          </html>
+
+</html>
