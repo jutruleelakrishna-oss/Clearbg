@@ -2,10 +2,6 @@ import { createClient } from
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 
-/* =====================================================
-   SUPABASE
-===================================================== */
-
 const SUPABASE_URL =
   "https://kqhhjwmifqrkxhygjhap.supabase.co";
 
@@ -23,29 +19,21 @@ const supabase =
   );
 
 
-/* =====================================================
+/* =========================================
    ELEMENTS
-===================================================== */
+========================================= */
 
 const menuButton =
-  document.getElementById(
-    "menuButton"
-  );
+  document.getElementById("menuButton");
 
 const menuOverlay =
-  document.getElementById(
-    "menuOverlay"
-  );
+  document.getElementById("menuOverlay");
 
 const profileMenuButton =
-  document.getElementById(
-    "profileMenuButton"
-  );
+  document.getElementById("profileMenuButton");
 
 const settingsMenuButton =
-  document.getElementById(
-    "settingsMenuButton"
-  );
+  document.getElementById("settingsMenuButton");
 
 const websiteSettingsMenuButton =
   document.getElementById(
@@ -72,308 +60,109 @@ const websiteSettingsSection =
     "websiteSettingsSection"
   );
 
-const settingMessage =
+const closeMenu =
+  document.getElementById("closeMenu");
+
+const closeSettings =
   document.getElementById(
-    "settingMessage"
+    "closeSettings"
   );
 
 
-/* =====================================================
-   PROFILE ELEMENTS
-===================================================== */
+/* =========================================
+   ADMIN CHECK
+========================================= */
 
-const profilePicture =
-  document.getElementById(
-    "profilePicture"
-  );
-
-const profileAvatarPlaceholder =
-  document.getElementById(
-    "profileAvatarPlaceholder"
-  );
-
-const profilePictureInput =
-  document.getElementById(
-    "profilePictureInput"
-  );
-
-const changeProfilePicture =
-  document.getElementById(
-    "changeProfilePicture"
-  );
-
-const removeProfilePicture =
-  document.getElementById(
-    "removeProfilePicture"
-  );
-
-const displayName =
-  document.getElementById(
-    "displayName"
-  );
-
-const profileEmail =
-  document.getElementById(
-    "profileEmail"
-  );
-
-const profilePhone =
-  document.getElementById(
-    "profilePhone"
-  );
-
-const profileLocation =
-  document.getElementById(
-    "profileLocation"
-  );
-
-const profileAbout =
-  document.getElementById(
-    "profileAbout"
-  );
-
-const accountCreated =
-  document.getElementById(
-    "accountCreated"
-  );
-
-const saveProfile =
-  document.getElementById(
-    "saveProfile"
-  );
-
-
-/* =====================================================
-   SECURITY ELEMENTS
-===================================================== */
-
-const settingsEmail =
-  document.getElementById(
-    "settingsEmail"
-  );
-
-const newPassword =
-  document.getElementById(
-    "newPassword"
-  );
-
-const changePassword =
-  document.getElementById(
-    "changePassword"
-  );
-
-const maxLoginCount =
-  document.getElementById(
-    "maxLoginCount"
-  );
-
-const adminLogout =
-  document.getElementById(
-    "adminLogout"
-  );
-
-
-/* =====================================================
-   WEBSITE SETTINGS
-===================================================== */
-
-const websiteName =
-  document.getElementById(
-    "websiteName"
-  );
-
-const websiteDescription =
-  document.getElementById(
-    "websiteDescription"
-  );
-
-const websiteTheme =
-  document.getElementById(
-    "websiteTheme"
-  );
-
-const saveWebsiteName =
-  document.getElementById(
-    "saveWebsiteName"
-  );
-
-
-/* =====================================================
-   CURRENT USER
-===================================================== */
-
-let currentUser =
-  null;
-
-
-/* =====================================================
-   HELPERS
-===================================================== */
-
-function isAdmin(
-  user
-) {
+function isAdmin(user) {
 
   return (
-    user &&
-    user.email &&
-    user.email.toLowerCase() ===
-      ADMIN_EMAIL.toLowerCase()
+    user?.email?.toLowerCase() ===
+    ADMIN_EMAIL.toLowerCase()
   );
 
 }
 
 
-function showMessage(
-  message,
-  success = true
-) {
+/* =========================================
+   SHOW WEBSITE
+========================================= */
 
-  if (!settingMessage) {
-    return;
-  }
+function showWebsite() {
 
-
-  settingMessage.textContent =
-    message;
-
-
-  settingMessage.style.display =
-    "block";
-
-
-  settingMessage.dataset.type =
-    success
-      ? "success"
-      : "error";
-
-
-  setTimeout(
-    () => {
-
-      if (settingMessage) {
-
-        settingMessage.style.display =
-          "none";
-
-      }
-
-    },
-    3500
+  document.body.classList.remove(
+    "auth-checking"
   );
 
 }
 
 
-/* =====================================================
-   ADMIN VISIBILITY
-===================================================== */
+/* =========================================
+   ADMIN MENU
+========================================= */
 
-function updateAdminVisibility(
-  user
-) {
-
-  const admin =
-    isAdmin(user);
-
-
-  /*
-   * Hamburger is completely hidden
-   * for normal users.
-   */
+function hideAdminMenu() {
 
   if (menuButton) {
 
     menuButton.style.display =
-      admin
-        ? "flex"
-        : "none";
+      "none";
 
   }
 
+  if (websiteSettingsMenuButton) {
 
-  if (!admin) {
-
-    closeAdminMenu();
-    closeSettings();
+    websiteSettingsMenuButton.style.display =
+      "none";
 
   }
 
 }
 
 
-/* =====================================================
-   MENU
-===================================================== */
+function showAdminMenu() {
 
-function openAdminMenu() {
+  if (menuButton) {
 
-  if (
-    !currentUser ||
-    !isAdmin(currentUser)
-  ) {
-
-    return;
+    menuButton.style.display =
+      "flex";
 
   }
 
+  if (websiteSettingsMenuButton) {
 
-  if (menuOverlay) {
-
-    menuOverlay.classList.add(
-      "active"
-    );
+    websiteSettingsMenuButton.style.display =
+      "flex";
 
   }
 
 }
 
 
-function closeAdminMenu() {
-
-  if (menuOverlay) {
-
-    menuOverlay.classList.remove(
-      "active"
-    );
-
-  }
-
-}
-
-
-function toggleAdminMenu() {
-
-  if (
-    !currentUser ||
-    !isAdmin(currentUser)
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    menuOverlay?.classList.contains(
-      "active"
-    )
-  ) {
-
-    closeAdminMenu();
-
-  } else {
-
-    openAdminMenu();
-
-  }
-
-}
-
+/* =========================================
+   MENU OPEN/CLOSE
+========================================= */
 
 menuButton?.addEventListener(
   "click",
-  toggleAdminMenu
+  () => {
+
+    menuOverlay?.classList.add(
+      "open"
+    );
+
+  }
+);
+
+
+closeMenu?.addEventListener(
+  "click",
+  () => {
+
+    menuOverlay?.classList.remove(
+      "open"
+    );
+
+  }
 );
 
 
@@ -386,7 +175,9 @@ menuOverlay?.addEventListener(
       menuOverlay
     ) {
 
-      closeAdminMenu();
+      menuOverlay.classList.remove(
+        "open"
+      );
 
     }
 
@@ -394,36 +185,32 @@ menuOverlay?.addEventListener(
 );
 
 
-/* =====================================================
-   SETTINGS MODAL
-===================================================== */
+/* =========================================
+   SETTINGS OPEN/CLOSE
+========================================= */
 
 function openSettings() {
 
-  if (
-    !currentUser ||
-    !isAdmin(currentUser)
-  ) {
-
-    return;
-
-  }
-
-
   settingsOverlay?.classList.add(
-    "active"
+    "open"
   );
 
 }
 
 
-function closeSettings() {
+function closeSettingsModal() {
 
   settingsOverlay?.classList.remove(
-    "active"
+    "open"
   );
 
 }
+
+
+closeSettings?.addEventListener(
+  "click",
+  closeSettingsModal
+);
 
 
 settingsOverlay?.addEventListener(
@@ -435,7 +222,7 @@ settingsOverlay?.addEventListener(
       settingsOverlay
     ) {
 
-      closeSettings();
+      closeSettingsModal();
 
     }
 
@@ -443,23 +230,32 @@ settingsOverlay?.addEventListener(
 );
 
 
-/* =====================================================
-   SETTINGS SECTIONS
-===================================================== */
+/* =========================================
+   SECTIONS
+========================================= */
 
 function hideSections() {
 
-  profileSection?.classList.remove(
-    "active"
-  );
+  if (profileSection) {
 
-  securitySection?.classList.remove(
-    "active"
-  );
+    profileSection.style.display =
+      "none";
 
-  websiteSettingsSection?.classList.remove(
-    "active"
-  );
+  }
+
+  if (securitySection) {
+
+    securitySection.style.display =
+      "none";
+
+  }
+
+  if (websiteSettingsSection) {
+
+    websiteSettingsSection.style.display =
+      "none";
+
+  }
 
 }
 
@@ -468,15 +264,20 @@ profileMenuButton?.addEventListener(
   "click",
   () => {
 
-    closeAdminMenu();
+    menuOverlay?.classList.remove(
+      "open"
+    );
 
     openSettings();
 
     hideSections();
 
-    profileSection?.classList.add(
-      "active"
-    );
+    if (profileSection) {
+
+      profileSection.style.display =
+        "block";
+
+    }
 
   }
 );
@@ -486,15 +287,20 @@ settingsMenuButton?.addEventListener(
   "click",
   () => {
 
-    closeAdminMenu();
+    menuOverlay?.classList.remove(
+      "open"
+    );
 
     openSettings();
 
     hideSections();
 
-    securitySection?.classList.add(
-      "active"
-    );
+    if (securitySection) {
+
+      securitySection.style.display =
+        "block";
+
+    }
 
   }
 );
@@ -504,156 +310,18 @@ websiteSettingsMenuButton?.addEventListener(
   "click",
   () => {
 
-    closeAdminMenu();
+    menuOverlay?.classList.remove(
+      "open"
+    );
 
     openSettings();
 
     hideSections();
 
-    websiteSettingsSection?.classList.add(
-      "active"
-    );
+    if (websiteSettingsSection) {
 
-  }
-);
-
-
-/* =====================================================
-   PROFILE IMAGE
-===================================================== */
-
-function updateProfilePicture(
-  image
-) {
-
-  if (
-    !profilePicture ||
-    !profileAvatarPlaceholder
-  ) {
-
-    return;
-
-  }
-
-
-  if (image) {
-
-    profilePicture.src =
-      image;
-
-    profilePicture.style.display =
-      "block";
-
-    profileAvatarPlaceholder.style.display =
-      "none";
-
-  } else {
-
-    profilePicture.removeAttribute(
-      "src"
-    );
-
-    profilePicture.style.display =
-      "none";
-
-    profileAvatarPlaceholder.style.display =
-      "flex";
-
-  }
-
-}
-
-
-changeProfilePicture?.addEventListener(
-  "click",
-  () => {
-
-    profilePictureInput?.click();
-
-  }
-);
-
-
-profilePictureInput?.addEventListener(
-  "change",
-  () => {
-
-    const file =
-      profilePictureInput.files?.[0];
-
-
-    if (!file) {
-      return;
-    }
-
-
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-
-      showMessage(
-        "Please select an image.",
-        false
-      );
-
-      return;
-
-    }
-
-
-    const reader =
-      new FileReader();
-
-
-    reader.onload =
-      () => {
-
-        const image =
-          reader.result;
-
-
-        updateProfilePicture(
-          image
-        );
-
-
-        /*
-         * Store temporarily in memory
-         * until Save Profile is clicked.
-         */
-
-        profilePictureInput.dataset.image =
-          image;
-
-      };
-
-
-    reader.readAsDataURL(
-      file
-    );
-
-  }
-);
-
-
-removeProfilePicture?.addEventListener(
-  "click",
-  () => {
-
-    updateProfilePicture(
-      null
-    );
-
-
-    if (profilePictureInput) {
-
-      profilePictureInput.value =
-        "";
-
-      profilePictureInput.dataset.image =
-        "";
+      websiteSettingsSection.style.display =
+        "block";
 
     }
 
@@ -661,642 +329,77 @@ removeProfilePicture?.addEventListener(
 );
 
 
-/* =====================================================
-   LOAD PROFILE
-===================================================== */
-
-function loadProfile(
-  user
-) {
-
-  if (!user) {
-    return;
-  }
-
-
-  const metadata =
-    user.user_metadata || {};
-
-
-  if (displayName) {
-
-    displayName.value =
-      metadata.display_name ||
-      "Krishna AI Studio Admin";
-
-  }
-
-
-  if (profileEmail) {
-
-    profileEmail.value =
-      user.email || "";
-
-  }
-
-
-  if (profilePhone) {
-
-    profilePhone.value =
-      metadata.phone || "";
-
-  }
-
-
-  if (profileLocation) {
-
-    profileLocation.value =
-      metadata.location || "";
-
-  }
-
-
-  if (profileAbout) {
-
-    profileAbout.value =
-      metadata.about || "";
-
-  }
-
-
-  if (accountCreated) {
-
-    accountCreated.value =
-      user.created_at
-        ? new Date(
-            user.created_at
-          ).toLocaleString()
-        : "";
-
-  }
-
-
-  if (settingsEmail) {
-
-    settingsEmail.value =
-      user.email || "";
-
-  }
-
-
-  updateProfilePicture(
-    metadata.profile_picture ||
-    null
-  );
-
-}
-
-
-/* =====================================================
-   SAVE PROFILE
-===================================================== */
-
-saveProfile?.addEventListener(
-  "click",
-  async () => {
-
-    if (
-      !currentUser ||
-      !isAdmin(currentUser)
-    ) {
-
-      return;
-
-    }
-
-
-    try {
-
-      const existingMetadata =
-        currentUser.user_metadata || {};
-
-
-      let profileImage =
-        existingMetadata.profile_picture ||
-        null;
-
-
-      /*
-       * New image selected.
-       */
-
-      if (
-        profilePictureInput?.dataset.image
-      ) {
-
-        profileImage =
-          profilePictureInput.dataset.image;
-
-      }
-
-
-      /*
-       * If image was removed.
-       */
-
-      if (
-        profilePictureInput &&
-        profilePictureInput.dataset.image ===
-          ""
-      ) {
-
-        profileImage =
-          null;
-
-      }
-
-
-      const updates = {
-
-        display_name:
-          displayName?.value?.trim() ||
-          "Krishna AI Studio Admin",
-
-        phone:
-          profilePhone?.value?.trim() ||
-          "",
-
-        location:
-          profileLocation?.value?.trim() ||
-          "",
-
-        about:
-          profileAbout?.value?.trim() ||
-          "",
-
-        profile_picture:
-          profileImage
-
-      };
-
-
-      const {
-        data,
-        error
-      } =
-        await supabase.auth.updateUser(
-          {
-            data: updates
-          }
-        );
-
-
-      if (error) {
-        throw error;
-      }
-
-
-      currentUser =
-        data.user;
-
-
-      showMessage(
-        "Profile saved successfully."
-      );
-
-
-      loadProfile(
-        currentUser
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Profile update error:",
-        error
-      );
-
-
-      showMessage(
-        error.message ||
-          "Could not save profile.",
-        false
-      );
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   CHANGE PASSWORD
-===================================================== */
-
-changePassword?.addEventListener(
-  "click",
-  async () => {
-
-    if (
-      !currentUser ||
-      !isAdmin(currentUser)
-    ) {
-
-      return;
-
-    }
-
-
-    const password =
-      newPassword?.value?.trim();
-
-
-    if (!password) {
-
-      showMessage(
-        "Enter a new password.",
-        false
-      );
-
-      return;
-
-    }
-
-
-    if (password.length < 6) {
-
-      showMessage(
-        "Password must contain at least 6 characters.",
-        false
-      );
-
-      return;
-
-    }
-
-
-    try {
-
-      const {
-        error
-      } =
-        await supabase.auth.updateUser(
-          {
-            password
-          }
-        );
-
-
-      if (error) {
-        throw error;
-      }
-
-
-      if (newPassword) {
-
-        newPassword.value =
-          "";
-
-      }
-
-
-      showMessage(
-        "Password changed successfully."
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Password change error:",
-        error
-      );
-
-
-      showMessage(
-        error.message ||
-          "Could not change password.",
-        false
-      );
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   WEBSITE SETTINGS
-===================================================== */
-
-function loadWebsiteSettings(
-  user
-) {
-
-  const metadata =
-    user?.user_metadata || {};
-
-
-  if (websiteName) {
-
-    websiteName.value =
-      metadata.website_name ||
-      "Krishna AI Studio";
-
-  }
-
-
-  if (websiteDescription) {
-
-    websiteDescription.value =
-      metadata.website_description ||
-      "AI-powered background removal studio.";
-
-  }
-
-
-  if (websiteTheme) {
-
-    websiteTheme.value =
-      metadata.website_theme ||
-      "dark";
-
-  }
-
-
-  if (maxLoginCount) {
-
-    maxLoginCount.value =
-      metadata.max_login_count ||
-      1;
-
-  }
-
-}
-
-
-saveWebsiteName?.addEventListener(
-  "click",
-  async () => {
-
-    if (
-      !currentUser ||
-      !isAdmin(currentUser)
-    ) {
-
-      return;
-
-    }
-
-
-    try {
-
-      const existingMetadata =
-        currentUser.user_metadata || {};
-
-
-      const maxLogins =
-        Number(
-          maxLoginCount?.value || 1
-        );
-
-
-      const safeMaxLogins =
-        Math.max(
-          1,
-          Math.min(
-            10,
-            maxLogins
-          )
-        );
-
-
-      const updates = {
-
-        ...existingMetadata,
-
-        website_name:
-          websiteName?.value?.trim() ||
-          "Krishna AI Studio",
-
-        website_description:
-          websiteDescription?.value?.trim() ||
-          "AI-powered background removal studio.",
-
-        website_theme:
-          websiteTheme?.value ||
-          "dark",
-
-        max_login_count:
-          safeMaxLogins
-
-      };
-
-
-      const {
-        data,
-        error
-      } =
-        await supabase.auth.updateUser(
-          {
-            data: updates
-          }
-        );
-
-
-      if (error) {
-        throw error;
-      }
-
-
-      currentUser =
-        data.user;
-
-
-      showMessage(
-        "Website settings saved."
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Website settings error:",
-        error
-      );
-
-
-      showMessage(
-        error.message ||
-          "Could not save website settings.",
-        false
-      );
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   LOGOUT
-===================================================== */
-
-adminLogout?.addEventListener(
-  "click",
-  async () => {
-
-    if (
-      !currentUser ||
-      !isAdmin(currentUser)
-    ) {
-
-      return;
-
-    }
-
-
-    const confirmed =
-      window.confirm(
-        "Log out of your admin account on this device?"
-      );
-
-
-    if (!confirmed) {
-      return;
-    }
-
-
-    try {
-
-      const {
-        error
-      } =
-        await supabase.auth.signOut();
-
-
-      if (error) {
-        throw error;
-      }
-
-
-      window.location.href =
-        "/";
-
-    } catch (error) {
-
-      console.error(
-        "Logout error:",
-        error
-      );
-
-
-      showMessage(
-        error.message ||
-          "Could not log out.",
-        false
-      );
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   AUTHENTICATION CHECK
-===================================================== */
-
-async function checkAuthentication() {
+/* =========================================
+   LOAD AUTH
+========================================= */
+
+async function checkLogin() {
 
   try {
 
-    const {
-      data,
-      error
-    } =
+    const result =
       await supabase.auth.getSession();
 
-
-    if (error) {
-      throw error;
-    }
-
-
     const session =
-      data?.session;
+      result?.data?.session;
 
 
-    if (!session) {
+    if (session) {
 
-      currentUser =
-        null;
+      if (
+        isAdmin(session.user)
+      ) {
 
+        showAdminMenu();
 
-      updateAdminVisibility(
-        null
-      );
+      } else {
 
+        hideAdminMenu();
+
+      }
+
+    } else {
 
       /*
-       * Don't keep the website
-       * stuck on "Checking login..."
+       * No login:
+       * website still opens.
        */
 
-      document.body.classList.remove(
-        "auth-checking"
-      );
-
-      return;
+      hideAdminMenu();
 
     }
 
-
-    currentUser =
-      session.user;
-
-
-    updateAdminVisibility(
-      currentUser
-    );
-
-
-    if (
-      isAdmin(currentUser)
-    ) {
-
-      loadProfile(
-        currentUser
-      );
-
-      loadWebsiteSettings(
-        currentUser
-      );
-
-    }
-
-
-    document.body.classList.remove(
-      "auth-checking"
-    );
 
   } catch (error) {
 
     console.error(
-      "Authentication error:",
+      "Supabase authentication error:",
       error
     );
 
+    /*
+     * Even if Supabase has
+     * an error, don't leave
+     * the website stuck.
+     */
 
-    currentUser =
-      null;
-
-
-    updateAdminVisibility(
-      null
-    );
-
-
-    document.body.classList.remove(
-      "auth-checking"
-    );
+    hideAdminMenu();
 
   }
+
+
+  /*
+   * MOST IMPORTANT LINE
+   */
+
+  showWebsite();
 
 }
 
 
-/* =====================================================
-   AUTH STATE CHANGES
-===================================================== */
+/* =========================================
+   AUTH STATE
+========================================= */
 
 supabase.auth.onAuthStateChange(
   (
@@ -1304,27 +407,16 @@ supabase.auth.onAuthStateChange(
     session
   ) => {
 
-    currentUser =
-      session?.user || null;
-
-
-    updateAdminVisibility(
-      currentUser
-    );
-
-
     if (
-      currentUser &&
-      isAdmin(currentUser)
+      session &&
+      isAdmin(session.user)
     ) {
 
-      loadProfile(
-        currentUser
-      );
+      showAdminMenu();
 
-      loadWebsiteSettings(
-        currentUser
-      );
+    } else {
+
+      hideAdminMenu();
 
     }
 
@@ -1332,8 +424,8 @@ supabase.auth.onAuthStateChange(
 );
 
 
-/* =====================================================
+/* =========================================
    START
-===================================================== */
+========================================= */
 
-checkAuthentication();
+checkLogin();
