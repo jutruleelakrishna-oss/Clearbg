@@ -29,7 +29,7 @@ let originalUrl = null;
 let resultUrl = null;
 
 let backgroundRemover = null;
-let loadingModel = null;
+let modelPromise = null;
 
 
 /* =========================================
@@ -51,13 +51,13 @@ function setStatus(message, progress = 0) {
 
   if (progressBar) {
 
-    const safeProgress = Math.max(
+    const value = Math.max(
       0,
       Math.min(100, progress)
     );
 
     progressBar.style.width =
-      `${safeProgress}%`;
+      `${value}%`;
   }
 }
 
@@ -123,6 +123,135 @@ async function prepareFile(file) {
 
 
 /* =========================================
+   LOAD MODEL
+========================================= */
+
+async function loadModel() {
+
+  if (backgroundRemover) {
+    return backgroundRemover;
+  }
+
+  if (modelPromise) {
+    return modelPromise;
+  }
+
+  modelPromise =
+    (async () => {
+
+      try {
+
+        console.log(
+          "Loading MODNet..."
+        );
+
+        setStatus(
+          "Loading AI model...",
+          5
+        );
+
+
+        /*
+         * WASM + Q8 is intentionally used
+         * here for better compatibility with
+         * Android/mobile browsers.
+         *
+         * Transformers.js recommends q8
+         * for WASM/resource-constrained
+         * environments.
+         */
+
+        const remover =
+          await pipeline(
+            "background-removal",
+            MODEL_NAME,
+            {
+              device: "wasm",
+              dtype: "q8",
+
+              progress_callback:
+                (info) => {
+
+                  console.log(
+                    "Model progress:",
+                    info
+                  );
+
+
+                  if (
+                    info?.status ===
+                    "progress"
+                  ) {
+
+                    const progress =
+                      Number(info.progress);
+
+
+                    if (
+                      Number.isFinite(progress)
+                    ) {
+
+                      const percent =
+                        Math.min(
+                          45,
+                          Math.max(
+                            5,
+                            Math.round(
+                              5 +
+                              progress * 0.4
+                            )
+                          )
+                        );
+
+
+                      setStatus(
+                        `Downloading AI model... ${Math.round(progress)}%`,
+                        percent
+                      );
+                    }
+                  }
+                }
+            }
+          );
+
+
+        backgroundRemover =
+          remover;
+
+
+        console.log(
+          "MODNet loaded successfully."
+        );
+
+
+        return backgroundRemover;
+
+
+      } catch (error) {
+
+        console.error(
+          "MODEL LOAD ERROR:",
+          error
+        );
+
+
+        modelPromise =
+          null;
+
+        backgroundRemover =
+          null;
+
+        throw error;
+      }
+
+    })();
+
+
+  return modelPromise;
+}
+
+
+/* =========================================
    DISPLAY IMAGE
 ========================================= */
 
@@ -137,8 +266,10 @@ function displayImage(file) {
     originalUrl = null;
   }
 
+
   originalUrl =
     URL.createObjectURL(file);
+
 
   preview.src =
     originalUrl;
@@ -146,16 +277,20 @@ function displayImage(file) {
   preview.alt =
     "Selected image";
 
+
   previewCard.classList.add(
     "show"
   );
+
 
   dropZone.classList.add(
     "hidden"
   );
 
+
   removeButton.disabled =
     false;
+
 
   downloadButton.disabled =
     true;
@@ -163,213 +298,11 @@ function displayImage(file) {
   downloadButton.style.display =
     "none";
 
+
   setStatus(
     "Image ready. Remove the background.",
     0
   );
-}
-
-
-/* =========================================
-   LOAD AI MODEL
-========================================= */
-
-async function getBackgroundRemover() {
-
-  if (backgroundRemover) {
-    return backgroundRemover;
-  }
-
-  if (loadingModel) {
-    return loadingModel;
-  }
-
-  loadingModel =
-    (async () => {
-
-      try {
-
-        setStatus(
-          "Loading AI model...",
-          5
-        );
-
-        console.log(
-          "Loading:",
-          MODEL_NAME
-        );
-
-
-        /*
-         * First try WebGPU.
-         */
-
-        if (
-          typeof navigator !== "undefined" &&
-          navigator.gpu
-        ) {
-
-          try {
-
-            console.log(
-              "Trying WebGPU..."
-            );
-
-            backgroundRemover =
-              await pipeline(
-                "background-removal",
-                MODEL_NAME,
-                {
-                  device: "webgpu",
-                  dtype: "fp32",
-
-                  progress_callback:
-                    modelProgress
-                }
-              );
-
-            console.log(
-              "MODNet loaded using WebGPU."
-            );
-
-            return backgroundRemover;
-
-          } catch (webgpuError) {
-
-            console.warn(
-              "WebGPU failed. Using WASM.",
-              webgpuError
-            );
-
-            backgroundRemover =
-              null;
-          }
-        }
-
-
-        /*
-         * WASM fallback.
-         */
-
-        console.log(
-          "Loading MODNet using WASM..."
-        );
-
-        backgroundRemover =
-          await pipeline(
-            "background-removal",
-            MODEL_NAME,
-            {
-              device: "wasm",
-              dtype: "fp32",
-
-              progress_callback:
-                modelProgress
-            }
-          );
-
-
-        console.log(
-          "MODNet loaded using WASM."
-        );
-
-
-        return backgroundRemover;
-
-      } catch (error) {
-
-        console.error(
-          "AI model loading failed:",
-          error
-        );
-
-        backgroundRemover =
-          null;
-
-        throw error;
-
-      } finally {
-
-        loadingModel =
-          null;
-      }
-
-    })();
-
-  return loadingModel;
-}
-
-
-/* =========================================
-   MODEL PROGRESS
-========================================= */
-
-function modelProgress(info) {
-
-  if (!info) {
-    return;
-  }
-
-  try {
-
-    if (
-      info.status ===
-      "progress"
-    ) {
-
-      const progress =
-        Number(info.progress);
-
-
-      if (
-        Number.isFinite(progress)
-      ) {
-
-        const percent =
-          Math.round(
-            Math.min(
-              45,
-              5 + progress * 0.4
-            )
-          );
-
-
-        setStatus(
-          `Loading AI model... ${Math.round(progress)}%`,
-          percent
-        );
-      }
-
-
-    } else if (
-      info.status ===
-      "initiate"
-    ) {
-
-      setStatus(
-        "Downloading AI model...",
-        8
-      );
-
-
-    } else if (
-      info.status ===
-      "done"
-    ) {
-
-      setStatus(
-        "AI model loaded.",
-        45
-      );
-    }
-
-  } catch (error) {
-
-    console.warn(
-      "Progress error:",
-      error
-    );
-  }
 }
 
 
@@ -383,6 +316,7 @@ async function handleFile(file) {
     return;
   }
 
+
   if (!isImage(file)) {
 
     setStatus(
@@ -393,20 +327,21 @@ async function handleFile(file) {
     return;
   }
 
+
   try {
 
     console.log(
-      "Selected:",
+      "Selected file:",
       file.name
     );
 
     console.log(
-      "Type:",
+      "File type:",
       file.type
     );
 
     console.log(
-      "Size:",
+      "File size:",
       file.size
     );
 
@@ -425,7 +360,8 @@ async function handleFile(file) {
         resultUrl
       );
 
-      resultUrl = null;
+      resultUrl =
+        null;
     }
 
 
@@ -433,15 +369,18 @@ async function handleFile(file) {
       selectedFile
     );
 
+
   } catch (error) {
 
     console.error(
-      "File error:",
+      "FILE ERROR:",
       error
     );
 
+
     selectedFile =
       null;
+
 
     setStatus(
       "The selected image could not be read.",
@@ -481,7 +420,7 @@ async function processImage() {
 
 
     setStatus(
-      "Starting AI...",
+      "Loading AI...",
       5
     );
 
@@ -495,7 +434,7 @@ async function processImage() {
     );
 
     console.log(
-      "Background removal"
+      "BACKGROUND REMOVAL"
     );
 
     console.log(
@@ -504,16 +443,24 @@ async function processImage() {
     );
 
     console.log(
+      "Device: WASM"
+    );
+
+    console.log(
+      "Data type: Q8"
+    );
+
+    console.log(
       "================================"
     );
 
 
     /*
-     * Load MODNet.
+     * Load model.
      */
 
     const remover =
-      await getBackgroundRemover();
+      await loadModel();
 
 
     if (!remover) {
@@ -525,164 +472,185 @@ async function processImage() {
 
 
     setStatus(
-      "Analyzing your image...",
+      "Preparing image...",
       50
     );
 
 
     /*
-     * Run background removal.
+     * IMPORTANT:
      *
-     * MODNet returns an array containing
-     * a 4-channel RawImage.
+     * MODNet's official Transformers.js
+     * example uses an image URL as input.
+     *
+     * So we create a temporary object URL
+     * from the selected image.
      */
 
-    const output =
-      await remover(
+    const imageUrl =
+      URL.createObjectURL(
         selectedFile
       );
 
 
-    console.log(
-      "MODNet output:",
-      output
-    );
+    try {
 
-
-    if (
-      !output ||
-      !Array.isArray(output) ||
-      !output[0]
-    ) {
-
-      throw new Error(
-        "MODNet returned an invalid result."
-      );
-    }
-
-
-    const resultImage =
-      output[0];
-
-
-    console.log(
-      "Result image:",
-      resultImage
-    );
-
-    console.log(
-      "Width:",
-      resultImage.width
-    );
-
-    console.log(
-      "Height:",
-      resultImage.height
-    );
-
-    console.log(
-      "Channels:",
-      resultImage.channels
-    );
-
-
-    setStatus(
-      "Creating transparent PNG...",
-      85
-    );
-
-
-    /*
-     * Convert RawImage to PNG.
-     */
-
-    resultBlob =
-      await resultImage.toBlob(
-        "image/png"
+      setStatus(
+        "Analyzing your image...",
+        55
       );
 
 
-    if (!resultBlob) {
-
-      throw new Error(
-        "Could not create the transparent PNG."
+      console.log(
+        "Starting MODNet inference..."
       );
-    }
 
 
-    console.log(
-      "PNG created:",
-      resultBlob.size
-    );
+      /*
+       * Run AI.
+       */
+
+      const output =
+        await remover(
+          imageUrl
+        );
 
 
-    /*
-     * Remove previous result URL.
-     */
+      console.log(
+        "MODNet output:",
+        output
+      );
 
-    if (resultUrl) {
+
+      if (
+        !output ||
+        !output[0]
+      ) {
+
+        throw new Error(
+          "MODNet returned no image."
+        );
+      }
+
+
+      const resultImage =
+        output[0];
+
+
+      console.log(
+        "Result:",
+        resultImage
+      );
+
+
+      setStatus(
+        "Creating transparent PNG...",
+        90
+      );
+
+
+      /*
+       * Convert MODNet RawImage
+       * into a PNG blob.
+       */
+
+      resultBlob =
+        await resultImage.toBlob(
+          "image/png"
+        );
+
+
+      if (!resultBlob) {
+
+        throw new Error(
+          "Could not create transparent PNG."
+        );
+      }
+
+
+      console.log(
+        "Result PNG created:",
+        resultBlob.size,
+        "bytes"
+      );
+
+
+      /*
+       * Remove old result URL.
+       */
+
+      if (resultUrl) {
+
+        URL.revokeObjectURL(
+          resultUrl
+        );
+      }
+
+
+      resultUrl =
+        URL.createObjectURL(
+          resultBlob
+        );
+
+
+      /*
+       * Display result.
+       */
+
+      preview.src =
+        resultUrl;
+
+      preview.alt =
+        "Background removed image";
+
+
+      previewCard.classList.add(
+        "show"
+      );
+
+
+      dropZone.classList.add(
+        "hidden"
+      );
+
+
+      /*
+       * Enable download.
+       */
+
+      downloadButton.style.display =
+        "block";
+
+      downloadButton.disabled =
+        false;
+
+
+      removeButton.disabled =
+        false;
+
+
+      setStatus(
+        "Background removed successfully!",
+        100
+      );
+
+
+      console.log(
+        "Background removal completed successfully."
+      );
+
+
+    } finally {
+
+      /*
+       * Always release temporary
+       * input image URL.
+       */
 
       URL.revokeObjectURL(
-        resultUrl
+        imageUrl
       );
     }
-
-
-    /*
-     * Create result URL.
-     */
-
-    resultUrl =
-      URL.createObjectURL(
-        resultBlob
-      );
-
-
-    /*
-     * Display transparent image.
-     */
-
-    preview.src =
-      resultUrl;
-
-    preview.alt =
-      "Background removed image";
-
-
-    previewCard.classList.add(
-      "show"
-    );
-
-
-    dropZone.classList.add(
-      "hidden"
-    );
-
-
-    /*
-     * Enable download.
-     */
-
-    downloadButton.style.display =
-      "block";
-
-    downloadButton.disabled =
-      false;
-
-
-    removeButton.disabled =
-      false;
-
-
-    setStatus(
-      "Background removed successfully!",
-      100
-    );
-
-
-    console.log(
-      "Background removal completed."
-    );
 
 
   } catch (error) {
@@ -692,11 +660,21 @@ async function processImage() {
     );
 
     console.error(
-      "BACKGROUND REMOVAL FAILED"
+      "BACKGROUND REMOVAL ERROR"
     );
 
     console.error(
       error
+    );
+
+    console.error(
+      "Message:",
+      error?.message
+    );
+
+    console.error(
+      "Stack:",
+      error?.stack
     );
 
     console.error(
@@ -712,15 +690,13 @@ async function processImage() {
       true;
 
 
-    /*
-     * Show useful error instead of
-     * hiding the actual problem.
-     */
+    downloadButton.style.display =
+      "none";
+
 
     const message =
       error?.message ||
-      String(error) ||
-      "Unknown error";
+      "Unknown background removal error.";
 
 
     setStatus(
@@ -962,6 +938,7 @@ window.addEventListener(
       );
     }
 
+
     if (resultUrl) {
 
       URL.revokeObjectURL(
@@ -979,8 +956,10 @@ window.addEventListener(
 removeButton.disabled =
   true;
 
+
 downloadButton.disabled =
   true;
+
 
 downloadButton.style.display =
   "none";
