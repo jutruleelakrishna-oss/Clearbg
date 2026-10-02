@@ -198,7 +198,7 @@ async function processImage() {
         {
           debug: true,
 
-          model: "isnet_quint8",
+          model: "isnet_fp16",
 
           device: "cpu",
 
