@@ -28,104 +28,137 @@ const supabase =
 ===================================== */
 
 const loginScreen =
-  document.getElementById(
-    "loginScreen"
-  );
+  document.getElementById("loginScreen");
 
 const app =
-  document.getElementById(
-    "app"
-  );
+  document.getElementById("app");
 
 const loginForm =
-  document.getElementById(
-    "loginForm"
-  );
+  document.getElementById("loginForm");
 
 const loginEmail =
-  document.getElementById(
-    "loginEmail"
-  );
+  document.getElementById("loginEmail");
 
 const loginPassword =
-  document.getElementById(
-    "loginPassword"
-  );
+  document.getElementById("loginPassword");
 
 const loginButton =
-  document.getElementById(
-    "loginButton"
-  );
+  document.getElementById("loginButton");
+
+const signupButton =
+  document.getElementById("signupButton");
+
+const authSwitchButton =
+  document.getElementById("authSwitchButton");
+
+const authSubtitle =
+  document.getElementById("authSubtitle");
 
 const loginMessage =
-  document.getElementById(
-    "loginMessage"
-  );
+  document.getElementById("loginMessage");
 
 const menuButton =
-  document.getElementById(
-    "menuButton"
-  );
+  document.getElementById("menuButton");
 
 const menuOverlay =
-  document.getElementById(
-    "menuOverlay"
-  );
+  document.getElementById("menuOverlay");
 
 const closeMenu =
-  document.getElementById(
-    "closeMenu"
-  );
+  document.getElementById("closeMenu");
 
 const profileMenuButton =
-  document.getElementById(
-    "profileMenuButton"
-  );
+  document.getElementById("profileMenuButton");
 
 const settingsMenuButton =
-  document.getElementById(
-    "settingsMenuButton"
-  );
+  document.getElementById("settingsMenuButton");
 
 const websiteSettingsMenuButton =
-  document.getElementById(
-    "websiteSettingsMenuButton"
-  );
+  document.getElementById("websiteSettingsMenuButton");
 
 const logoutMenuButton =
-  document.getElementById(
-    "logoutMenuButton"
-  );
+  document.getElementById("logoutMenuButton");
 
 const settingsOverlay =
-  document.getElementById(
-    "settingsOverlay"
-  );
+  document.getElementById("settingsOverlay");
 
 const closeSettings =
-  document.getElementById(
-    "closeSettings"
-  );
+  document.getElementById("closeSettings");
 
 const profileSection =
-  document.getElementById(
-    "profileSection"
-  );
+  document.getElementById("profileSection");
 
 const securitySection =
-  document.getElementById(
-    "securitySection"
-  );
+  document.getElementById("securitySection");
 
 const websiteSettingsSection =
-  document.getElementById(
-    "websiteSettingsSection"
-  );
+  document.getElementById("websiteSettingsSection");
 
 const settingMessage =
-  document.getElementById(
-    "settingMessage"
-  );
+  document.getElementById("settingMessage");
+
+
+/* =====================================
+   AUTH MODE
+===================================== */
+
+let authMode = "login";
+
+
+function setAuthMode(mode) {
+
+  authMode = mode;
+
+  loginStatus("");
+
+  if (mode === "signup") {
+
+    if (authSubtitle) {
+      authSubtitle.textContent =
+        "Create your account to continue";
+    }
+
+    if (loginButton) {
+      loginButton.style.display =
+        "none";
+    }
+
+    if (signupButton) {
+      signupButton.style.display =
+        "block";
+    }
+
+    if (authSwitchButton) {
+      authSwitchButton.textContent =
+        "Already have an account? Login";
+    }
+
+  } else {
+
+    authMode = "login";
+
+    if (authSubtitle) {
+      authSubtitle.textContent =
+        "Sign in to continue";
+    }
+
+    if (loginButton) {
+      loginButton.style.display =
+        "block";
+    }
+
+    if (signupButton) {
+      signupButton.style.display =
+        "none";
+    }
+
+    if (authSwitchButton) {
+      authSwitchButton.textContent =
+        "Create a new account";
+    }
+
+  }
+
+}
 
 
 /* =====================================
@@ -233,7 +266,7 @@ function hideAdminMenu() {
 
 
 /* =====================================
-   LOGIN
+   LOGIN / SIGNUP FORM
 ===================================== */
 
 loginForm.addEventListener(
@@ -241,7 +274,6 @@ loginForm.addEventListener(
   async event => {
 
     event.preventDefault();
-
 
     const email =
       loginEmail.value.trim();
@@ -262,12 +294,23 @@ loginForm.addEventListener(
     }
 
 
+    if (authMode === "signup") {
+
+      await createAccount(
+        email,
+        password
+      );
+
+      return;
+
+    }
+
+
     loginButton.disabled =
       true;
 
     loginButton.textContent =
       "Signing in...";
-
 
     loginStatus("");
 
@@ -286,9 +329,7 @@ loginForm.addEventListener(
 
 
       if (error) {
-
         throw error;
-
       }
 
 
@@ -350,6 +391,119 @@ loginForm.addEventListener(
 
   }
 );
+
+
+/* =====================================
+   CREATE ACCOUNT
+===================================== */
+
+async function createAccount(
+  email,
+  password
+) {
+
+  signupButton.disabled =
+    true;
+
+  signupButton.textContent =
+    "Creating account...";
+
+  loginStatus("");
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabase.auth
+        .signUp({
+          email,
+          password
+        });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (data?.session?.user) {
+
+      showApp();
+
+      hideAdminMenu();
+
+      loginPassword.value = "";
+
+      loginStatus("");
+
+      return;
+
+    }
+
+
+    loginStatus(
+      "Account created. Check your email if confirmation is required, then log in."
+    );
+
+    loginPassword.value = "";
+
+    setAuthMode("login");
+
+
+  } catch (error) {
+
+    console.error(
+      "Signup error:",
+      error
+    );
+
+
+    loginStatus(
+      error?.message ||
+      "Could not create account.",
+      true
+    );
+
+  } finally {
+
+    signupButton.disabled =
+      false;
+
+    signupButton.textContent =
+      "Create Account";
+
+  }
+
+}
+
+
+/* =====================================
+   SWITCH LOGIN / SIGNUP
+===================================== */
+
+if (authSwitchButton) {
+
+  authSwitchButton.addEventListener(
+    "click",
+    () => {
+
+      if (authMode === "login") {
+
+        setAuthMode("signup");
+
+      } else {
+
+        setAuthMode("login");
+
+      }
+
+    }
+  );
+
+}
 
 
 /* =====================================
@@ -576,27 +730,22 @@ async function loadProfile() {
     profileEmail.value =
       user.email || "";
 
-
     displayName.value =
       metadata.display_name ||
       metadata.full_name ||
       "";
 
-
     phone.value =
       metadata.phone ||
       "";
-
 
     location.value =
       metadata.location ||
       "";
 
-
     about.value =
       metadata.about ||
       "";
-
 
     accountCreated.value =
       user.created_at
@@ -1070,6 +1219,8 @@ async function initializeAuth() {
 
 }
 
+
+setAuthMode("login");
 
 showLogin();
 
