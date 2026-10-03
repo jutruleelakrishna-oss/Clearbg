@@ -33,7 +33,9 @@
 
 <body>
 
-  <!-- LOGIN -->
+  <!-- =====================================
+       LOGIN
+  ====================================== -->
 
   <div id="loginScreen" class="login-screen">
 
@@ -43,94 +45,121 @@
 
       <h1>Krishna AI Studio</h1>
 
-      <p class="login-subtitle">
+      <p
+        id="authSubtitle"
+        class="login-subtitle"
+      >
         Sign in to continue
       </p>
-      <form id="loginForm" class="login-form">
-        <div class="login-field">
-    <label for="loginEmail">Email</label>
-    <input
-      id="loginEmail"
-      type="email"
-      placeholder="Enter your email"
-      autocomplete="email"
-      required
-    />
-  </div>
 
-  <div class="login-field">
-    <label for="loginPassword">Password</label>
-    <input
-      id="loginPassword"
-      type="password"
-      placeholder="Enter your password"
-      autocomplete="current-password"
-      required
-    />
-  </div>
 
-  <p
-    id="authSubtitle"
-    class="login-subtitle"
-  >
-    Sign in to continue
-  </p>
+      <form id="loginForm">
 
-  <button
-    id="loginButton"
-    class="primary-button login-button"
-    type="submit"
-  >
-    Login
-  </button>
+        <div class="input-group">
 
-  <button
-    id="signupButton"
-    class="secondary-button login-button"
-    type="submit"
-    style="display:none;"
-  >
-    Create Account
-  </button>
+          <label for="loginEmail">
+            Email
+          </label>
 
-  <button
-    id="authSwitchButton"
-    class="reset-button"
-    type="button"
-  >
-    Create a new account
-  </button>
+          <input
+            id="loginEmail"
+            type="email"
+            placeholder="Enter your email"
+            autocomplete="email"
+            required
+          >
 
-  <div
-    id="loginMessage"
-    class="login-message"
-    aria-live="polite"
-  ></div>
+        </div>
 
-</form>
-      
+
+        <div class="input-group">
+
+          <label for="loginPassword">
+            Password
+          </label>
+
+          <input
+            id="loginPassword"
+            type="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          >
+
+        </div>
+
+
+        <button
+          id="loginButton"
+          class="primary-button login-button"
+          type="submit"
+        >
+          Login
+        </button>
+
+
+        <button
+          id="signupButton"
+          class="secondary-button login-button"
+          type="submit"
+          style="display:none;"
+        >
+          Create Account
+        </button>
+
+
+        <button
+          id="authSwitchButton"
+          class="reset-button"
+          type="button"
+          style="width:100%; margin-top:10px;"
+        >
+          Create a new account
+        </button>
+
+
+        <div
+          id="loginMessage"
+          class="login-message"
+          aria-live="polite"
+        ></div>
+
+      </form>
 
     </div>
 
   </div>
 
 
-  <!-- APPLICATION -->
+  <!-- =====================================
+       APPLICATION
+  ====================================== -->
 
   <div id="app" class="app-hidden">
+
+    <!-- HEADER -->
 
     <header class="site-header">
 
       <div class="brand">
-        <div class="brand-icon">✦</div>
-        <div class="brand-text">Krishna AI Studio</div>
+
+        <div class="brand-icon">
+          ✦
+        </div>
+
+        <div class="brand-text">
+          Krishna AI Studio
+        </div>
+
       </div>
+
 
       <div class="header-actions">
 
         <div class="privacy-indicator">
           🔒 Private
         </div>
+
 
         <button
           id="menuButton"
@@ -146,15 +175,22 @@
     </header>
 
 
-    <!-- ADMIN MENU -->
+    <!-- =====================================
+         ADMIN MENU
+    ====================================== -->
 
-    <div id="menuOverlay" class="menu-overlay">
+    <div
+      id="menuOverlay"
+      class="menu-overlay"
+    >
 
       <div class="menu-panel">
 
         <div class="menu-header">
 
-          <h3>Admin Menu</h3>
+          <h3>
+            Admin Menu
+          </h3>
 
           <button
             id="closeMenu"
@@ -166,40 +202,72 @@
 
         </div>
 
+
         <button
           id="profileMenuButton"
           class="menu-item"
           type="button"
         >
-          <span>👤</span>
-          <span>Profile</span>
+
+          <span>
+            👤
+          </span>
+
+          <span>
+            Profile
+          </span>
+
         </button>
+
 
         <button
           id="settingsMenuButton"
           class="menu-item"
           type="button"
         >
-          <span>⚙️</span>
-          <span>Settings</span>
+
+          <span>
+            ⚙️
+          </span>
+
+          <span>
+            Settings
+          </span>
+
         </button>
+
 
         <button
           id="websiteSettingsMenuButton"
           class="menu-item"
           type="button"
         >
-          <span>🌐</span>
-          <span>Website Settings</span>
+
+          <span>
+            🌐
+          </span>
+
+          <span>
+            Website Settings
+          </span>
+
         </button>
+
 
         <button
           id="logoutMenuButton"
           class="menu-item logout-menu-item"
           type="button"
         >
-          <span>↪</span>
-          <span>Log Out</span>
+
+          <span>
+            ↪
+          </span>
+
+          <span>
+            Log Out
+          </span>
+
         </button>
 
       </div>
@@ -207,9 +275,13 @@
     </div>
 
 
-    <!-- MAIN -->
+    <!-- =====================================
+         MAIN
+    ====================================== -->
 
     <main class="main-content">
+
+      <!-- HERO -->
 
       <section class="hero">
 
@@ -217,10 +289,14 @@
           ✨ AI POWERED
         </div>
 
+
         <h1>
           Remove backgrounds
-          <span>in seconds.</span>
+          <span>
+            in seconds.
+          </span>
         </h1>
+
 
         <p>
           Upload your image and let Krishna AI Studio
@@ -230,24 +306,38 @@
       </section>
 
 
-      <!-- WORKSPACE -->
+      <!-- =====================================
+           WORKSPACE
+      ====================================== -->
 
       <section class="workspace">
+
+        <!-- UPLOAD -->
 
         <div
           id="dropZone"
           class="drop-zone"
         >
 
-          <div class="upload-icon">↑</div>
+          <div class="upload-icon">
+            ↑
+          </div>
 
-          <h2>Drop your image here</h2>
 
-          <p>or click to browse</p>
+          <h2>
+            Drop your image here
+          </h2>
+
+
+          <p>
+            or click to browse
+          </p>
+
 
           <small>
             JPG • JPEG • PNG • WEBP • GIF • BMP • AVIF
           </small>
+
 
           <input
             id="fileInput"
@@ -259,7 +349,9 @@
         </div>
 
 
-        <!-- PREVIEW -->
+        <!-- =====================================
+             PREVIEW
+        ====================================== -->
 
         <div
           id="previewCard"
@@ -267,8 +359,13 @@
         >
 
           <div class="preview-header">
-            <span>Image Preview</span>
+
+            <span>
+              Image Preview
+            </span>
+
           </div>
+
 
           <div class="preview-image-container">
 
@@ -278,6 +375,7 @@
             >
 
           </div>
+
 
           <div class="controls">
 
@@ -290,6 +388,7 @@
               ✨ Remove Background
             </button>
 
+
             <button
               id="downloadButton"
               class="secondary-button"
@@ -299,6 +398,7 @@
             >
               ↓ Download PNG
             </button>
+
 
             <button
               id="resetButton"
@@ -310,11 +410,13 @@
 
           </div>
 
+
           <div class="processing-status">
 
             <div id="status">
               Select an image to get started.
             </div>
+
 
             <div class="progress-container">
 
@@ -332,26 +434,60 @@
       </section>
 
 
-      <!-- FEATURES -->
+      <!-- =====================================
+           FEATURES
+      ====================================== -->
 
       <section class="features">
 
         <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <h3>Fast</h3>
-          <p>AI-powered background removal.</p>
+
+          <div class="feature-icon">
+            ⚡
+          </div>
+
+          <h3>
+            Fast
+          </h3>
+
+          <p>
+            AI-powered background removal.
+          </p>
+
         </div>
 
-        <div class="feature-card">
-          <div class="feature-icon">🎯</div>
-          <h3>Precise</h3>
-          <p>Clean subject detection.</p>
-        </div>
 
         <div class="feature-card">
-          <div class="feature-icon">🔒</div>
-          <h3>Private</h3>
-          <p>Your images stay under your control.</p>
+
+          <div class="feature-icon">
+            🎯
+          </div>
+
+          <h3>
+            Precise
+          </h3>
+
+          <p>
+            Clean subject detection.
+          </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+          <div class="feature-icon">
+            🔒
+          </div>
+
+          <h3>
+            Private
+          </h3>
+
+          <p>
+            Your images stay under your control.
+          </p>
+
         </div>
 
       </section>
@@ -359,12 +495,22 @@
     </main>
 
 
+    <!-- =====================================
+         FOOTER
+    ====================================== -->
+
     <footer class="site-footer">
-      <p>© 2026 Krishna AI Studio</p>
+
+      <p>
+        © 2026 Krishna AI Studio
+      </p>
+
     </footer>
 
 
-    <!-- SETTINGS -->
+    <!-- =====================================
+         SETTINGS
+    ====================================== -->
 
     <div
       id="settingsOverlay"
@@ -375,7 +521,10 @@
 
         <div class="settings-header">
 
-          <h2>Settings</h2>
+          <h2>
+            Settings
+          </h2>
+
 
           <button
             id="closeSettings"
@@ -388,14 +537,19 @@
         </div>
 
 
-        <!-- PROFILE -->
+        <!-- =====================================
+             PROFILE
+        ====================================== -->
 
         <section
           id="profileSection"
           class="settings-section"
         >
 
-          <h3>👤 Profile</h3>
+          <h3>
+            👤 Profile
+          </h3>
+
 
           <div class="profile-picture-area">
 
@@ -406,6 +560,7 @@
                 alt="Profile picture"
               >
 
+
               <div
                 id="profileAvatarPlaceholder"
                 class="profile-placeholder"
@@ -415,6 +570,7 @@
 
             </div>
 
+
             <button
               id="changeProfilePicture"
               class="secondary-button"
@@ -423,6 +579,7 @@
               Change Picture
             </button>
 
+
             <button
               id="removeProfilePicture"
               class="reset-button"
@@ -430,6 +587,7 @@
             >
               Remove
             </button>
+
 
             <input
               id="profilePictureInput"
@@ -440,53 +598,84 @@
 
           </div>
 
+
           <div class="input-group">
-            <label for="displayName">Display Name</label>
+
+            <label for="displayName">
+              Display Name
+            </label>
+
             <input
               id="displayName"
               type="text"
               placeholder="Display name"
             >
+
           </div>
 
+
           <div class="input-group">
-            <label for="profileEmail">Email</label>
+
+            <label for="profileEmail">
+              Email
+            </label>
+
             <input
               id="profileEmail"
               type="email"
               readonly
             >
+
           </div>
 
+
           <div class="input-group">
-            <label for="profilePhone">Phone</label>
+
+            <label for="profilePhone">
+              Phone
+            </label>
+
             <input
               id="profilePhone"
               type="tel"
               placeholder="Phone number"
             >
+
           </div>
 
+
           <div class="input-group">
-            <label for="profileLocation">Location</label>
+
+            <label for="profileLocation">
+              Location
+            </label>
+
             <input
               id="profileLocation"
               type="text"
               placeholder="Location"
             >
+
           </div>
 
+
           <div class="input-group">
-            <label for="profileAbout">About</label>
+
+            <label for="profileAbout">
+              About
+            </label>
 
             <textarea
               id="profileAbout"
               rows="4"
               placeholder="About"
             ></textarea>
+
           </div>
 
+
           <div class="input-group">
+
             <label for="accountCreated">
               Account Created
             </label>
@@ -496,7 +685,9 @@
               type="text"
               readonly
             >
+
           </div>
+
 
           <button
             id="saveProfile"
@@ -509,14 +700,19 @@
         </section>
 
 
-        <!-- SECURITY -->
+        <!-- =====================================
+             SECURITY
+        ====================================== -->
 
         <section
           id="securitySection"
           class="settings-section"
         >
 
-          <h3>⚙️ Settings</h3>
+          <h3>
+            ⚙️ Settings
+          </h3>
+
 
           <div class="input-group">
 
@@ -532,15 +728,20 @@
 
           </div>
 
+
           <div class="setting-block">
 
-            <h4>Change Password</h4>
+            <h4>
+              Change Password
+            </h4>
+
 
             <input
               id="newPassword"
               type="password"
               placeholder="Enter new password"
             >
+
 
             <button
               id="changePassword"
@@ -552,15 +753,20 @@
 
           </div>
 
+
           <div class="setting-block">
 
-            <h4>🔐 Login Security</h4>
+            <h4>
+              🔐 Login Security
+            </h4>
+
 
             <p>
               Your account is protected by Supabase authentication.
             </p>
 
           </div>
+
 
           <button
             id="adminLogout"
@@ -573,14 +779,19 @@
         </section>
 
 
-        <!-- WEBSITE SETTINGS -->
+        <!-- =====================================
+             WEBSITE SETTINGS
+        ====================================== -->
 
         <section
           id="websiteSettingsSection"
           class="settings-section"
         >
 
-          <h3>🌐 Website Settings</h3>
+          <h3>
+            🌐 Website Settings
+          </h3>
+
 
           <div class="input-group">
 
@@ -596,6 +807,7 @@
 
           </div>
 
+
           <div class="input-group">
 
             <label for="websiteDescription">
@@ -610,28 +822,42 @@
 
           </div>
 
+
           <div class="input-group">
 
             <label for="websiteTheme">
               Appearance
             </label>
 
+
             <select id="websiteTheme">
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
+
+              <option value="dark">
+                Dark
+              </option>
+
+              <option value="light">
+                Light
+              </option>
+
             </select>
 
           </div>
 
+
           <div class="setting-block">
 
-            <h4>🖼️ Image Settings</h4>
+            <h4>
+              🖼️ Image Settings
+            </h4>
+
 
             <p>
               Background removal outputs transparent PNG images.
             </p>
 
           </div>
+
 
           <button
             id="saveWebsiteName"
@@ -643,7 +869,11 @@
 
         </section>
 
-        <div id="settingMessage" class="setting-message"></div>
+
+        <div
+          id="settingMessage"
+          class="setting-message"
+        ></div>
 
       </div>
 
@@ -652,10 +882,15 @@
   </div>
 
 
+  <!-- =====================================
+       SCRIPTS
+  ====================================== -->
+
   <script
     type="module"
     src="/src/main.js"
   ></script>
+
 
   <script
     type="module"
