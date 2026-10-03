@@ -46,44 +46,69 @@
       <p class="login-subtitle">
         Sign in to continue
       </p>
+      <form id="loginForm" class="login-form">
+        <div class="login-field">
+    <label for="loginEmail">Email</label>
+    <input
+      id="loginEmail"
+      type="email"
+      placeholder="Enter your email"
+      autocomplete="email"
+      required
+    />
+  </div>
 
-      <form id="loginForm">
+  <div class="login-field">
+    <label for="loginPassword">Password</label>
+    <input
+      id="loginPassword"
+      type="password"
+      placeholder="Enter your password"
+      autocomplete="current-password"
+      required
+    />
+  </div>
 
-        <div class="input-group">
-          <label for="loginEmail">Email</label>
+  <p
+    id="authSubtitle"
+    class="login-subtitle"
+  >
+    Sign in to continue
+  </p>
 
-          <input
-            id="loginEmail"
-            type="email"
-            placeholder="Enter your email"
-            autocomplete="email"
-            required
-          >
-        </div>
+  <button
+    id="loginButton"
+    class="primary-button login-button"
+    type="submit"
+  >
+    Login
+  </button>
 
-        <div class="input-group">
-          <label for="loginPassword">Password</label>
+  <button
+    id="signupButton"
+    class="secondary-button login-button"
+    type="submit"
+    style="display:none;"
+  >
+    Create Account
+  </button>
 
-          <input
-            id="loginPassword"
-            type="password"
-            placeholder="Enter your password"
-            autocomplete="current-password"
-            required
-          >
-        </div>
+  <button
+    id="authSwitchButton"
+    class="reset-button"
+    type="button"
+  >
+    Create a new account
+  </button>
 
-        <button
-          id="loginButton"
-          class="primary-button login-button"
-          type="submit"
-        >
-          Login
-        </button>
+  <div
+    id="loginMessage"
+    class="login-message"
+    aria-live="polite"
+  ></div>
 
-        <div id="loginMessage" class="login-message"></div>
-
-      </form>
+</form>
+      
 
     </div>
 
